@@ -1,6 +1,7 @@
 package jj
 
 import (
+	"container/list"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -16,6 +17,8 @@ type Commit struct {
 	Author        string
 	Branches      string
 	Description   string
+	Children      []*Commit
+	Level         int
 }
 
 func GetCommits(location string) []Commit {
@@ -43,7 +46,24 @@ func parseLogOutput(output string) []Commit {
 			start = -1
 		}
 	}
-	return commits
+	changeIdCommitMap := make(map[string]*Commit)
+	for i, _ := range commits {
+		commit := &commits[i]
+		changeIdCommitMap[commit.ChangeId] = commit
+	}
+	for i, _ := range commits {
+		commit := &commits[i]
+		if parent, ok := changeIdCommitMap[commit.Parent]; ok {
+			parent.Children = append(parent.Children, commit)
+		}
+	}
+
+	stack := dfsPushCommits(&commits[len(commits)-1])
+	commitsArray := make([]Commit, 0, stack.Len())
+	for e := stack.Front(); e != nil; e = e.Next() {
+		commitsArray = append(commitsArray, *e.Value.(*Commit))
+	}
+	return commitsArray
 }
 
 func parseCommit(lines []string) Commit {
@@ -73,4 +93,18 @@ func parseCommit(lines []string) Commit {
 		}
 	}
 	return commit
+}
+
+func dfsPushCommits(root *Commit) *list.List {
+	stack := list.New()
+	dfs(root, stack, 0)
+	return stack
+}
+
+func dfs(commit *Commit, stack *list.List, level int) {
+	commit.Level = level
+	for i, child := range commit.Children {
+		dfs(child, stack, level+i)
+	}
+	stack.PushBack(commit)
 }

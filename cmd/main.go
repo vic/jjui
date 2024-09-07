@@ -95,9 +95,7 @@ func (m model) View() string {
 			items += normal.Render(" ")
 		}
 
-		if commit.IsWorkingCopy {
-			items += normal.Render(" @ ")
-		} else {
+		for j := 0; j < commit.Level; j++ {
 			items += normal.Render(" | ")
 		}
 
@@ -127,9 +125,9 @@ func initialModel() model {
 }
 
 func main() {
-	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
+	p := tea.NewProgram(initialModel())
 	if _, err := p.Run(); err != nil {
-		fmt.Println("Error running program: %v", err)
+		fmt.Printf("Error running program: %v\n", err)
 		os.Exit(1)
 	}
 }
