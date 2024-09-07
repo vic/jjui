@@ -26,7 +26,12 @@ func fetchLog(location string) tea.Cmd {
 type logCommand []jj.Commit
 
 func (m model) Init() tea.Cmd {
-	return fetchLog("/Users/idursun/repositories/elixir/beach_games")
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+		return nil
+	}
+	return fetchLog(dir)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

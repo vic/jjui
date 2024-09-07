@@ -18,7 +18,7 @@ type Commit struct {
 }
 
 func GetCommits(location string) []Commit {
-	cmd := exec.Command("jj", "log", "--template", TEMPLATE)
+	cmd := exec.Command("jj", "log", "--no-graph", "--template", TEMPLATE)
 	cmd.Dir = location
 	output, err := cmd.Output()
 	if err != nil {
