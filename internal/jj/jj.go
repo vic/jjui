@@ -6,12 +6,13 @@ import (
 	"strings"
 )
 
-const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.shortest(6), commit_id, author, coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
+const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(), coalesce(parents.map(|c| c.change_id().short()), "!!NONE"), current_working_copy, author, coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
 
 type Commit struct {
 	ChangeIdShort string
 	ChangeId      string
-	CommitId      string
+	Parent        string
+	IsWorkingCopy bool
 	Author        string
 	Branches      string
 	Description   string
@@ -50,17 +51,21 @@ func parseCommit(lines []string) Commit {
 	commit := Commit{}
 	commit.ChangeIdShort = lines[1][indent:]
 	commit.ChangeId = lines[2][indent:]
-	commit.CommitId = lines[3][indent:]
-	author := lines[4][indent:]
+	parent := lines[3][indent:]
+	if parent != "!!NONE" {
+		commit.Parent = parent
+	}
+	commit.IsWorkingCopy = lines[4][indent:] == "true"
+	author := lines[5][indent:]
 	if author != "!!NONE" {
 		commit.Author = author
 	}
-	branches := lines[5][indent:]
+	branches := lines[6][indent:]
 	if branches != "!!NONE" {
 		commit.Branches = branches
 	}
-	if len(lines) >= 7 {
-		desc := lines[6][indent:]
+	if len(lines) >= 8 {
+		desc := lines[7][indent:]
 		if desc != "!!NONE" {
 			commit.Description = desc
 		} else {

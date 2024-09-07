@@ -7,22 +7,25 @@ import (
 
 func Test_parseLogOutput_Single(t *testing.T) {
 	commits := parseLogOutput(`__BEGIN__
-ps
-psvvky
-042d3f0018e5ae891ee2452274b3c7832d33cd5e
+m
+myxzmzolxmpz
+psvvkyllponl
+true
 ibrahim dursun <some@email.cc>
-!!NONE
-add test binary
+main
+add test
 
 __END__`)
 
 	expected := []Commit{
 		{
-			ChangeIdShort: "ps",
-			ChangeId:      "psvvky",
-			CommitId:      "042d3f0018e5ae891ee2452274b3c7832d33cd5e",
+			ChangeIdShort: "m",
+			ChangeId:      "myxzmzolxmpz",
+			Parent:        "psvvkyllponl",
+			IsWorkingCopy: true,
 			Author:        "ibrahim dursun <some@email.cc>",
-			Description:   "add test binary",
+			Branches:      "main",
+			Description:   "add test",
 		},
 	}
 
@@ -33,7 +36,8 @@ func Test_parseLogOutput_RootCommit(t *testing.T) {
 	commits := parseLogOutput(`__BEGIN__
 z
 zzzzzz
-0000000000000000000000000000000000000000
+!!NONE
+false
 !!NONE
 !!NONE
 __END__`)
@@ -42,7 +46,7 @@ __END__`)
 		{
 			ChangeIdShort: "z",
 			ChangeId:      "zzzzzz",
-			CommitId:      "0000000000000000000000000000000000000000",
+			IsWorkingCopy: false,
 			Author:        "",
 			Description:   "",
 			Branches:      "",
@@ -56,7 +60,8 @@ func Test_parseLogOutput_TwoCommits(t *testing.T) {
 	commits := parseLogOutput(`__BEGIN__
 ps
 psvvky
-042d3f0018e5ae891ee2452274b3c7832d33cd5e
+zzzzzz
+true
 ibrahim dursun <some@email.cc>
 !!NONE
 add test binary
@@ -65,7 +70,8 @@ __END__
 __BEGIN__
 z
 zzzzzz
-0000000000000000000000000000000000000000
+!!NONE
+false
 !!NONE
 !!NONE
 __END__`)
@@ -74,14 +80,16 @@ __END__`)
 		{
 			ChangeIdShort: "ps",
 			ChangeId:      "psvvky",
-			CommitId:      "042d3f0018e5ae891ee2452274b3c7832d33cd5e",
+			Parent:        "zzzzzz",
+			IsWorkingCopy: true,
 			Author:        "ibrahim dursun <some@email.cc>",
 			Description:   "add test binary",
 		},
 		{
 			ChangeIdShort: "z",
 			ChangeId:      "zzzzzz",
-			CommitId:      "0000000000000000000000000000000000000000",
+			Parent:        "",
+			IsWorkingCopy: false,
 			Author:        "",
 			Description:   "",
 			Branches:      "",

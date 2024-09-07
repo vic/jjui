@@ -92,8 +92,15 @@ func (m model) View() string {
 		if r, ok := m.selected[i]; ok && r {
 			items += normalHighlighted.Render("x")
 		} else {
-			items += normal.Render(".")
+			items += normal.Render(" ")
 		}
+
+		if commit.IsWorkingCopy {
+			items += normal.Render(" @ ")
+		} else {
+			items += normal.Render(" | ")
+		}
+
 		if i == m.cursor {
 			item += commitShortStyleHighlighted.Render(commit.ChangeIdShort)
 			item += commitIdRestHighlightedStyle.Render(changeIdRemaining + " ")
