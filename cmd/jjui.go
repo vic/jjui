@@ -96,8 +96,14 @@ func (m model) View() string {
 			items += normal.Render(" ")
 		}
 
-		for j := 0; j < commit.Level; j++ {
-			items += normal.Render(" | ")
+		for j := 0; j < commit.Level-1; j++ {
+			items += normal.Render(" │ ")
+		}
+
+		if commit.IsWorkingCopy {
+			items += normal.Render(" @ ")
+		} else {
+			items += normal.Render(" o ")
 		}
 
 		if i == m.cursor {
