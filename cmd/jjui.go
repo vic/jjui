@@ -9,11 +9,19 @@ import (
 	"strings"
 )
 
+type mode int
+
+const (
+	normalMode mode = iota
+	moveMode
+)
+
 type model struct {
-	items    []jj.Commit
-	selected map[int]bool
-	cursor   int
-	width    int
+	items              []jj.Commit
+	mode               mode
+	draggedCommitIndex int
+	cursor             int
+	width              int
 }
 
 func fetchLog(location string) tea.Cmd {
@@ -48,8 +56,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.cursor > 0 {
 				m.cursor--
 			}
-		case "m", " ":
-			m.selected[m.cursor] = !m.selected[m.cursor]
+		case "esc":
+			m.draggedCommitIndex = -1
+			m.mode = normalMode
+		case " ":
+			if m.mode == normalMode {
+				m.mode = moveMode
+				m.draggedCommitIndex = m.cursor
+			} else {
+				m.mode = normalMode
+				m.draggedCommitIndex = -1
+			}
 		default:
 			return m, nil
 		}
@@ -87,47 +104,61 @@ var normalHighlighted = lipgloss.NewStyle().
 
 func (m model) View() string {
 	items := ""
-	for i, commit := range m.items {
-		changeIdRemaining := strings.TrimPrefix(commit.ChangeId, commit.ChangeIdShort)
-		item := ""
-		if r, ok := m.selected[i]; ok && r {
-			items += normalHighlighted.Render("x")
-		} else {
-			items += normal.Render(" ")
+	for i, _ := range m.items {
+		commit := &m.items[i]
+		switch m.mode {
+		case moveMode:
+			if i == m.cursor {
+				draggedCommit := &m.items[m.draggedCommitIndex]
+				items += m.viewCommit(draggedCommit, i == m.cursor, commit.Level)
+			}
+			if i != m.draggedCommitIndex {
+				items += m.viewCommit(commit, false, commit.Level)
+			}
+		case normalMode:
+			items += m.viewCommit(commit, i == m.cursor, commit.Level)
 		}
-
-		for j := 0; j < commit.Level-1; j++ {
-			items += normal.Render(" │ ")
-		}
-
-		if commit.IsWorkingCopy {
-			items += normal.Render(" @ ")
-		} else {
-			items += normal.Render(" o ")
-		}
-
-		if i == m.cursor {
-			item += commitShortStyleHighlighted.Render(commit.ChangeIdShort)
-			item += commitIdRestHighlightedStyle.Render(changeIdRemaining + " ")
-			item += normalHighlighted.Width(m.width).Render(commit.Description) + "\n"
-		} else {
-			item += commitShortStyle.Render(commit.ChangeIdShort)
-			item += commitIdRestStyle.Render(changeIdRemaining + " ")
-			item += normal.Render(commit.Description) + "\n"
-		}
-		items += item
 	}
-	bottom := fmt.Sprintf("use j,k keys to move and down: %v", m.cursor)
+	bottom := fmt.Sprintf("use j,k keys to move up and down: %v\n", m.cursor)
+	if m.mode == moveMode {
+		bottom += "jj rebase -r " + m.items[m.draggedCommitIndex].ChangeIdShort + " -d " + m.items[m.cursor].ChangeIdShort + "\n"
+	}
 
 	return items + bottom
 }
 
+func (m model) viewCommit(commit *jj.Commit, highlighted bool, level int) string {
+	changeIdRemaining := strings.TrimPrefix(commit.ChangeId, commit.ChangeIdShort)
+	item := ""
+	for j := 0; j < level-1; j++ {
+		item += normal.Render(" │ ")
+	}
+
+	if commit.IsWorkingCopy {
+		item += normal.Render(" @ ")
+	} else {
+		item += normal.Render(" o ")
+	}
+
+	if highlighted {
+		item += commitShortStyleHighlighted.Render(commit.ChangeIdShort)
+		item += commitIdRestHighlightedStyle.Render(changeIdRemaining + " ")
+		item += normalHighlighted.Width(m.width).Render(commit.Description)
+	} else {
+		item += commitShortStyle.Render(commit.ChangeIdShort)
+		item += commitIdRestStyle.Render(changeIdRemaining + " ")
+		item += normal.Render(commit.Description)
+	}
+	return item + "\n"
+}
+
 func initialModel() model {
 	return model{
-		items:    []jj.Commit{},
-		selected: make(map[int]bool),
-		cursor:   0,
-		width:    20,
+		items:              []jj.Commit{},
+		draggedCommitIndex: -1,
+		mode:               normalMode,
+		cursor:             0,
+		width:              20,
 	}
 }
 
