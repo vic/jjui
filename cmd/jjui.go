@@ -31,6 +31,13 @@ func fetchLog(location string) tea.Cmd {
 	}
 }
 
+func rebaseCommand(from, to string) tea.Cmd {
+	if err := jj.RebaseCommand(from, to); err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+	return fetchLog(os.Getenv("PWD"))
+}
+
 type logCommand []jj.Commit
 
 func (m model) Init() tea.Cmd {
@@ -66,6 +73,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.mode = normalMode
 				m.draggedCommitIndex = -1
+			}
+		case "enter":
+			if m.mode == moveMode {
+				m.mode = normalMode
+				fromRevision := m.items[m.draggedCommitIndex].ChangeIdShort
+				toRevision := m.items[m.cursor].ChangeIdShort
+				m.draggedCommitIndex = -1
+				return m, rebaseCommand(fromRevision, toRevision)
 			}
 		default:
 			return m, nil

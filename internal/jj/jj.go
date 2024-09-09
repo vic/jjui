@@ -123,3 +123,9 @@ func dfs(commit *Commit, visited map[string]bool, stack *list.List, level int) {
 		}
 	}
 }
+
+func RebaseCommand(from string, to string) error {
+	cmd := exec.Command("jj", "rebase", "-r", from, "-d", to)
+	err := cmd.Run()
+	return err
+}
