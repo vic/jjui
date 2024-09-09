@@ -117,7 +117,8 @@ func dfs(commit *Commit, visited map[string]bool, stack *list.List, level int) {
 	commit.level = level
 	visited[commit.ChangeId] = true
 	stack.PushBack(commit)
-	for i, child := range commit.children {
+	for i := len(commit.children) - 1; i >= 0; i-- {
+		child := commit.children[i]
 		if _, ok := visited[child.ChangeId]; !ok {
 			dfs(child, visited, stack, level+i)
 		}

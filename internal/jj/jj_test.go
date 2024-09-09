@@ -119,3 +119,16 @@ func TestBuildCommitTree_WithElidedCommits(t *testing.T) {
 	assert.Equal(t, commits[1].ChangeId, sorted[1].ChangeId)
 	assert.Equal(t, commits[2].ChangeId, sorted[2].ChangeId)
 }
+
+func TestBuildCommitTree_WithTop2Commits(t *testing.T) {
+	commits := []Commit{
+		{ChangeId: "top_empty", Parents: []string{"parent"}},
+		{ChangeId: "top_addfile", Parents: []string{"parent"}},
+		{ChangeId: "parent", Parents: nil},
+	}
+	sorted := BuildCommitTree(commits)
+	assert.Len(t, sorted, len(commits))
+	sortedChangeIds := []string{sorted[0].ChangeId, sorted[1].ChangeId, sorted[2].ChangeId}
+	assert.Exactly(t, []string{"top_empty", "top_addfile", "parent"}, sortedChangeIds)
+	assert.Equal(t, 1, sorted[1].Level())
+}
