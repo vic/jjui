@@ -16,6 +16,21 @@ const (
 	moveMode
 )
 
+var highlightColor = lipgloss.Color("#282a36")
+var commitShortStyle = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(lipgloss.Color("#bd93f9"))
+
+var commitIdRestStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#6272a4"))
+
+var authorStyle = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(lipgloss.Color("#ffb86c"))
+
+var normal = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#f8f8f2"))
+
 type model struct {
 	items              []jj.Commit
 	mode               mode
@@ -93,29 +108,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	return m, nil
 }
-
-var highlightColor = lipgloss.Color("#39a8f7")
-var commitShortStyle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(lipgloss.Color("#DC8CCA"))
-
-var commitShortStyleHighlighted = lipgloss.NewStyle().
-	Background(highlightColor).
-	Inherit(commitShortStyle)
-
-var commitIdRestStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#696969"))
-
-var commitIdRestHighlightedStyle = lipgloss.NewStyle().
-	Background(highlightColor).
-	Inherit(commitIdRestStyle)
-
-var normal = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#e6e6e6"))
-
-var normalHighlighted = lipgloss.NewStyle().
-	Background(highlightColor).
-	Inherit(normal)
 
 func (m model) View() string {
 	items := strings.Builder{}

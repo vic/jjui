@@ -106,8 +106,6 @@ func parseCommit(lines []string) Commit {
 		desc := lines[7][indent:]
 		if desc != "!!NONE" {
 			commit.Description = desc
-		} else {
-			commit.Description = "(empty)"
 		}
 	}
 	return commit
