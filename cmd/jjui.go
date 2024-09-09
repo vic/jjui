@@ -118,53 +118,66 @@ var normalHighlighted = lipgloss.NewStyle().
 	Inherit(normal)
 
 func (m model) View() string {
-	items := ""
+	items := strings.Builder{}
 	for i := 0; i < len(m.items); i++ {
 		commit := &m.items[i]
 		switch m.mode {
 		case moveMode:
 			if i == m.cursor {
 				draggedCommit := &m.items[m.draggedCommitIndex]
-				items += m.viewCommit(draggedCommit, i == m.cursor, commit.Level())
+				items.WriteString(m.viewCommit(draggedCommit, i == m.cursor, commit.Level()))
 			}
 			if i != m.draggedCommitIndex {
-				items += m.viewCommit(commit, false, commit.Level())
+				items.WriteString(m.viewCommit(commit, false, commit.Level()))
 			}
 		case normalMode:
-			items += m.viewCommit(commit, i == m.cursor, commit.Level())
+			items.WriteString(m.viewCommit(commit, i == m.cursor, commit.Level()))
 		}
 	}
 	bottom := fmt.Sprintf("use j,k keys to move up and down: %v\n", m.cursor)
 	if m.mode == moveMode {
 		bottom += "jj rebase -r " + m.items[m.draggedCommitIndex].ChangeIdShort + " -d " + m.items[m.cursor].ChangeIdShort + "\n"
 	}
-
-	return items + bottom
+	items.WriteString(bottom)
+	return items.String()
 }
 
 func (m model) viewCommit(commit *jj.Commit, highlighted bool, level int) string {
 	changeIdRemaining := strings.TrimPrefix(commit.ChangeId, commit.ChangeIdShort)
-	item := ""
+	builder := strings.Builder{}
 	for j := 0; j < level; j++ {
-		item += normal.Render(" │ ")
+		builder.WriteString(normal.Render(" │ "))
 	}
 
 	if commit.IsWorkingCopy {
-		item += normal.Render(" @ ")
+		builder.WriteString(normal.Render(" @ "))
 	} else {
-		item += normal.Render(" o ")
+		builder.WriteString(normal.Render(" o "))
 	}
 
 	if highlighted {
-		item += commitShortStyleHighlighted.Render(commit.ChangeIdShort)
-		item += commitIdRestHighlightedStyle.Render(changeIdRemaining + " ")
-		item += normalHighlighted.Width(m.width).Render(commit.Description)
+		builder.WriteString(commitShortStyle.Background(highlightColor).Render(commit.ChangeIdShort))
+		builder.WriteString(commitIdRestStyle.Background(highlightColor).Render(changeIdRemaining + " "))
+		builder.WriteString(authorStyle.Background(highlightColor).Render(commit.Author) + "\n")
+		builder.WriteString(strings.Repeat(" │ ", level+1))
+		if commit.Description == "" {
+			builder.WriteString(normal.Background(highlightColor).Bold(true).Foreground(lipgloss.Color("#50fa7b")).Width(m.width).Render("(no description)"))
+		} else {
+			builder.WriteString(normal.Background(highlightColor).Width(m.width).Render(commit.Description))
+		}
 	} else {
-		item += commitShortStyle.Render(commit.ChangeIdShort)
-		item += commitIdRestStyle.Render(changeIdRemaining + " ")
-		item += normal.Render(commit.Description)
+		builder.WriteString(commitShortStyle.Render(commit.ChangeIdShort))
+		builder.WriteString(commitIdRestStyle.Render(changeIdRemaining + " "))
+		builder.WriteString(authorStyle.Render(commit.Author) + "\n")
+		builder.WriteString(strings.Repeat(" │ ", level+1))
+		if commit.Description == "" {
+			builder.WriteString(normal.Bold(true).Foreground(lipgloss.Color("#50fa7b")).Render("(no description)"))
+		} else {
+			builder.WriteString(normal.Render(commit.Description))
+		}
 	}
-	return item + "\n"
+	builder.WriteString("\n")
+	return builder.String()
 }
 
 func initialModel() model {
