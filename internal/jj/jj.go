@@ -12,13 +12,17 @@ const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.s
 type Commit struct {
 	ChangeIdShort string
 	ChangeId      string
-	Parent        string
+	Parents       []string
 	IsWorkingCopy bool
 	Author        string
 	Branches      string
 	Description   string
-	Children      []*Commit
-	Level         int
+	children      []*Commit
+	level         int
+}
+
+func (c Commit) Level() int {
+	return c.level
 }
 
 func GetCommits(location string) []Commit {
@@ -53,8 +57,10 @@ func parseLogOutput(output string) []Commit {
 	}
 	for i, _ := range commits {
 		commit := &commits[i]
-		if parent, ok := changeIdCommitMap[commit.Parent]; ok {
-			parent.Children = append(parent.Children, commit)
+		for _, parent := range commit.Parents {
+			if parent, ok := changeIdCommitMap[parent]; ok {
+				parent.children = append(parent.children, commit)
+			}
 		}
 	}
 
@@ -71,9 +77,9 @@ func parseCommit(lines []string) Commit {
 	commit := Commit{}
 	commit.ChangeIdShort = lines[1][indent:]
 	commit.ChangeId = lines[2][indent:]
-	parent := lines[3][indent:]
-	if parent != "!!NONE" {
-		commit.Parent = parent
+	parents := lines[3][indent:]
+	if parents != "!!NONE" {
+		commit.Parents = strings.Split(parents, " ")
 	}
 	commit.IsWorkingCopy = lines[4][indent:] == "true"
 	author := lines[5][indent:]
@@ -102,8 +108,8 @@ func dfsPushCommits(root *Commit) *list.List {
 }
 
 func dfs(commit *Commit, stack *list.List, level int) {
-	commit.Level = level
-	for i, child := range commit.Children {
+	commit.level = level
+	for i, child := range commit.children {
 		dfs(child, stack, level+i)
 	}
 	stack.PushBack(commit)

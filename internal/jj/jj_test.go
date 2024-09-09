@@ -17,19 +17,17 @@ add test
 
 __END__`)
 
-	expected := []Commit{
-		{
-			ChangeIdShort: "m",
-			ChangeId:      "myxzmzolxmpz",
-			Parent:        "psvvkyllponl",
-			IsWorkingCopy: true,
-			Author:        "ibrahim dursun <some@email.cc>",
-			Branches:      "main",
-			Description:   "add test",
-		},
+	expected := Commit{
+		ChangeIdShort: "m",
+		ChangeId:      "myxzmzolxmpz",
+		Parents:       []string{"psvvkyllponl"},
+		IsWorkingCopy: true,
+		Author:        "ibrahim dursun <some@email.cc>",
+		Branches:      "main",
+		Description:   "add test",
 	}
 
-	assert.Equal(t, expected, commits)
+	assert.EqualExportedValues(t, expected, commits[0])
 }
 
 func Test_parseLogOutput_RootCommit(t *testing.T) {
@@ -80,7 +78,7 @@ __END__`)
 		{
 			ChangeIdShort: "ps",
 			ChangeId:      "psvvky",
-			Parent:        "zzzzzz",
+			Parents:       []string{"zzzzzz"},
 			IsWorkingCopy: true,
 			Author:        "ibrahim dursun <some@email.cc>",
 			Description:   "add test binary",
@@ -88,7 +86,7 @@ __END__`)
 		{
 			ChangeIdShort: "z",
 			ChangeId:      "zzzzzz",
-			Parent:        "",
+			Parents:       nil,
 			IsWorkingCopy: false,
 			Author:        "",
 			Description:   "",
@@ -96,5 +94,6 @@ __END__`)
 		},
 	}
 
-	assert.Equal(t, expected, commits)
+	assert.EqualExportedValues(t, expected[0], commits[0])
+	assert.EqualExportedValues(t, expected[1], commits[1])
 }

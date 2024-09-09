@@ -110,13 +110,13 @@ func (m model) View() string {
 		case moveMode:
 			if i == m.cursor {
 				draggedCommit := &m.items[m.draggedCommitIndex]
-				items += m.viewCommit(draggedCommit, i == m.cursor, commit.Level)
+				items += m.viewCommit(draggedCommit, i == m.cursor, commit.Level())
 			}
 			if i != m.draggedCommitIndex {
-				items += m.viewCommit(commit, false, commit.Level)
+				items += m.viewCommit(commit, false, commit.Level())
 			}
 		case normalMode:
-			items += m.viewCommit(commit, i == m.cursor, commit.Level)
+			items += m.viewCommit(commit, i == m.cursor, commit.Level())
 		}
 	}
 	bottom := fmt.Sprintf("use j,k keys to move up and down: %v\n", m.cursor)
