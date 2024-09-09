@@ -119,7 +119,7 @@ var normalHighlighted = lipgloss.NewStyle().
 
 func (m model) View() string {
 	items := ""
-	for i, _ := range m.items {
+	for i := 0; i < len(m.items); i++ {
 		commit := &m.items[i]
 		switch m.mode {
 		case moveMode:
