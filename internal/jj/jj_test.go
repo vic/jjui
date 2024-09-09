@@ -97,3 +97,25 @@ __END__`)
 	assert.EqualExportedValues(t, expected[0], commits[0])
 	assert.EqualExportedValues(t, expected[1], commits[1])
 }
+
+func TestBuildCommitTree_WithElidedCommits(t *testing.T) {
+	commits := []Commit{
+		{
+			ChangeId: "topchange",
+			Parents:  []string{"missingroot"},
+		},
+		{
+			ChangeId: "psvvky",
+			Parents:  []string{"zzzzzz"},
+		},
+		{
+			ChangeId: "zzzzzz",
+			Parents:  nil,
+		},
+	}
+	sorted := BuildCommitTree(commits)
+	assert.Len(t, sorted, 3)
+	assert.Equal(t, commits[0].ChangeId, sorted[0].ChangeId)
+	assert.Equal(t, commits[1].ChangeId, sorted[1].ChangeId)
+	assert.Equal(t, commits[2].ChangeId, sorted[2].ChangeId)
+}

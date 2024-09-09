@@ -36,20 +36,7 @@ func GetCommits(location string) []Commit {
 	return parseLogOutput(string(output))
 }
 
-func parseLogOutput(output string) []Commit {
-	lines := strings.Split(output, "\n")
-	start := -1
-	commits := make([]Commit, 0)
-	for i := 0; i < len(lines); i++ {
-		if strings.Contains(lines[i], "__BEGIN__") {
-			start = i
-			continue
-		}
-		if strings.Contains(lines[i], "__END__") {
-			commits = append(commits, parseCommit(lines[start:i]))
-			start = -1
-		}
-	}
+func BuildCommitTree(commits []Commit) []Commit {
 	changeIdCommitMap := make(map[string]*Commit)
 	for i, _ := range commits {
 		commit := &commits[i]
@@ -64,12 +51,37 @@ func parseLogOutput(output string) []Commit {
 		}
 	}
 
-	stack := dfsPushCommits(&commits[len(commits)-1])
-	commitsArray := make([]Commit, 0, stack.Len())
-	for e := stack.Front(); e != nil; e = e.Next() {
-		commitsArray = append(commitsArray, *e.Value.(*Commit))
+	visited := make(map[string]bool)
+	stack := list.New()
+	for i := len(commits) - 1; i >= 0; i-- {
+		root := &commits[i]
+		if _, ok := visited[root.ChangeId]; !ok {
+			dfs(root, visited, stack, 0)
+		}
+	}
+	commitsArray := make([]Commit, 0)
+	// enumerate stack in reverse
+	for i := stack.Back(); i != nil; i = i.Prev() {
+		commitsArray = append(commitsArray, *i.Value.(*Commit))
 	}
 	return commitsArray
+}
+
+func parseLogOutput(output string) []Commit {
+	lines := strings.Split(output, "\n")
+	start := -1
+	commits := make([]Commit, 0)
+	for i := 0; i < len(lines); i++ {
+		if strings.Contains(lines[i], "__BEGIN__") {
+			start = i
+			continue
+		}
+		if strings.Contains(lines[i], "__END__") {
+			commits = append(commits, parseCommit(lines[start:i]))
+			start = -1
+		}
+	}
+	return BuildCommitTree(commits)
 }
 
 func parseCommit(lines []string) Commit {
@@ -101,16 +113,13 @@ func parseCommit(lines []string) Commit {
 	return commit
 }
 
-func dfsPushCommits(root *Commit) *list.List {
-	stack := list.New()
-	dfs(root, stack, 0)
-	return stack
-}
-
-func dfs(commit *Commit, stack *list.List, level int) {
+func dfs(commit *Commit, visited map[string]bool, stack *list.List, level int) {
 	commit.level = level
-	for i, child := range commit.children {
-		dfs(child, stack, level+i)
-	}
+	visited[commit.ChangeId] = true
 	stack.PushBack(commit)
+	for i, child := range commit.children {
+		if _, ok := visited[child.ChangeId]; !ok {
+			dfs(child, visited, stack, level+i)
+		}
+	}
 }
