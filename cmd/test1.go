@@ -7,7 +7,12 @@ import (
 )
 
 func main() {
-	commits := jj.GetCommits(os.Getenv("PWD"))
+	// get argument
+	location := os.Getenv("PWD")
+	if len(os.Args) > 1 {
+		location = os.Args[1]
+	}
+	commits := jj.GetCommits(location)
 	for _, commit := range commits {
 		fmt.Printf("%+v\n", commit)
 	}
