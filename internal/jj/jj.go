@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(), coalesce(parents.map(|c| c.change_id().short()), "!!NONE"), current_working_copy, author, coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
+const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, author.email(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
 
 type Commit struct {
 	ChangeIdShort string
