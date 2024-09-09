@@ -145,7 +145,7 @@ func (m model) View() string {
 func (m model) viewCommit(commit *jj.Commit, highlighted bool, level int) string {
 	changeIdRemaining := strings.TrimPrefix(commit.ChangeId, commit.ChangeIdShort)
 	item := ""
-	for j := 0; j < level-1; j++ {
+	for j := 0; j < level; j++ {
 		item += normal.Render(" │ ")
 	}
 
