@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, author.email(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
+const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, author.email(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
 
 type Commit struct {
 	ChangeIdShort string
@@ -17,6 +17,7 @@ type Commit struct {
 	Author        string
 	Branches      string
 	Description   string
+	Immutable     bool
 	children      []*Commit
 	level         int
 }
@@ -42,10 +43,10 @@ func BuildCommitTree(commits []Commit) []Commit {
 		commit := &commits[i]
 		changeIdCommitMap[commit.ChangeId] = commit
 	}
-	elidedRevisions := false
+	//elidedRevisions := false
 	for i, _ := range commits {
 		commit := &commits[i]
-		if elidedRevisions {
+		if !commit.Immutable {
 			commit.level = 1
 		}
 		for _, parent := range commit.Parents {
@@ -53,7 +54,7 @@ func BuildCommitTree(commits []Commit) []Commit {
 				parent.children = append(parent.children, commit)
 			} else {
 				commit.Parents = nil
-				elidedRevisions = true
+				//elidedRevisions = true
 			}
 		}
 	}
@@ -110,16 +111,17 @@ func parseCommit(lines []string) Commit {
 		commit.Parents = strings.Split(parents, " ")
 	}
 	commit.IsWorkingCopy = lines[4][indent:] == "true"
-	author := lines[5][indent:]
+	commit.Immutable = lines[5][indent:] == "true"
+	author := lines[6][indent:]
 	if author != "!!NONE" {
 		commit.Author = author
 	}
-	branches := lines[6][indent:]
+	branches := lines[7][indent:]
 	if branches != "!!NONE" {
 		commit.Branches = branches
 	}
-	if len(lines) >= 8 {
-		desc := lines[7][indent:]
+	if len(lines) >= 9 {
+		desc := lines[8][indent:]
 		if desc != "!!NONE" {
 			commit.Description = desc
 		}
