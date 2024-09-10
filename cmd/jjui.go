@@ -72,17 +72,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "down", "j":
 			if m.mode == moveMode {
-				if m.cursor < len(m.items) {
+				//skip over dragged commit
+				if m.cursor == m.draggedCommitIndex-1 || m.cursor == m.draggedCommitIndex {
 					m.cursor++
 				}
-				if m.cursor == m.draggedCommitIndex {
+				if m.cursor < len(m.items) {
 					m.cursor++
 				}
 			} else if m.cursor < len(m.items)-1 {
 				m.cursor++
 			}
 		case "up", "k":
-			if m.cursor > 0 {
+			if m.mode == moveMode {
+				if m.cursor == m.draggedCommitIndex+1 || m.cursor == m.draggedCommitIndex {
+					m.cursor--
+				}
+				if m.cursor > 0 {
+					m.cursor--
+				}
+			} else if m.cursor > 0 {
 				m.cursor--
 			}
 		case "esc":
@@ -140,7 +148,7 @@ func (m model) View() string {
 	if m.cursor == len(m.items) && m.mode == moveMode {
 		items.WriteString(m.viewCommit(&m.items[m.draggedCommitIndex], true, m.items[m.draggedCommitIndex].Level()))
 	}
-	bottom := fmt.Sprintf("use j,k keys to move up and down: %v\n", m.cursor)
+	bottom := fmt.Sprintf("use j,k keys to move up and down: cursor:%v dragged:%d\n", m.cursor, m.draggedCommitIndex)
 	if m.mode == moveMode {
 		if m.cursor == len(m.items) {
 			bottom += "jj rebase -r " + m.items[m.draggedCommitIndex].ChangeIdShort + " --insert-before " + m.items[len(m.items)-1].ChangeIdShort + "\n"
