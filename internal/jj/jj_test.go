@@ -20,7 +20,7 @@ __END__`)
 	expected := Commit{
 		ChangeIdShort: "m",
 		ChangeId:      "myxzmzolxmpz",
-		Parents:       []string{"psvvkyllponl"},
+		Parents:       nil,
 		IsWorkingCopy: true,
 		Author:        "ibrahim dursun <some@email.cc>",
 		Branches:      "main",
@@ -102,7 +102,7 @@ func TestBuildCommitTree_WithElidedCommits(t *testing.T) {
 	commits := []Commit{
 		{
 			ChangeId: "topchange",
-			Parents:  []string{"missingroot"},
+			Parents:  nil,
 		},
 		{
 			ChangeId: "psvvky",
@@ -131,4 +131,17 @@ func TestBuildCommitTree_WithTop2Commits(t *testing.T) {
 	sortedChangeIds := []string{sorted[0].ChangeId, sorted[1].ChangeId, sorted[2].ChangeId}
 	assert.Exactly(t, []string{"top_empty", "top_addfile", "parent"}, sortedChangeIds)
 	assert.Equal(t, 1, sorted[1].Level())
+}
+
+func TestBuildCommitTree_LevelsWithElidedRevisions(t *testing.T) {
+	commits := []Commit{
+		{ChangeId: "top", Parents: nil},
+		{ChangeId: "middle", Parents: []string{"middle_parent"}},
+		{ChangeId: "middle_parent", Parents: nil},
+	}
+	sorted := BuildCommitTree(commits)
+	assert.Len(t, sorted, len(commits))
+	assert.Equal(t, 0, sorted[0].Level(), "top should be at level 0")
+	assert.Equal(t, 1, sorted[1].Level(), "middle should be at level 1")
+	assert.Equal(t, 0, sorted[2].Level(), "middle_parent should be at level 0")
 }

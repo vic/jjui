@@ -42,13 +42,18 @@ func BuildCommitTree(commits []Commit) []Commit {
 		commit := &commits[i]
 		changeIdCommitMap[commit.ChangeId] = commit
 	}
+	elidedRevisions := false
 	for i, _ := range commits {
 		commit := &commits[i]
+		if elidedRevisions {
+			commit.level = 1
+		}
 		for _, parent := range commit.Parents {
 			if parent, ok := changeIdCommitMap[parent]; ok {
 				parent.children = append(parent.children, commit)
 			} else {
 				commit.Parents = nil
+				elidedRevisions = true
 			}
 		}
 	}
@@ -59,6 +64,7 @@ func BuildCommitTree(commits []Commit) []Commit {
 		if root.Parents != nil {
 			continue
 		}
+		root.level = 0
 		dfs(root, stack, 0)
 	}
 	commitsArray := make([]Commit, 0)
@@ -69,7 +75,7 @@ func BuildCommitTree(commits []Commit) []Commit {
 }
 
 func dfs(commit *Commit, stack *list.List, level int) {
-	commit.level = level
+	commit.level += level
 	stack.PushBack(commit)
 	for i := len(commit.children) - 1; i >= 0; i-- {
 		child := commit.children[i]
