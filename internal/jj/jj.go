@@ -53,20 +53,28 @@ func BuildCommitTree(commits []Commit) []Commit {
 		}
 	}
 
-	visited := make(map[string]bool)
 	stack := list.New()
 	for i := len(commits) - 1; i >= 0; i-- {
 		root := &commits[i]
-		if _, ok := visited[root.ChangeId]; !ok {
-			dfs(root, visited, stack, 0)
+		if root.Parents != nil {
+			continue
 		}
+		dfs(root, stack, 0)
 	}
 	commitsArray := make([]Commit, 0)
-	// enumerate stack in reverse
 	for i := stack.Back(); i != nil; i = i.Prev() {
 		commitsArray = append(commitsArray, *i.Value.(*Commit))
 	}
 	return commitsArray
+}
+
+func dfs(commit *Commit, stack *list.List, level int) {
+	commit.level = level
+	stack.PushBack(commit)
+	for i := len(commit.children) - 1; i >= 0; i-- {
+		child := commit.children[i]
+		dfs(child, stack, level+i)
+	}
 }
 
 func parseLogOutput(output string) []Commit {
@@ -111,18 +119,6 @@ func parseCommit(lines []string) Commit {
 		}
 	}
 	return commit
-}
-
-func dfs(commit *Commit, visited map[string]bool, stack *list.List, level int) {
-	commit.level = level
-	visited[commit.ChangeId] = true
-	stack.PushBack(commit)
-	for i := len(commit.children) - 1; i >= 0; i-- {
-		child := commit.children[i]
-		if _, ok := visited[child.ChangeId]; !ok {
-			dfs(child, visited, stack, level+i)
-		}
-	}
 }
 
 func RebaseCommand(from string, to string) error {
