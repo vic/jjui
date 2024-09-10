@@ -47,6 +47,8 @@ func BuildCommitTree(commits []Commit) []Commit {
 		for _, parent := range commit.Parents {
 			if parent, ok := changeIdCommitMap[parent]; ok {
 				parent.children = append(parent.children, commit)
+			} else {
+				commit.Parents = nil
 			}
 		}
 	}

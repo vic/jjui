@@ -125,6 +125,10 @@ func (m model) View() string {
 		case normalMode:
 			items.WriteString(m.viewCommit(commit, i == m.cursor, commit.Level()))
 		}
+		if len(commit.Parents) == 0 && i < len(m.items)-1 {
+			items.WriteString(commitIdRestStyle.Render(" ~ (elided revisions)"))
+			items.WriteString("\n")
+		}
 	}
 	bottom := fmt.Sprintf("use j,k keys to move up and down: %v\n", m.cursor)
 	if m.mode == moveMode {
