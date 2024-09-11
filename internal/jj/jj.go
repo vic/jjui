@@ -98,7 +98,7 @@ func parseLogOutput(output string) []Commit {
 			start = -1
 		}
 	}
-	return BuildCommitTree(commits)
+	return commits
 }
 
 func parseCommit(lines []string) Commit {

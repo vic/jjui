@@ -41,8 +41,8 @@ type model struct {
 
 func fetchLog(location string) tea.Cmd {
 	return func() tea.Msg {
-		lines := jj.GetCommits(location)
-		return logCommand(lines)
+		commits := jj.GetCommits(location)
+		return logCommand(jj.BuildCommitTree(commits))
 	}
 }
 
