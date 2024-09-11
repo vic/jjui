@@ -127,6 +127,7 @@ func TestBuildCommitTree_WithTop2Commits(t *testing.T) {
 		{ChangeId: "parent", Parents: nil},
 	}
 	sorted := BuildCommitTree(commits)
+
 	assert.Len(t, sorted, len(commits))
 	sortedChangeIds := []string{sorted[0].ChangeId, sorted[1].ChangeId, sorted[2].ChangeId}
 	assert.Exactly(t, []string{"top_empty", "top_addfile", "parent"}, sortedChangeIds)
