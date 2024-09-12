@@ -1,7 +1,6 @@
 package jj
 
 import (
-	"container/list"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -18,12 +17,6 @@ type Commit struct {
 	Branches      string
 	Description   string
 	Immutable     bool
-	children      []*Commit
-	level         int
-}
-
-func (c Commit) Level() int {
-	return c.level
 }
 
 func GetCommits(location string) []Commit {
@@ -35,53 +28,6 @@ func GetCommits(location string) []Commit {
 		return nil
 	}
 	return parseLogOutput(string(output))
-}
-
-func BuildCommitTree(commits []Commit) []Commit {
-	changeIdCommitMap := make(map[string]*Commit)
-	for i, _ := range commits {
-		commit := &commits[i]
-		changeIdCommitMap[commit.ChangeId] = commit
-	}
-	//elidedRevisions := false
-	for i, _ := range commits {
-		commit := &commits[i]
-		if !commit.Immutable {
-			commit.level = 1
-		}
-		for _, parent := range commit.Parents {
-			if parent, ok := changeIdCommitMap[parent]; ok {
-				parent.children = append(parent.children, commit)
-			} else {
-				commit.Parents = nil
-				//elidedRevisions = true
-			}
-		}
-	}
-
-	stack := list.New()
-	for i := len(commits) - 1; i >= 0; i-- {
-		root := &commits[i]
-		if root.Parents != nil {
-			continue
-		}
-		root.level = 0
-		dfs(root, stack, 0)
-	}
-	commitsArray := make([]Commit, 0)
-	for i := stack.Back(); i != nil; i = i.Prev() {
-		commitsArray = append(commitsArray, *i.Value.(*Commit))
-	}
-	return commitsArray
-}
-
-func dfs(commit *Commit, stack *list.List, level int) {
-	commit.level += level
-	stack.PushBack(commit)
-	for i := len(commit.children) - 1; i >= 0; i-- {
-		child := commit.children[i]
-		dfs(child, stack, level+i)
-	}
 }
 
 func parseLogOutput(output string) []Commit {

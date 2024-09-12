@@ -30,6 +30,29 @@ func NewDag() *Dag {
 	}
 }
 
+func Build(commits []jj.Commit) *Node {
+	tree := NewDag()
+	for _, commit := range commits {
+		tree.AddNode(&commit)
+	}
+
+	for _, commit := range commits {
+		node := tree.GetNode(&commit)
+		for _, parent := range commit.Parents {
+			if parent := tree.GetNodeByChangeId(parent); parent != nil {
+				parent.AddEdge(node, DirectEdge)
+			}
+		}
+	}
+
+	roots := tree.GetRoots()
+	for i := 0; i < len(roots)-1; i++ {
+		next := roots[i+1]
+		next.AddEdge(roots[i], IndirectEdge)
+	}
+    return roots[len(roots)-1]
+}
+
 func (d *Dag) AddNode(c *jj.Commit) (node *Node) {
 	node = &Node{
 		Commit: c,

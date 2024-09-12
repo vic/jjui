@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"jjui/internal/dag"
 	"jjui/internal/jj"
 	"os"
 	"strings"
@@ -16,33 +16,22 @@ const (
 	moveMode
 )
 
-var highlightColor = lipgloss.Color("#282a36")
-var commitShortStyle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(lipgloss.Color("#bd93f9"))
-
-var commitIdRestStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#6272a4"))
-
-var authorStyle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(lipgloss.Color("#ffb86c"))
-
-var normal = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#f8f8f2"))
-
 type model struct {
-	items              []jj.Commit
+	rows               []dag.GraphRow
 	mode               mode
 	draggedCommitIndex int
 	cursor             int
 	width              int
 }
 
+type logCommand []dag.GraphRow
+
 func fetchLog(location string) tea.Cmd {
 	return func() tea.Msg {
 		commits := jj.GetCommits(location)
-		return logCommand(jj.BuildCommitTree(commits))
+		root := dag.Build(commits)
+		rows := dag.BuildGraphRows(root)
+		return logCommand(rows)
 	}
 }
 
@@ -52,9 +41,6 @@ func rebaseCommand(from, to string) tea.Cmd {
 	}
 	return fetchLog(os.Getenv("PWD"))
 }
-
-type logCommand []jj.Commit
-
 func (m model) Init() tea.Cmd {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -76,10 +62,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor == m.draggedCommitIndex-1 || m.cursor == m.draggedCommitIndex {
 					m.cursor++
 				}
-				if m.cursor < len(m.items) {
+				if m.cursor < len(m.rows) {
 					m.cursor++
 				}
-			} else if m.cursor < len(m.items)-1 {
+			} else if m.cursor < len(m.rows)-1 {
 				m.cursor++
 			}
 		case "up", "k":
@@ -107,8 +93,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			if m.mode == moveMode {
 				m.mode = normalMode
-				fromRevision := m.items[m.draggedCommitIndex].ChangeIdShort
-				toRevision := m.items[m.cursor].ChangeIdShort
+				fromRevision := m.rows[m.draggedCommitIndex].Commit.ChangeIdShort
+				toRevision := m.rows[m.cursor].Commit.ChangeIdShort
 				m.draggedCommitIndex = -1
 				return m, rebaseCommand(fromRevision, toRevision)
 			}
@@ -116,8 +102,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 	case logCommand:
-		commits := []jj.Commit(msg)
-		m.items = commits
+		rows := []dag.GraphRow(msg)
+		m.rows = rows
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 	}
@@ -126,81 +112,44 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	items := strings.Builder{}
-	for i := 0; i < len(m.items); i++ {
-		commit := &m.items[i]
+	for i := 0; i < len(m.rows); i++ {
+		row := &m.rows[i]
 		switch m.mode {
 		case moveMode:
 			if i == m.cursor {
-				draggedCommit := &m.items[m.draggedCommitIndex]
-				items.WriteString(m.viewCommit(draggedCommit, i == m.cursor, commit.Level()))
+				draggedRow := &m.rows[m.draggedCommitIndex]
+				dag.DefaultRenderer(&items, draggedRow, dag.HighlightedPalette)
 			}
 			if i != m.draggedCommitIndex {
-				items.WriteString(m.viewCommit(commit, false, commit.Level()))
+				dag.DefaultRenderer(&items, row, dag.DefaultPalette)
 			}
 		case normalMode:
-			items.WriteString(m.viewCommit(commit, i == m.cursor, commit.Level()))
-		}
-		if len(commit.Parents) == 0 && i < len(m.items)-1 {
-			items.WriteString(commitIdRestStyle.Render(" ~ (elided revisions)"))
-			items.WriteString("\n")
+			palette := dag.DefaultPalette
+			if i == m.cursor {
+				palette = dag.HighlightedPalette
+			}
+			dag.DefaultRenderer(&items, row, palette)
 		}
 	}
-	if m.cursor == len(m.items) && m.mode == moveMode {
-		items.WriteString(m.viewCommit(&m.items[m.draggedCommitIndex], true, m.items[m.draggedCommitIndex].Level()))
+	if m.cursor == len(m.rows) && m.mode == moveMode {
+		//TODO: should be rendered at a different level
+		dag.DefaultRenderer(&items, &m.rows[m.draggedCommitIndex], dag.HighlightedPalette)
 	}
-	bottom := fmt.Sprintf("use j,k keys to move up and down: cursor:%v dragged:%d\n", m.cursor, m.draggedCommitIndex)
+	items.WriteString(fmt.Sprintf("use j,k keys to move up and down: cursor:%v dragged:%d\n", m.cursor, m.draggedCommitIndex))
 	if m.mode == moveMode {
-		if m.cursor == len(m.items) {
-			bottom += "jj rebase -r " + m.items[m.draggedCommitIndex].ChangeIdShort + " --insert-before " + m.items[len(m.items)-1].ChangeIdShort + "\n"
+		if m.cursor == len(m.rows) {
+			items.WriteString("jj rebase -r " + m.rows[m.draggedCommitIndex].Commit.ChangeIdShort + " --insert-before " + m.rows[len(m.rows)-1].Commit.ChangeIdShort + "\n")
 		} else {
-			bottom += "jj rebase -r " + m.items[m.draggedCommitIndex].ChangeIdShort + " -d " + m.items[m.cursor].ChangeIdShort + "\n"
+			items.WriteString("jj rebase -r " + m.rows[m.draggedCommitIndex].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
 		}
 	}
-	items.WriteString(bottom)
-	return items.String()
-}
-
-func (m model) viewCommit(commit *jj.Commit, highlighted bool, level int) string {
-	changeIdRemaining := strings.TrimPrefix(commit.ChangeId, commit.ChangeIdShort)
-	builder := strings.Builder{}
-	for j := 0; j < level; j++ {
-		builder.WriteString(normal.Render(" │ "))
-	}
-
-	if commit.IsWorkingCopy {
-		builder.WriteString(normal.Render(" @ "))
-	} else {
-		builder.WriteString(normal.Render(" o "))
-	}
-
-	if highlighted {
-		builder.WriteString(commitShortStyle.Background(highlightColor).Render(commit.ChangeIdShort))
-		builder.WriteString(commitIdRestStyle.Background(highlightColor).Render(changeIdRemaining + " "))
-		builder.WriteString(authorStyle.Background(highlightColor).Render(commit.Author) + "\n")
-		builder.WriteString(strings.Repeat(" │ ", level+1))
-		if commit.Description == "" {
-			builder.WriteString(normal.Background(highlightColor).Bold(true).Foreground(lipgloss.Color("#50fa7b")).Width(m.width).Render("(no description)"))
-		} else {
-			builder.WriteString(normal.Background(highlightColor).Width(m.width).Render(commit.Description))
-		}
-	} else {
-		builder.WriteString(commitShortStyle.Render(commit.ChangeIdShort))
-		builder.WriteString(commitIdRestStyle.Render(changeIdRemaining + " "))
-		builder.WriteString(authorStyle.Render(commit.Author) + "\n")
-		builder.WriteString(strings.Repeat(" │ ", level+1))
-		if commit.Description == "" {
-			builder.WriteString(normal.Bold(true).Foreground(lipgloss.Color("#50fa7b")).Render("(no description)"))
-		} else {
-			builder.WriteString(normal.Render(commit.Description))
-		}
-	}
-	builder.WriteString("\n")
-	return builder.String()
+	output := items.String()
+	return output
 }
 
 func initialModel() model {
 	return model{
-		items:              []jj.Commit{},
+		rows:               []dag.GraphRow{},
 		draggedCommitIndex: -1,
 		mode:               normalMode,
 		cursor:             0,

@@ -3,6 +3,8 @@ package dag
 import (
 	"fmt"
 	"github.com/charmbracelet/lipgloss"
+	"io"
+	"jjui/internal/jj"
 	"strings"
 )
 
@@ -29,32 +31,68 @@ var authorStyle = lipgloss.NewStyle().
 var normal = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#f8f8f2"))
 
-func DefaultRenderer(node *Node, context RenderContext) {
-	indent := strings.Repeat("│ ", context.Level)
+var DefaultPalette = Palette{
+	CommitShortStyle: commitShortStyle,
+	CommitIdRestStyle: commitIdRestStyle,
+	AuthorStyle: authorStyle,
+	Normal: normal,
+}
+
+var HighlightedPalette = Palette{
+	CommitShortStyle: lipgloss.NewStyle().Background(highlightColor).Inherit(commitShortStyle),
+	CommitIdRestStyle: lipgloss.NewStyle().Background(highlightColor).Inherit(commitIdRestStyle),
+	AuthorStyle: lipgloss.NewStyle().Background(highlightColor).Inherit(authorStyle),
+	Normal: lipgloss.NewStyle().Background(highlightColor).Inherit(normal),
+}
+
+type Palette struct {
+	CommitShortStyle lipgloss.Style
+	CommitIdRestStyle lipgloss.Style
+	AuthorStyle lipgloss.Style
+	Normal lipgloss.Style
+}
+
+func DefaultRenderer(w io.Writer, row *GraphRow, palette Palette) {
+	indent := strings.Repeat("│ ", row.Level)
 	glyph := "│ "
 	nodeGlyph := "○ "
-	if !context.IsFirstChild {
-		indent = strings.Repeat("│ ", context.Level-1)
+	if !row.IsFirstChild {
+		indent = strings.Repeat("│ ", row.Level-1)
 		glyph = "├─╯ "
 		nodeGlyph = "│ ○ "
 	}
-	fmt.Print(indent)
-	fmt.Print(nodeGlyph)
-	fmt.Print(commitShortStyle.Render(node.Commit.ChangeIdShort))
-	fmt.Print(commitIdRestStyle.Render(node.Commit.ChangeId[len(node.Commit.ChangeIdShort):]))
-	fmt.Print(" ")
-	fmt.Print(authorStyle.Render(node.Commit.Author))
-	fmt.Println()
+	fmt.Print(w, indent)
+	fmt.Print(w, nodeGlyph)
+	fmt.Print(w, palette.CommitShortStyle.Render(row.Commit.ChangeIdShort))
+	fmt.Print(w, palette.CommitIdRestStyle.Render(row.Commit.ChangeId[len(row.Commit.ChangeIdShort):]))
+	fmt.Print(w, " ")
+	fmt.Print(w, palette.AuthorStyle.Render(row.Commit.Author))
+	fmt.Println(w)
 	// description line
-	fmt.Print(indent)
-	fmt.Print(glyph)
-	if node.Commit.Description == "" {
-		fmt.Println(normal.Bold(true).Foreground(lipgloss.Color("#50fa7b")).Render("(no description)"))
+	fmt.Print(w, indent)
+	fmt.Print(w, glyph)
+	if row.Commit.Description == "" {
+		fmt.Println(w, palette.Normal.Bold(true).Foreground(lipgloss.Color("#50fa7b")).Render("(no description)"))
 	} else {
-		fmt.Println(normal.Render(node.Commit.Description))
+		fmt.Println(w, palette.Normal.Render(row.Commit.Description))
 	}
-	if context.Elided {
-		fmt.Print(indent)
-		fmt.Println(commitIdRestStyle.Render("~ (elided revisions)"))
+	if row.Elided {
+		fmt.Print(w, indent)
+		fmt.Println(w, palette.CommitIdRestStyle.Render("~ (elided revisions)"))
 	}
+}
+
+type GraphRow struct {
+	Commit       *jj.Commit
+	Level        int
+	IsFirstChild bool
+	Elided       bool
+}
+
+func BuildGraphRows(root *Node) []GraphRow {
+	rows := make([]GraphRow, 0)
+	Walk(root, func(node *Node, context RenderContext) {
+		rows = append(rows, GraphRow{Commit: node.Commit, Level: context.Level, IsFirstChild: context.IsFirstChild, Elided: context.Elided})
+	}, RenderContext{Level: 0, IsFirstChild: true})
+	return rows
 }

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"jjui/internal/dag"
 	"jjui/internal/jj"
 	"os"
+	"strings"
 )
 
 var TEST = []jj.Commit{
@@ -33,26 +35,13 @@ var TEST_MULTIPLE_CHILDREN = []jj.Commit{
 func main() {
 	//commits := TEST_MULTIPLE_CHILDREN
 	commits := getJJCommits()
-	tree := dag.NewDag()
-	for _, commit := range commits {
-		tree.AddNode(&commit)
+	root := dag.Build(commits)
+	rows := dag.BuildGraphRows(root)
+	builder := strings.Builder{}
+	for _, row := range rows {
+		dag.DefaultRenderer(&builder, &row, dag.DefaultPalette)
 	}
-
-	for _, commit := range commits {
-		node := tree.GetNode(&commit)
-		for _, parent := range commit.Parents {
-			if parent := tree.GetNodeByChangeId(parent); parent != nil {
-				parent.AddEdge(node, dag.DirectEdge)
-			}
-		}
-	}
-
-	roots := tree.GetRoots()
-	for i := 0; i < len(roots)-1; i++ {
-		next := roots[i+1]
-		next.AddEdge(roots[i], dag.IndirectEdge)
-	}
-	dag.Walk(roots[len(roots)-1], dag.DefaultRenderer, dag.RenderContext{Level: 0, IsFirstChild: true})
+	fmt.Println(builder.String())
 }
 
 func getJJCommits() []jj.Commit {
