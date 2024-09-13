@@ -82,6 +82,9 @@ func DefaultRenderer(w *strings.Builder, row *GraphRow, palette Palette) {
 	w.WriteString(palette.CommitIdRestStyle.Render(row.Commit.ChangeId[len(row.Commit.ChangeIdShort):]))
 	w.WriteString(" ")
 	w.WriteString(palette.AuthorStyle.Render(row.Commit.Author))
+	w.WriteString(" ")
+	w.WriteString(fmt.Sprintf("edges: %d ", len(row.Node.Edges)))
+	w.WriteString(fmt.Sprintf("level: %d ", row.Level))
 	w.WriteString("\n")
 	// description line
 	w.WriteString(indent)
