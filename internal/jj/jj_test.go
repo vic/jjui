@@ -11,6 +11,7 @@ m
 myxzmzolxmpz
 psvvkyllponl
 true
+false
 ibrahim dursun <some@email.cc>
 main
 add test
@@ -20,8 +21,9 @@ __END__`)
 	expected := Commit{
 		ChangeIdShort: "m",
 		ChangeId:      "myxzmzolxmpz",
-		Parents:       nil,
+		Parents:       []string{"psvvkyllponl"},
 		IsWorkingCopy: true,
+		Immutable:     false,
 		Author:        "ibrahim dursun <some@email.cc>",
 		Branches:      "main",
 		Description:   "add test",
@@ -36,6 +38,7 @@ z
 zzzzzz
 !!NONE
 false
+false
 !!NONE
 !!NONE
 __END__`)
@@ -45,6 +48,7 @@ __END__`)
 			ChangeIdShort: "z",
 			ChangeId:      "zzzzzz",
 			IsWorkingCopy: false,
+			Immutable:     false,
 			Author:        "",
 			Description:   "",
 			Branches:      "",
@@ -60,6 +64,7 @@ ps
 psvvky
 zzzzzz
 true
+false
 ibrahim dursun <some@email.cc>
 !!NONE
 add test binary
@@ -69,6 +74,7 @@ __BEGIN__
 z
 zzzzzz
 !!NONE
+false
 false
 !!NONE
 !!NONE
