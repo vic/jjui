@@ -17,11 +17,11 @@ const (
 )
 
 type model struct {
-	rows               []dag.GraphRow
-	mode               mode
-	draggedCommitIndex int
-	cursor             int
-	width              int
+	rows       []dag.GraphRow
+	mode       mode
+	draggedRow int
+	cursor     int
+	width      int
 }
 
 type logCommand []dag.GraphRow
@@ -59,7 +59,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "j":
 			if m.mode == moveMode {
 				//skip over dragged commit
-				if m.cursor == m.draggedCommitIndex-1 || m.cursor == m.draggedCommitIndex {
+				if m.cursor == m.draggedRow-1 || m.cursor == m.draggedRow {
 					m.cursor++
 				}
 				if m.cursor < len(m.rows) {
@@ -70,7 +70,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "up", "k":
 			if m.mode == moveMode {
-				if m.cursor == m.draggedCommitIndex+1 || m.cursor == m.draggedCommitIndex {
+				if m.cursor == m.draggedRow+1 || m.cursor == m.draggedRow {
 					m.cursor--
 				}
 				if m.cursor > 0 {
@@ -80,22 +80,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor--
 			}
 		case "esc":
-			m.draggedCommitIndex = -1
+			m.draggedRow = -1
 			m.mode = normalMode
 		case " ":
 			if m.mode == normalMode {
 				m.mode = moveMode
-				m.draggedCommitIndex = m.cursor
+				m.draggedRow = m.cursor
 			} else {
 				m.mode = normalMode
-				m.draggedCommitIndex = -1
+				m.draggedRow = -1
 			}
 		case "enter":
 			if m.mode == moveMode {
 				m.mode = normalMode
-				fromRevision := m.rows[m.draggedCommitIndex].Commit.ChangeIdShort
+				fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
 				toRevision := m.rows[m.cursor].Commit.ChangeIdShort
-				m.draggedCommitIndex = -1
+				m.draggedRow = -1
 				return m, rebaseCommand(fromRevision, toRevision)
 			}
 		default:
@@ -111,16 +111,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	items := strings.Builder{}
+	var items strings.Builder
 	for i := 0; i < len(m.rows); i++ {
 		row := &m.rows[i]
 		switch m.mode {
 		case moveMode:
 			if i == m.cursor {
-				draggedRow := &m.rows[m.draggedCommitIndex]
+				draggedRow := &m.rows[m.draggedRow]
 				dag.DefaultRenderer(&items, draggedRow, dag.HighlightedPalette)
 			}
-			if i != m.draggedCommitIndex {
+			if i != m.draggedRow {
 				dag.DefaultRenderer(&items, row, dag.DefaultPalette)
 			}
 		case normalMode:
@@ -133,27 +133,26 @@ func (m model) View() string {
 	}
 	if m.cursor == len(m.rows) && m.mode == moveMode {
 		//TODO: should be rendered at a different level
-		dag.DefaultRenderer(&items, &m.rows[m.draggedCommitIndex], dag.HighlightedPalette)
+		dag.DefaultRenderer(&items, &m.rows[m.draggedRow], dag.HighlightedPalette)
 	}
-	items.WriteString(fmt.Sprintf("use j,k keys to move up and down: cursor:%v dragged:%d\n", m.cursor, m.draggedCommitIndex))
+    items.WriteString(fmt.Sprintf("use j,k keys to move up and down: cursor:%v dragged:%d\n", m.cursor, m.draggedRow))
 	if m.mode == moveMode {
 		if m.cursor == len(m.rows) {
-			items.WriteString("jj rebase -r " + m.rows[m.draggedCommitIndex].Commit.ChangeIdShort + " --insert-before " + m.rows[len(m.rows)-1].Commit.ChangeIdShort + "\n")
+			items.WriteString("jj rebase -r " + m.rows[m.draggedRow].Commit.ChangeIdShort + " --insert-before " + m.rows[len(m.rows)-1].Commit.ChangeIdShort + "\n")
 		} else {
-			items.WriteString("jj rebase -r " + m.rows[m.draggedCommitIndex].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
+			items.WriteString("jj rebase -r " + m.rows[m.draggedRow].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
 		}
 	}
-	output := items.String()
-	return output
+	return items.String()
 }
 
 func initialModel() model {
 	return model{
-		rows:               []dag.GraphRow{},
-		draggedCommitIndex: -1,
-		mode:               normalMode,
-		cursor:             0,
-		width:              20,
+		rows:       []dag.GraphRow{},
+		draggedRow: -1,
+		mode:       normalMode,
+		cursor:     0,
+		width:      20,
 	}
 }
 

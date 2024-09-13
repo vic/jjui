@@ -1,9 +1,7 @@
 package dag
 
 import (
-	"fmt"
 	"github.com/charmbracelet/lipgloss"
-	"io"
 	"jjui/internal/jj"
 	"strings"
 )
@@ -16,7 +14,7 @@ type RenderContext struct {
 
 type Renderer func(node *Node, context RenderContext)
 
-var highlightColor = lipgloss.Color("#282a36")
+var highlightColor = lipgloss.Color("#44475a")
 var commitShortStyle = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(lipgloss.Color("#bd93f9"))
@@ -52,33 +50,36 @@ type Palette struct {
 	Normal lipgloss.Style
 }
 
-func DefaultRenderer(w io.Writer, row *GraphRow, palette Palette) {
+func DefaultRenderer(w *strings.Builder, row *GraphRow, palette Palette) {
 	indent := strings.Repeat("│ ", row.Level)
-	glyph := "│ "
+	glyph := "│"
 	nodeGlyph := "○ "
 	if !row.IsFirstChild {
 		indent = strings.Repeat("│ ", row.Level-1)
-		glyph = "├─╯ "
+		glyph = "├─╯"
 		nodeGlyph = "│ ○ "
 	}
-	fmt.Print(w, indent)
-	fmt.Print(w, nodeGlyph)
-	fmt.Print(w, palette.CommitShortStyle.Render(row.Commit.ChangeIdShort))
-	fmt.Print(w, palette.CommitIdRestStyle.Render(row.Commit.ChangeId[len(row.Commit.ChangeIdShort):]))
-	fmt.Print(w, " ")
-	fmt.Print(w, palette.AuthorStyle.Render(row.Commit.Author))
-	fmt.Println(w)
+	w.WriteString(indent)
+	w.WriteString(nodeGlyph)
+	w.WriteString(palette.CommitShortStyle.Render(row.Commit.ChangeIdShort))
+	w.WriteString(palette.CommitIdRestStyle.Render(row.Commit.ChangeId[len(row.Commit.ChangeIdShort):]))
+	w.WriteString(" ")
+	w.WriteString(palette.AuthorStyle.Render(row.Commit.Author))
+	w.WriteString("\n")
 	// description line
-	fmt.Print(w, indent)
-	fmt.Print(w, glyph)
+	w.WriteString(indent)
+	w.WriteString(glyph)
+	w.WriteString(" ")
 	if row.Commit.Description == "" {
-		fmt.Println(w, palette.Normal.Bold(true).Foreground(lipgloss.Color("#50fa7b")).Render("(no description)"))
+		w.WriteString(palette.Normal.Bold(true).Foreground(lipgloss.Color("#50fa7b")).Render("(no description)"))
 	} else {
-		fmt.Println(w, palette.Normal.Render(row.Commit.Description))
+		w.WriteString(palette.Normal.Render(row.Commit.Description))
 	}
+	w.WriteString("\n")
 	if row.Elided {
-		fmt.Print(w, indent)
-		fmt.Println(w, palette.CommitIdRestStyle.Render("~ (elided revisions)"))
+		w.WriteString(indent)
+		w.WriteString(palette.CommitIdRestStyle.Render("~ (elided revisions)"))
+		w.WriteString("\n")
 	}
 }
 
