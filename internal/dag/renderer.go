@@ -1,6 +1,7 @@
 package dag
 
 import (
+	"fmt"
 	"github.com/charmbracelet/lipgloss"
 	"jjui/internal/jj"
 	"strings"
@@ -13,6 +14,22 @@ type RenderContext struct {
 }
 
 type Renderer func(node *Node, context RenderContext)
+
+type GraphRow struct {
+	Node         *Node
+	Commit       *jj.Commit
+	Level        int
+	IsFirstChild bool
+	Elided       bool
+}
+
+func BuildGraphRows(root *Node) []GraphRow {
+	rows := make([]GraphRow, 0)
+	Walk(root, func(node *Node, context RenderContext) {
+		rows = append(rows, GraphRow{Node: node, Commit: node.Commit, Level: context.Level, IsFirstChild: context.IsFirstChild, Elided: context.Elided})
+	}, RenderContext{Level: 0, IsFirstChild: true})
+	return rows
+}
 
 var highlightColor = lipgloss.Color("#44475a")
 var commitShortStyle = lipgloss.NewStyle().
@@ -30,24 +47,24 @@ var normal = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#f8f8f2"))
 
 var DefaultPalette = Palette{
-	CommitShortStyle: commitShortStyle,
+	CommitShortStyle:  commitShortStyle,
 	CommitIdRestStyle: commitIdRestStyle,
-	AuthorStyle: authorStyle,
-	Normal: normal,
+	AuthorStyle:       authorStyle,
+	Normal:            normal,
 }
 
 var HighlightedPalette = Palette{
-	CommitShortStyle: lipgloss.NewStyle().Background(highlightColor).Inherit(commitShortStyle),
+	CommitShortStyle:  lipgloss.NewStyle().Background(highlightColor).Inherit(commitShortStyle),
 	CommitIdRestStyle: lipgloss.NewStyle().Background(highlightColor).Inherit(commitIdRestStyle),
-	AuthorStyle: lipgloss.NewStyle().Background(highlightColor).Inherit(authorStyle),
-	Normal: lipgloss.NewStyle().Background(highlightColor).Inherit(normal),
+	AuthorStyle:       lipgloss.NewStyle().Background(highlightColor).Inherit(authorStyle),
+	Normal:            lipgloss.NewStyle().Background(highlightColor).Inherit(normal),
 }
 
 type Palette struct {
-	CommitShortStyle lipgloss.Style
+	CommitShortStyle  lipgloss.Style
 	CommitIdRestStyle lipgloss.Style
-	AuthorStyle lipgloss.Style
-	Normal lipgloss.Style
+	AuthorStyle       lipgloss.Style
+	Normal            lipgloss.Style
 }
 
 func DefaultRenderer(w *strings.Builder, row *GraphRow, palette Palette) {
@@ -81,19 +98,4 @@ func DefaultRenderer(w *strings.Builder, row *GraphRow, palette Palette) {
 		w.WriteString(palette.CommitIdRestStyle.Render("~ (elided revisions)"))
 		w.WriteString("\n")
 	}
-}
-
-type GraphRow struct {
-	Commit       *jj.Commit
-	Level        int
-	IsFirstChild bool
-	Elided       bool
-}
-
-func BuildGraphRows(root *Node) []GraphRow {
-	rows := make([]GraphRow, 0)
-	Walk(root, func(node *Node, context RenderContext) {
-		rows = append(rows, GraphRow{Commit: node.Commit, Level: context.Level, IsFirstChild: context.IsFirstChild, Elided: context.Elided})
-	}, RenderContext{Level: 0, IsFirstChild: true})
-	return rows
 }
