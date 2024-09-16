@@ -1,6 +1,9 @@
 package dag
 
-import "jjui/internal/jj"
+import (
+	"jjui/internal/jj"
+	"sort"
+)
 
 const (
 	DirectEdge   = 1
@@ -50,7 +53,7 @@ func Build(commits []jj.Commit) *Node {
 		next := roots[i+1]
 		next.AddEdge(roots[i], IndirectEdge)
 	}
-    return roots[len(roots)-1]
+	return roots[len(roots)-1]
 }
 
 func (d *Dag) AddNode(c *jj.Commit) (node *Node) {
@@ -91,6 +94,9 @@ func (d *Dag) GetRoots() []*Node {
 }
 
 func Walk(node *Node, renderer Renderer, context RenderContext) {
+	sort.Slice(node.Edges, func(a, b int) bool {
+		return node.Edges[a].To.Commit.Index < node.Edges[b].To.Commit.Index
+	})
 	for i, edge := range node.Edges {
 		nl := context.Level + 1
 		if i == 0 {

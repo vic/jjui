@@ -17,6 +17,7 @@ type Commit struct {
 	Branches      string
 	Description   string
 	Immutable     bool
+	Index         int
 }
 
 func GetCommits(location string) []Commit {
@@ -40,7 +41,9 @@ func parseLogOutput(output string) []Commit {
 			continue
 		}
 		if strings.Contains(lines[i], "__END__") {
-			commits = append(commits, parseCommit(lines[start:i]))
+			commit := parseCommit(lines[start:i])
+			commit.Index = i
+			commits = append(commits, commit)
 			start = -1
 		}
 	}
