@@ -41,6 +41,7 @@ func rebaseCommand(from, to string) tea.Cmd {
 	}
 	return fetchLog(os.Getenv("PWD"))
 }
+
 func (m model) Init() tea.Cmd {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -57,26 +58,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Quit
 		case "down", "j":
-			if m.mode == moveMode {
-				//skip over dragged commit
-				if m.cursor == m.draggedRow-1 || m.cursor == m.draggedRow {
-					m.cursor++
-				}
-				if m.cursor < len(m.rows) {
-					m.cursor++
-				}
-			} else if m.cursor < len(m.rows)-1 {
+			if m.cursor < len(m.rows)-1 {
 				m.cursor++
 			}
 		case "up", "k":
-			if m.mode == moveMode {
-				if m.cursor == m.draggedRow+1 || m.cursor == m.draggedRow {
-					m.cursor--
-				}
-				if m.cursor > 0 {
-					m.cursor--
-				}
-			} else if m.cursor > 0 {
+			if m.cursor > 0 {
 				m.cursor--
 			}
 		case "esc":
@@ -121,7 +107,7 @@ func (m model) View() string {
 				palette = dag.HighlightedPalette
 			}
 			if i == m.cursor {
-                indent := strings.Repeat("│ ", row.Level)
+				indent := strings.Repeat("│ ", row.Level)
 				items.WriteString(indent)
 				items.WriteString(dag.DropStyle.Render("<< here >>"))
 				items.WriteString("\n")

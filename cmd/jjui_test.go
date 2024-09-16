@@ -20,8 +20,8 @@ func TestRender(t *testing.T) {
 
 	view := model.View()
 	expected := `○ topchange  edges: 0 level: 0 
-                 │ (no description)
-                 use j,k keys to move up and down: cursor:0 dragged:-1`
+               │ (no description)
+               use j,k keys to move up and down: cursor:0 dragged:-1`
 	assert.Equal(t, deindent(expected), view)
 }
 
