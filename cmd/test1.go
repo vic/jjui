@@ -1,11 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"jjui/internal/dag"
 	"jjui/internal/jj"
 	"os"
-	"strings"
 )
 
 var TEST = []jj.Commit{
@@ -32,17 +29,17 @@ var TEST_MULTIPLE_CHILDREN = []jj.Commit{
 	{ChangeId: "orrk", Parents: []string{"lmkm"}, Description: "root commit"},
 }
 
-func main() {
-	//commits := TEST_MULTIPLE_CHILDREN
-	commits := getJJCommits()
-	root := dag.Build(commits)
-	rows := dag.BuildGraphRows(root)
-	builder := strings.Builder{}
-	for _, row := range rows {
-		dag.DefaultRenderer(&builder, &row, dag.DefaultPalette)
-	}
-	fmt.Println(builder.String())
-}
+//func main() {
+//	//commits := TEST_MULTIPLE_CHILDREN
+//	commits := getJJCommits()
+//	root := dag.Build(commits)
+//	rows := dag.BuildGraphRows(root)
+//	builder := strings.Builder{}
+//	for _, row := range rows {
+//		dag.DefaultRenderer(&builder, &row, dag.DefaultPalette)
+//	}
+//	fmt.Println(builder.String())
+//}
 
 func getJJCommits() []jj.Commit {
 	location := os.Getenv("PWD")
