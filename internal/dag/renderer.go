@@ -46,6 +46,11 @@ var authorStyle = lipgloss.NewStyle().
 var normal = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#f8f8f2"))
 
+var DropStyle = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(lipgloss.Color("#000000")).
+	Background(lipgloss.Color("#ff5555"))
+
 var DefaultPalette = Palette{
 	CommitShortStyle:  commitShortStyle,
 	CommitIdRestStyle: commitIdRestStyle,

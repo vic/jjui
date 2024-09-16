@@ -116,13 +116,17 @@ func (m model) View() string {
 		row := &m.rows[i]
 		switch m.mode {
 		case moveMode:
+			palette := dag.DefaultPalette
+			if i == m.draggedRow {
+				palette = dag.HighlightedPalette
+			}
 			if i == m.cursor {
-				draggedRow := &m.rows[m.draggedRow]
-				dag.DefaultRenderer(&items, draggedRow, dag.HighlightedPalette)
+                indent := strings.Repeat("│ ", row.Level)
+				items.WriteString(indent)
+				items.WriteString(dag.DropStyle.Render("<< here >>"))
+				items.WriteString("\n")
 			}
-			if i != m.draggedRow {
-				dag.DefaultRenderer(&items, row, dag.DefaultPalette)
-			}
+			dag.DefaultRenderer(&items, row, palette)
 		case normalMode:
 			palette := dag.DefaultPalette
 			if i == m.cursor {
@@ -131,11 +135,7 @@ func (m model) View() string {
 			dag.DefaultRenderer(&items, row, palette)
 		}
 	}
-	if m.cursor == len(m.rows) && m.mode == moveMode {
-		//TODO: should be rendered at a different level
-		dag.DefaultRenderer(&items, &m.rows[m.draggedRow], dag.HighlightedPalette)
-	}
-    items.WriteString(fmt.Sprintf("use j,k keys to move up and down: cursor:%v dragged:%d\n", m.cursor, m.draggedRow))
+	items.WriteString(fmt.Sprintf("use j,k keys to move up and down: cursor:%v dragged:%d\n", m.cursor, m.draggedRow))
 	if m.mode == moveMode {
 		if m.cursor == len(m.rows) {
 			items.WriteString("jj rebase -r " + m.rows[m.draggedRow].Commit.ChangeIdShort + " --insert-before " + m.rows[len(m.rows)-1].Commit.ChangeIdShort + "\n")
