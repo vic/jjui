@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"jjui/internal/dag"
 	"jjui/internal/jj"
@@ -22,6 +24,22 @@ type model struct {
 	draggedRow int
 	cursor     int
 	width      int
+	help       help.Model
+	keymap     keymap
+}
+type keymap struct{}
+
+func (k keymap) ShortHelp() []key.Binding {
+	return []key.Binding{
+		key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
+		key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
+		key.NewBinding(key.WithKeys("space"), key.WithHelp("space", "rebase from")),
+		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "rebase destination")),
+	}
+}
+
+func (k keymap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{k.ShortHelp()}
 }
 
 type logCommand []dag.GraphRow
@@ -113,7 +131,8 @@ func (m model) View() string {
 			dag.DefaultRenderer(&items, row, dag.DefaultPalette, i == m.cursor)
 		}
 	}
-	items.WriteString(fmt.Sprintf("use j,k keys to move up and down: cursor:%v dragged:%d\n", m.cursor, m.draggedRow))
+	items.WriteString(m.help.View(m.keymap))
+	items.WriteString("\n")
 	if m.mode == moveMode {
 		if m.cursor == len(m.rows) {
 			items.WriteString("jj rebase -r " + m.rows[m.draggedRow].Commit.ChangeIdShort + " --insert-before " + m.rows[len(m.rows)-1].Commit.ChangeIdShort + "\n")
@@ -131,6 +150,8 @@ func initialModel() model {
 		mode:       normalMode,
 		cursor:     0,
 		width:      20,
+		keymap:     keymap{},
+		help:       help.New(),
 	}
 }
 
