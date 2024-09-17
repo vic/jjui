@@ -1,7 +1,6 @@
 package dag
 
 import (
-	"fmt"
 	"github.com/charmbracelet/lipgloss"
 	"jjui/internal/jj"
 	"strings"
@@ -29,7 +28,6 @@ func BuildGraphRows(root *Node) []GraphRow {
 	return rows
 }
 
-var highlightColor = lipgloss.Color("#44475a")
 var commitShortStyle = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(lipgloss.Color("#bd93f9"))
@@ -44,6 +42,9 @@ var authorStyle = lipgloss.NewStyle().
 var normal = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#f8f8f2"))
 
+var selected = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#ff00ff"))
+
 var DropStyle = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(lipgloss.Color("#000000")).
@@ -54,13 +55,7 @@ var DefaultPalette = Palette{
 	CommitIdRestStyle: commitIdRestStyle,
 	AuthorStyle:       authorStyle,
 	Normal:            normal,
-}
-
-var HighlightedPalette = Palette{
-	CommitShortStyle:  lipgloss.NewStyle().Background(highlightColor).Inherit(commitShortStyle),
-	CommitIdRestStyle: lipgloss.NewStyle().Background(highlightColor).Inherit(commitIdRestStyle),
-	AuthorStyle:       lipgloss.NewStyle().Background(highlightColor).Inherit(authorStyle),
-	Normal:            lipgloss.NewStyle().Background(highlightColor).Inherit(normal),
+	Selected:          selected,
 }
 
 type Palette struct {
@@ -68,9 +63,10 @@ type Palette struct {
 	CommitIdRestStyle lipgloss.Style
 	AuthorStyle       lipgloss.Style
 	Normal            lipgloss.Style
+	Selected          lipgloss.Style
 }
 
-func DefaultRenderer(w *strings.Builder, row *GraphRow, palette Palette) {
+func DefaultRenderer(w *strings.Builder, row *GraphRow, palette Palette, highlighted bool) {
 	indent := strings.Repeat("│ ", row.Level)
 	glyph := "│"
 	nodeGlyph := "○ "
@@ -80,14 +76,15 @@ func DefaultRenderer(w *strings.Builder, row *GraphRow, palette Palette) {
 		nodeGlyph = "│ ○ "
 	}
 	w.WriteString(indent)
-	w.WriteString(nodeGlyph)
+	if highlighted {
+		w.WriteString(palette.Selected.Render(nodeGlyph))
+	} else {
+		w.WriteString(nodeGlyph)
+	}
 	w.WriteString(palette.CommitShortStyle.Render(row.Commit.ChangeIdShort))
 	w.WriteString(palette.CommitIdRestStyle.Render(row.Commit.ChangeId[len(row.Commit.ChangeIdShort):]))
 	w.WriteString(" ")
 	w.WriteString(palette.AuthorStyle.Render(row.Commit.Author))
-	w.WriteString(" ")
-	w.WriteString(fmt.Sprintf("edges: %d ", len(row.Node.Edges)))
-	w.WriteString(fmt.Sprintf("level: %d ", row.Level))
 	w.WriteString("\n")
 	// description line
 	w.WriteString(indent)

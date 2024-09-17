@@ -102,23 +102,15 @@ func (m model) View() string {
 		row := &m.rows[i]
 		switch m.mode {
 		case moveMode:
-			palette := dag.DefaultPalette
-			if i == m.draggedRow {
-				palette = dag.HighlightedPalette
-			}
 			if i == m.cursor {
 				indent := strings.Repeat("│ ", row.Level)
 				items.WriteString(indent)
 				items.WriteString(dag.DropStyle.Render("<< here >>"))
 				items.WriteString("\n")
 			}
-			dag.DefaultRenderer(&items, row, palette)
+			dag.DefaultRenderer(&items, row, dag.DefaultPalette, i == m.draggedRow)
 		case normalMode:
-			palette := dag.DefaultPalette
-			if i == m.cursor {
-				palette = dag.HighlightedPalette
-			}
-			dag.DefaultRenderer(&items, row, palette)
+			dag.DefaultRenderer(&items, row, dag.DefaultPalette, i == m.cursor)
 		}
 	}
 	items.WriteString(fmt.Sprintf("use j,k keys to move up and down: cursor:%v dragged:%d\n", m.cursor, m.draggedRow))
