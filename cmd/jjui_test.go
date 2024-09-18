@@ -1,15 +1,17 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
 	"jjui/internal/dag"
 	"jjui/internal/jj"
+	"jjui/internal/ui/revisions"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRender(t *testing.T) {
-	model := initialModel()
+	model := revisions.New()
 	commit := jj.Commit{
 		ChangeIdShort: "top",
 		ChangeId:      "topchange",
