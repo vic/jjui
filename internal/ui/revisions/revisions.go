@@ -2,10 +2,12 @@ package revisions
 
 import (
 	"fmt"
-	"jjui/internal/dag"
-	"jjui/internal/jj"
 	"os"
 	"strings"
+
+	"jjui/internal/dag"
+	"jjui/internal/jj"
+	"jjui/internal/ui/msgs"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -28,6 +30,7 @@ type Model struct {
 	help       help.Model
 	keymap     keymap
 }
+
 type keymap struct{}
 
 func (k keymap) ShortHelp() []key.Binding {
@@ -54,6 +57,10 @@ func fetchLog(location string) tea.Cmd {
 	}
 }
 
+func showDescribe() tea.Msg {
+	return msgs.ShowDescribe{}
+}
+
 func rebaseCommand(from, to string) tea.Cmd {
 	if err := jj.RebaseCommand(from, to); err != nil {
 		fmt.Printf("error: %v\n", err)
@@ -70,12 +77,14 @@ func (m Model) Init() tea.Cmd {
 	return fetchLog(dir)
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q":
 			return m, tea.Quit
+		case "d":
+			return m, showDescribe
 		case "down", "j":
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
@@ -144,7 +153,7 @@ func (m Model) View() string {
 	return items.String()
 }
 
-func New() Model {
+func New() tea.Model {
 	return Model{
 		rows:       []dag.GraphRow{},
 		draggedRow: -1,
