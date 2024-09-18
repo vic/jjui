@@ -1,8 +1,8 @@
 package ui
 
 import (
+	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
-	"jjui/internal/ui/msgs"
 	"jjui/internal/ui/revisions"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,22 +27,26 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg.(type) {
-	case msgs.ShowDescribe:
-		m.models = append(m.models, describe.New())
-		return m, nil
-	case msgs.Close:
+	switch msg := msg.(type) {
+	case common.ShowDescribeModal:
+		d := describe.New(msg.ChangeId, msg.Description)
+		m.models = append(m.models, d)
+		return m, d.Init()
+	case common.CloseModal:
 		m.models = m.models[:len(m.models)-1]
 		return m, nil
 	}
 	var cmd tea.Cmd
-	top := m.models[len(m.models)-1]
+	top := m.Top()
 	top, cmd = top.Update(msg)
 	m.models[len(m.models)-1] = top
 	return m, cmd
 }
 
 func (m Model) View() string {
-	top := m.models[len(m.models)-1]
-	return top.View()
+	return m.Top().View()
+}
+
+func (m Model) Top() tea.Model {
+	return m.models[len(m.models)-1]
 }

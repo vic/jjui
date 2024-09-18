@@ -6,8 +6,7 @@ import (
 	"strings"
 
 	"jjui/internal/dag"
-	"jjui/internal/jj"
-	"jjui/internal/ui/msgs"
+	"jjui/internal/ui/common"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -46,35 +45,13 @@ func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{k.ShortHelp()}
 }
 
-type logCommand []dag.GraphRow
-
-func fetchLog(location string) tea.Cmd {
-	return func() tea.Msg {
-		commits := jj.GetCommits(location)
-		root := dag.Build(commits)
-		rows := dag.BuildGraphRows(root)
-		return logCommand(rows)
-	}
-}
-
-func showDescribe() tea.Msg {
-	return msgs.ShowDescribe{}
-}
-
-func rebaseCommand(from, to string) tea.Cmd {
-	if err := jj.RebaseCommand(from, to); err != nil {
-		fmt.Printf("error: %v\n", err)
-	}
-	return fetchLog(os.Getenv("PWD"))
-}
-
 func (m Model) Init() tea.Cmd {
 	dir, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 		return nil
 	}
-	return fetchLog(dir)
+	return common.FetchRevisions(dir)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -84,7 +61,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Quit
 		case "d":
-			return m, showDescribe
+			return m, common.DoShowDescribe(m.rows[m.cursor].Commit)
 		case "down", "j":
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
@@ -110,12 +87,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
 				toRevision := m.rows[m.cursor].Commit.ChangeIdShort
 				m.draggedRow = -1
-				return m, rebaseCommand(fromRevision, toRevision)
+				return m, common.RebaseCommand(fromRevision, toRevision)
 			}
 		default:
 			return m, nil
 		}
-	case logCommand:
+	case common.UpdateRevisions:
 		rows := []dag.GraphRow(msg)
 		m.rows = rows
 	case tea.WindowSizeMsg:
