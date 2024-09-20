@@ -11,25 +11,25 @@ import (
 )
 
 type (
-	ShowRevisions struct{}
-	CloseModal    struct{}
+	ShowRevisionsView struct{}
+	CloseView         struct{}
 )
 
-type ShowDescribeModal *jj.Commit
+type ShowDescribeView *jj.Commit
 
-type UpdateDescriptionMessage struct {
+type UpdateDescriptionView struct {
 	Description string
 }
 
 type UpdateRevisions []dag.GraphRow
 
 func Close() tea.Msg {
-	return CloseModal{}
+	return CloseView{}
 }
 
 func DoShowDescribe(commit *jj.Commit) tea.Cmd {
 	return func() tea.Msg {
-		return ShowDescribeModal(commit)
+		return ShowDescribeView(commit)
 	}
 }
 
