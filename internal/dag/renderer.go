@@ -51,6 +51,9 @@ var commitIdRestStyle = lipgloss.NewStyle().
 var authorStyle = lipgloss.NewStyle().
 	Foreground(yellow)
 
+var branchesStyle = lipgloss.NewStyle().
+	Foreground(pink)
+
 var normal = lipgloss.NewStyle().
 	Foreground(foreground)
 
@@ -66,6 +69,7 @@ var DefaultPalette = Palette{
 	CommitShortStyle:  commitShortStyle,
 	CommitIdRestStyle: commitIdRestStyle,
 	AuthorStyle:       authorStyle,
+	BranchesStyle:     branchesStyle,
 	Normal:            normal,
 	Selected:          selected,
 }
@@ -74,6 +78,7 @@ type Palette struct {
 	CommitShortStyle  lipgloss.Style
 	CommitIdRestStyle lipgloss.Style
 	AuthorStyle       lipgloss.Style
+	BranchesStyle     lipgloss.Style
 	Normal            lipgloss.Style
 	Selected          lipgloss.Style
 }
@@ -97,6 +102,8 @@ func DefaultRenderer(w *strings.Builder, row *GraphRow, palette Palette, highlig
 	w.WriteString(palette.CommitIdRestStyle.Render(row.Commit.ChangeId[len(row.Commit.ChangeIdShort):]))
 	w.WriteString(" ")
 	w.WriteString(palette.AuthorStyle.Render(row.Commit.Author))
+	w.WriteString(" ")
+	w.WriteString(palette.BranchesStyle.Render(row.Commit.Branches))
 	w.WriteString("\n")
 	// description line
 	w.WriteString(indent)
