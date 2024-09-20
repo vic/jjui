@@ -1,9 +1,11 @@
 package dag
 
 import (
-	"github.com/charmbracelet/lipgloss"
-	"jjui/internal/jj"
 	"strings"
+
+	"jjui/internal/jj"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 type RenderContext struct {
@@ -28,27 +30,37 @@ func BuildGraphRows(root *Node) []GraphRow {
 	return rows
 }
 
+var (
+	black      = lipgloss.Color("#000000")
+	cyan       = lipgloss.Color("#8be9fd")
+	pink       = lipgloss.Color("#ff79c6")
+	yellow     = lipgloss.Color("#f1fa8c")
+	red        = lipgloss.Color("#ff5555")
+	green      = lipgloss.Color("#50fa7b")
+	comment    = lipgloss.Color("#6272a4")
+	foreground = lipgloss.Color("#f8f8f2")
+)
+
 var commitShortStyle = lipgloss.NewStyle().
 	Bold(true).
-	Foreground(lipgloss.Color("#bd93f9"))
+	Foreground(pink)
 
 var commitIdRestStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#6272a4"))
+	Foreground(comment)
 
 var authorStyle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(lipgloss.Color("#ffb86c"))
+	Foreground(yellow)
 
 var normal = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#f8f8f2"))
+	Foreground(foreground)
 
 var selected = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#ff00ff"))
+	Foreground(red)
 
 var DropStyle = lipgloss.NewStyle().
 	Bold(true).
-	Foreground(lipgloss.Color("#000000")).
-	Background(lipgloss.Color("#ff5555"))
+	Foreground(black).
+	Background(red)
 
 var DefaultPalette = Palette{
 	CommitShortStyle:  commitShortStyle,
