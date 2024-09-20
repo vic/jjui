@@ -60,6 +60,14 @@ var normal = lipgloss.NewStyle().
 var selected = lipgloss.NewStyle().
 	Foreground(red)
 
+var emptyStyle = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(lipgloss.Color(green))
+
+var nonEmptyStyle = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(lipgloss.Color(yellow))
+
 var DropStyle = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(black).
@@ -70,6 +78,8 @@ var DefaultPalette = Palette{
 	CommitIdRestStyle: commitIdRestStyle,
 	AuthorStyle:       authorStyle,
 	BranchesStyle:     branchesStyle,
+	Empty:             emptyStyle,
+	NonEmpty:          nonEmptyStyle,
 	Normal:            normal,
 	Selected:          selected,
 }
@@ -79,6 +89,8 @@ type Palette struct {
 	CommitIdRestStyle lipgloss.Style
 	AuthorStyle       lipgloss.Style
 	BranchesStyle     lipgloss.Style
+	Empty             lipgloss.Style
+	NonEmpty          lipgloss.Style
 	Normal            lipgloss.Style
 	Selected          lipgloss.Style
 }
@@ -110,7 +122,11 @@ func DefaultRenderer(w *strings.Builder, row *GraphRow, palette Palette, highlig
 	w.WriteString(glyph)
 	w.WriteString(" ")
 	if row.Commit.Description == "" {
-		w.WriteString(palette.Normal.Bold(true).Foreground(lipgloss.Color("#50fa7b")).Render("(no description)"))
+		if row.Commit.Empty {
+			w.WriteString(palette.Empty.Render("(empty) (no description)"))
+		} else {
+			w.WriteString(palette.NonEmpty.Render("(no description)"))
+		}
 	} else {
 		w.WriteString(palette.Normal.Render(row.Commit.Description))
 	}

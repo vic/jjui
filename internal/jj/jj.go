@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, author.email(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
+const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, conflict, empty, author.email(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
 
 type Commit struct {
 	ChangeIdShort string
@@ -17,6 +17,8 @@ type Commit struct {
 	Branches      string
 	Description   string
 	Immutable     bool
+	Conflict      bool
+	Empty         bool
 	Index         int
 }
 
@@ -61,16 +63,18 @@ func parseCommit(lines []string) Commit {
 	}
 	commit.IsWorkingCopy = lines[4][indent:] == "true"
 	commit.Immutable = lines[5][indent:] == "true"
-	author := lines[6][indent:]
+	commit.Conflict = lines[6][indent:] == "true"
+	commit.Empty = lines[7][indent:] == "true"
+	author := lines[8][indent:]
 	if author != "!!NONE" {
 		commit.Author = author
 	}
-	branches := lines[7][indent:]
+	branches := lines[9][indent:]
 	if branches != "!!NONE" {
 		commit.Branches = branches
 	}
-	if len(lines) >= 9 {
-		desc := lines[8][indent:]
+	if len(lines) >= 11 {
+		desc := lines[10][indent:]
 		if desc != "!!NONE" {
 			commit.Description = desc
 		}
