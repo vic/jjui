@@ -120,6 +120,7 @@ func (m Model) View() string {
 			dag.DefaultRenderer(&items, row, dag.DefaultPalette, i == m.cursor)
 		}
 	}
+	items.WriteString("\n")
 	items.WriteString(m.help.View(m.keymap))
 	items.WriteString("\n")
 	if m.mode == moveMode {
@@ -133,6 +134,9 @@ func (m Model) View() string {
 }
 
 func New() tea.Model {
+	help := help.New()
+	help.Styles.ShortKey = dag.DefaultPalette.CommitShortStyle
+	help.Styles.ShortDesc = dag.DefaultPalette.CommitIdRestStyle
 	return Model{
 		rows:       []dag.GraphRow{},
 		draggedRow: -1,
@@ -140,6 +144,6 @@ func New() tea.Model {
 		cursor:     0,
 		width:      20,
 		keymap:     keymap{},
-		help:       help.New(),
+		help:       help,
 	}
 }
