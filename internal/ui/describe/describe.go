@@ -42,5 +42,6 @@ func New(revision string, description string) tea.Model {
 	t.CharLimit = 80
 	return Model{
 		description: t,
+		revision:    revision,
 	}
 }

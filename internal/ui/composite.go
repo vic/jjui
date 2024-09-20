@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
 	"jjui/internal/ui/revisions"

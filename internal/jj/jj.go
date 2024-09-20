@@ -85,7 +85,7 @@ func RebaseCommand(from string, to string) error {
 }
 
 func SetDescription(rev string, description string) error {
-	cmd := exec.Command("jj", "describe", "-r", rev, "-d", description)
+	cmd := exec.Command("jj", "describe", "-r", rev, "-m", description)
 	err := cmd.Run()
 	return err
 }
