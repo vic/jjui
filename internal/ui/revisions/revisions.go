@@ -36,8 +36,10 @@ func (k keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
 		key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
-		key.NewBinding(key.WithKeys("space"), key.WithHelp("space", "rebase from")),
-		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "rebase destination")),
+		key.NewBinding(key.WithKeys("space"), key.WithHelp("space", "rebase start")),
+		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "rebase apply")),
+		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "quit/rebase cancel")),
+		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "update description")),
 	}
 }
 
