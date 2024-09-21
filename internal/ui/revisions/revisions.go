@@ -112,12 +112,12 @@ func (m Model) View() string {
 			if i == m.cursor {
 				indent := strings.Repeat("│ ", row.Level)
 				items.WriteString(indent)
-				items.WriteString(dag.DropStyle.Render("<< here >>"))
+				items.WriteString(common.DropStyle.Render("<< here >>"))
 				items.WriteString("\n")
 			}
-			dag.DefaultRenderer(&items, row, dag.DefaultPalette, i == m.draggedRow)
+			DefaultRenderer(&items, row, common.DefaultPalette, i == m.draggedRow)
 		case normalMode:
-			dag.DefaultRenderer(&items, row, dag.DefaultPalette, i == m.cursor)
+			DefaultRenderer(&items, row, common.DefaultPalette, i == m.cursor)
 		}
 	}
 	items.WriteString("\n")
@@ -135,8 +135,8 @@ func (m Model) View() string {
 
 func New() tea.Model {
 	help := help.New()
-	help.Styles.ShortKey = dag.DefaultPalette.CommitShortStyle
-	help.Styles.ShortDesc = dag.DefaultPalette.CommitIdRestStyle
+	help.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
+	help.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
 	return Model{
 		rows:       []dag.GraphRow{},
 		draggedRow: -1,
