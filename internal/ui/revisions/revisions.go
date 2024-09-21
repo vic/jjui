@@ -34,17 +34,44 @@ type Model struct {
 	keymap     keymap
 }
 
-type keymap struct{}
+type keymap struct {
+	current  rune
+	bindings map[rune][]key.Binding
+}
 
-func (k keymap) ShortHelp() []key.Binding {
-	return []key.Binding{
+func newKeyMap() keymap {
+	bindings := make(map[rune][]key.Binding)
+	bindings[' '] = []key.Binding{
 		key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
 		key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
-		key.NewBinding(key.WithKeys("space"), key.WithHelp("space", "rebase start")),
-		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "rebase apply")),
-		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "quit/rebase cancel")),
-		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "update description")),
+		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "set description")),
+		key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
+	bindings['r'] = []key.Binding{
+		key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase revision")),
+		key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "rebase branch")),
+		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "rebase apply")),
+		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
+	}
+	bindings['b'] = []key.Binding{
+		key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "bookmark set")),
+		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "bookmark delete")),
+		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
+	}
+	bindings['g'] = []key.Binding{
+		key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "git push")),
+		key.NewBinding(key.WithKeys("f"), key.WithHelp("d", "git fetch")),
+		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
+	}
+
+	return keymap{
+		current:  ' ',
+		bindings: bindings,
+	}
+}
+
+func (k keymap) ShortHelp() []key.Binding {
+	return k.bindings[k.current]
 }
 
 func (k keymap) FullHelp() [][]key.Binding {
@@ -78,10 +105,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q":
 			return m, tea.Quit
+		case "g":
+			m.keymap.current = 'g'
+			return m, nil
+		case "r":
+			m.keymap.current = 'r'
+			return m, nil
+		case "b":
+			m.keymap.current = 'b'
+			return m, common.FetchBookmarks
 		case "d":
 			return m, common.ShowDescribe(m.rows[m.cursor].Commit)
-		case "b":
-			return m, common.FetchBookmarks
 		case "down", "j":
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
@@ -91,6 +125,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor--
 			}
 		case "esc":
+			if m.keymap.current != ' ' {
+				m.keymap.current = ' '
+				return m, nil
+			}
 			m.draggedRow = -1
 			m.mode = normalMode
 		case " ":
@@ -177,7 +215,7 @@ func New() tea.Model {
 		mode:       normalMode,
 		cursor:     0,
 		width:      20,
-		keymap:     keymap{},
+		keymap:     newKeyMap(),
 		describe:   nil,
 		help:       help,
 	}
