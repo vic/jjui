@@ -12,10 +12,10 @@ import (
 
 type (
 	ShowRevisionsView struct{}
-	CloseView         struct{}
+	CloseViewMsg      struct{}
 )
 
-type ShowDescribeView *jj.Commit
+type ShowDescribeViewMsg *jj.Commit
 
 type UpdateDescriptionView struct {
 	Description string
@@ -24,12 +24,12 @@ type UpdateDescriptionView struct {
 type UpdateRevisions []dag.GraphRow
 
 func Close() tea.Msg {
-	return CloseView{}
+	return CloseViewMsg{}
 }
 
-func DoShowDescribe(commit *jj.Commit) tea.Cmd {
+func ShowDescribe(commit *jj.Commit) tea.Cmd {
 	return func() tea.Msg {
-		return ShowDescribeView(commit)
+		return ShowDescribeViewMsg(commit)
 	}
 }
 

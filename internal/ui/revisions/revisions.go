@@ -63,7 +63,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Quit
 		case "d":
-			return m, common.DoShowDescribe(m.rows[m.cursor].Commit)
+			return m, common.ShowDescribe(m.rows[m.cursor].Commit)
 		case "down", "j":
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
