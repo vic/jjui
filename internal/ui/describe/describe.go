@@ -25,6 +25,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			return m, tea.Batch(common.Close, common.UpdateDescription(m.revision, m.description.Value()))
 		}
+	case tea.WindowSizeMsg:
+		m.description.SetWidth(msg.Width)
 	}
 	var cmd tea.Cmd
 	m.description, cmd = m.description.Update(msg)
@@ -35,10 +37,11 @@ func (m Model) View() string {
 	return m.description.View()
 }
 
-func New(revision string, description string) tea.Model {
+func New(revision string, description string, width int) tea.Model {
 	t := textarea.New()
 	t.SetValue(description)
 	t.Focus()
+	t.SetWidth(width)
 	t.CharLimit = 80
 	return Model{
 		description: t,

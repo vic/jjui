@@ -112,7 +112,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		rows := []dag.GraphRow(msg)
 		m.rows = rows
 	case common.ShowDescribeViewMsg:
-		m.describe = describe.New(msg.ChangeId, msg.Description)
+		m.describe = describe.New(msg.ChangeId, msg.Description, m.width)
 		return m, m.describe.Init()
 	case common.CloseViewMsg:
 		m.describe = nil
