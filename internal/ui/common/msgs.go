@@ -21,7 +21,10 @@ type UpdateDescriptionView struct {
 	Description string
 }
 
-type UpdateRevisions []dag.GraphRow
+type (
+	UpdateRevisionsMsg []dag.GraphRow
+	UpdateBookmarksMsg []jj.Bookmark
+)
 
 func Close() tea.Msg {
 	return CloseViewMsg{}
@@ -52,6 +55,11 @@ func FetchRevisions(location string) tea.Cmd {
 		commits := jj.GetCommits(location)
 		root := dag.Build(commits)
 		rows := dag.BuildGraphRows(root)
-		return UpdateRevisions(rows)
+		return UpdateRevisionsMsg(rows)
 	}
+}
+
+func FetchBookmarks() tea.Msg {
+	bookmarks, _ := jj.BookmarkList()
+	return UpdateBookmarksMsg(bookmarks)
 }

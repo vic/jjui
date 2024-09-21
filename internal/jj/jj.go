@@ -22,6 +22,8 @@ type Commit struct {
 	Index         int
 }
 
+type Bookmark string
+
 func GetCommits(location string) []Commit {
 	cmd := exec.Command("jj", "log", "--no-graph", "--template", TEMPLATE)
 	cmd.Dir = location
@@ -92,4 +94,21 @@ func SetDescription(rev string, description string) error {
 	cmd := exec.Command("jj", "describe", "-r", rev, "-m", description)
 	err := cmd.Run()
 	return err
+}
+
+func BookmarkList() ([]Bookmark, error) {
+	cmd := exec.Command("jj", "bookmark", "list")
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+		return nil, err
+	}
+
+	var bookmarks []Bookmark
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		parts := strings.Split(line, ":")
+		bookmarks = append(bookmarks, Bookmark(parts[0]))
+	}
+	return bookmarks, nil
 }

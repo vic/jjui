@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"jjui/internal/dag"
+	"jjui/internal/jj"
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
 
@@ -23,6 +24,7 @@ const (
 
 type Model struct {
 	rows       []dag.GraphRow
+	bookmarks  []jj.Bookmark
 	mode       mode
 	draggedRow int
 	cursor     int
@@ -78,6 +80,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "d":
 			return m, common.ShowDescribe(m.rows[m.cursor].Commit)
+		case "b":
+			return m, common.FetchBookmarks
 		case "down", "j":
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
@@ -108,9 +112,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			return m, nil
 		}
-	case common.UpdateRevisions:
-		rows := []dag.GraphRow(msg)
-		m.rows = rows
+	case common.UpdateRevisionsMsg:
+		m.rows = []dag.GraphRow(msg)
+	case common.UpdateBookmarksMsg:
+		m.bookmarks = []jj.Bookmark(msg)
 	case common.ShowDescribeViewMsg:
 		m.describe = describe.New(msg.ChangeId, msg.Description, m.width)
 		return m, m.describe.Init()
@@ -125,6 +130,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	var items strings.Builder
+	for _, bookmark := range m.bookmarks {
+		items.WriteString(string(bookmark))
+		items.WriteString("\n")
+	}
+
 	for i := 0; i < len(m.rows); i++ {
 		row := &m.rows[i]
 		switch m.mode {
