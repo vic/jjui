@@ -7,6 +7,7 @@ import (
 
 	"jjui/internal/dag"
 	"jjui/internal/ui/common"
+	"jjui/internal/ui/describe"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -27,6 +28,7 @@ type Model struct {
 	cursor     int
 	width      int
 	help       help.Model
+	describe   tea.Model
 	keymap     keymap
 }
 
@@ -57,6 +59,18 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.describe != nil {
+		switch msg.(type) {
+		case common.CloseViewMsg:
+			m.describe = nil
+			return m, nil
+		}
+
+		var cmd tea.Cmd
+		m.describe, cmd = m.describe.Update(msg)
+		return m, cmd
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -97,6 +111,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.UpdateRevisions:
 		rows := []dag.GraphRow(msg)
 		m.rows = rows
+	case common.ShowDescribeViewMsg:
+		m.describe = describe.New(msg.ChangeId, msg.Description)
+		return m, m.describe.Init()
+	case common.CloseViewMsg:
+		m.describe = nil
+		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 	}
@@ -118,6 +138,10 @@ func (m Model) View() string {
 			DefaultRenderer(&items, row, common.DefaultPalette, i == m.draggedRow)
 		case normalMode:
 			DefaultRenderer(&items, row, common.DefaultPalette, i == m.cursor)
+			if m.describe != nil && m.cursor == i {
+				items.WriteString(m.describe.View())
+				items.WriteString("\n")
+			}
 		}
 	}
 	items.WriteString("\n")
@@ -144,6 +168,7 @@ func New() tea.Model {
 		cursor:     0,
 		width:      20,
 		keymap:     keymap{},
+		describe:   nil,
 		help:       help,
 	}
 }
