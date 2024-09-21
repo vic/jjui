@@ -8,7 +8,10 @@ require (
 	github.com/stretchr/testify v1.9.0
 )
 
-require github.com/atotto/clipboard v0.1.4 // indirect
+require (
+	github.com/atotto/clipboard v0.1.4 // indirect
+	github.com/sahilm/fuzzy v0.1.1 // indirect
+)
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect

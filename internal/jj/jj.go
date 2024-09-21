@@ -107,8 +107,17 @@ func BookmarkList() ([]Bookmark, error) {
 	var bookmarks []Bookmark
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
+		if line == "" {
+			continue
+		}
 		parts := strings.Split(line, ":")
 		bookmarks = append(bookmarks, Bookmark(parts[0]))
 	}
 	return bookmarks, nil
+}
+
+func SetBookmark(revision string, bookmark string) error {
+	cmd := exec.Command("jj", "bookmark", "set", bookmark, "-r", revision)
+	err := cmd.Run()
+	return err
 }

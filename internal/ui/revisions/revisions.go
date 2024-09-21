@@ -7,6 +7,7 @@ import (
 
 	"jjui/internal/dag"
 	"jjui/internal/jj"
+	"jjui/internal/ui/bookmark"
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
 
@@ -24,13 +25,13 @@ const (
 
 type Model struct {
 	rows       []dag.GraphRow
-	bookmarks  []jj.Bookmark
 	mode       mode
 	draggedRow int
 	cursor     int
 	width      int
 	help       help.Model
 	describe   tea.Model
+	bookmarks  tea.Model
 	keymap     keymap
 }
 
@@ -78,6 +79,10 @@ func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{k.ShortHelp()}
 }
 
+func (m Model) selectedRevision() *jj.Commit {
+	return m.rows[m.cursor].Commit
+}
+
 func (m Model) Init() tea.Cmd {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -100,6 +105,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
+	if m.bookmarks != nil {
+		switch msg.(type) {
+		case common.CloseViewMsg:
+			m.bookmarks = nil
+			return m, nil
+		}
+
+		var cmd tea.Cmd
+		m.bookmarks, cmd = m.bookmarks.Update(msg)
+		return m, cmd
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -115,7 +132,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.keymap.current = 'b'
 			return m, common.FetchBookmarks
 		case "d":
-			return m, common.ShowDescribe(m.rows[m.cursor].Commit)
+			return m, common.ShowDescribe(m.selectedRevision())
 		case "down", "j":
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
@@ -153,7 +170,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.UpdateRevisionsMsg:
 		m.rows = []dag.GraphRow(msg)
 	case common.UpdateBookmarksMsg:
-		m.bookmarks = []jj.Bookmark(msg)
+		m.bookmarks = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
 	case common.ShowDescribeViewMsg:
 		m.describe = describe.New(msg.ChangeId, msg.Description, m.width)
 		return m, m.describe.Init()
@@ -168,10 +185,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	var items strings.Builder
-	for _, bookmark := range m.bookmarks {
-		items.WriteString(string(bookmark))
-		items.WriteString("\n")
-	}
 
 	for i := 0; i < len(m.rows); i++ {
 		row := &m.rows[i]
@@ -188,6 +201,10 @@ func (m Model) View() string {
 			DefaultRenderer(&items, row, common.DefaultPalette, i == m.cursor)
 			if m.describe != nil && m.cursor == i {
 				items.WriteString(m.describe.View())
+				items.WriteString("\n")
+			}
+			if m.bookmarks != nil && m.cursor == i {
+				items.WriteString(m.bookmarks.View())
 				items.WriteString("\n")
 			}
 		}

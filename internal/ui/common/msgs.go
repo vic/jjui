@@ -50,6 +50,13 @@ func UpdateDescription(revision string, description string) tea.Cmd {
 	return FetchRevisions(os.Getenv("PWD"))
 }
 
+func SetBookmark(revision string, bookmark string) tea.Cmd {
+	if err := jj.SetBookmark(revision, bookmark); err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+	return FetchRevisions(os.Getenv("PWD"))
+}
+
 func FetchRevisions(location string) tea.Cmd {
 	return func() tea.Msg {
 		commits := jj.GetCommits(location)
