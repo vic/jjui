@@ -11,10 +11,14 @@ func DefaultRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Palet
 	indent := strings.Repeat("│ ", row.Level)
 	glyph := "│"
 	nodeGlyph := "○ "
+	if row.Commit.IsWorkingCopy {
+		nodeGlyph = "@ "
+	}
+
 	if !row.IsFirstChild {
 		indent = strings.Repeat("│ ", row.Level-1)
 		glyph = "├─╯"
-		nodeGlyph = "│ ○ "
+		nodeGlyph = "│ " + nodeGlyph
 	}
 	w.WriteString(indent)
 	if highlighted {
