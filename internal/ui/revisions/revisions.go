@@ -32,6 +32,7 @@ type Model struct {
 	help       help.Model
 	describe   tea.Model
 	bookmarks  tea.Model
+	output     string
 	keymap     keymap
 }
 
@@ -185,8 +186,7 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	if _, ok := msg.(common.CloseViewMsg); ok  {
+	if _, ok := msg.(common.CloseViewMsg); ok {
 		m.describe = nil
 		m.bookmarks = nil
 		return m, nil
@@ -223,6 +223,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.ShowDescribeViewMsg:
 		m.describe = describe.New(msg.ChangeId, msg.Description, m.width)
 		return m, m.describe.Init()
+	case common.ShowOutputMsg:
+		m.output = msg.Output
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 	}
@@ -265,6 +267,12 @@ func (m Model) View() string {
 			items.WriteString("jj rebase -r " + m.rows[m.draggedRow].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
 		}
 	}
+
+	if m.output != "" {
+		items.WriteString("\n")
+		items.WriteString(fmt.Sprintf("%v\n", m.output))
+	}
+
 	return items.String()
 }
 

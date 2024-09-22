@@ -1,7 +1,6 @@
 package common
 
 import (
-	"fmt"
 	"os"
 
 	"jjui/internal/dag"
@@ -24,10 +23,23 @@ type UpdateDescriptionView struct {
 type (
 	UpdateRevisionsMsg []dag.GraphRow
 	UpdateBookmarksMsg []jj.Bookmark
+	ShowOutputMsg      struct {
+		Output string
+		Err    error
+	}
 )
 
 func Close() tea.Msg {
 	return CloseViewMsg{}
+}
+
+func ShowOutput(output string, err error) tea.Cmd {
+	return func() tea.Msg {
+		return ShowOutputMsg{
+			Output: output,
+			Err:    err,
+		}
+	}
 }
 
 func ShowDescribe(commit *jj.Commit) tea.Cmd {
@@ -37,24 +49,18 @@ func ShowDescribe(commit *jj.Commit) tea.Cmd {
 }
 
 func RebaseCommand(from, to string) tea.Cmd {
-	if err := jj.RebaseCommand(from, to); err != nil {
-		fmt.Printf("error: %v\n", err)
-	}
-	return FetchRevisions(os.Getenv("PWD"))
+	output, err := jj.RebaseCommand(from, to)
+	return tea.Batch(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
 
 func UpdateDescription(revision string, description string) tea.Cmd {
-	if err := jj.SetDescription(revision, description); err != nil {
-		fmt.Printf("error: %v\n", err)
-	}
-	return FetchRevisions(os.Getenv("PWD"))
+	output, err := jj.SetDescription(revision, description)
+	return tea.Batch(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
 
 func SetBookmark(revision string, bookmark string) tea.Cmd {
-	if err := jj.SetBookmark(revision, bookmark); err != nil {
-		fmt.Printf("error: %v\n", err)
-	}
-	return FetchRevisions(os.Getenv("PWD"))
+	output, err := jj.SetBookmark(revision, bookmark)
+	return tea.Batch(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
 
 func FetchRevisions(location string) tea.Cmd {

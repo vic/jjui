@@ -84,23 +84,22 @@ func parseCommit(lines []string) Commit {
 	return commit
 }
 
-func RebaseCommand(from string, to string) error {
+func RebaseCommand(from string, to string) ([]byte, error) {
 	cmd := exec.Command("jj", "rebase", "-r", from, "-d", to)
-	err := cmd.Run()
-	return err
+	output, err := cmd.CombinedOutput()
+	return output, err
 }
 
-func SetDescription(rev string, description string) error {
+func SetDescription(rev string, description string) ([]byte, error) {
 	cmd := exec.Command("jj", "describe", "-r", rev, "-m", description)
-	err := cmd.Run()
-	return err
+	output, err := cmd.CombinedOutput()
+	return output, err
 }
 
 func BookmarkList() ([]Bookmark, error) {
 	cmd := exec.Command("jj", "bookmark", "list")
-	output, err := cmd.Output()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
 		return nil, err
 	}
 
@@ -116,8 +115,8 @@ func BookmarkList() ([]Bookmark, error) {
 	return bookmarks, nil
 }
 
-func SetBookmark(revision string, bookmark string) error {
+func SetBookmark(revision string, bookmark string) ([]byte, error) {
 	cmd := exec.Command("jj", "bookmark", "set", bookmark, "-r", revision)
-	err := cmd.Run()
-	return err
+	output, err := cmd.CombinedOutput()
+	return output, err
 }
