@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
+
 	"jjui/internal/dag"
 	"jjui/internal/jj"
 	"jjui/internal/ui/bookmark"
@@ -29,6 +31,7 @@ type Model struct {
 	draggedRow int
 	cursor     int
 	width      int
+	height     int
 	help       help.Model
 	describe   tea.Model
 	bookmarks  tea.Model
@@ -241,14 +244,49 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.output = msg.Output
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
+		m.height = msg.Height
 	}
 	return m, cmd
 }
 
 func (m Model) View() string {
-	var items strings.Builder
+	if m.height == 0 {
+		return "loading"
+	}
 
+	var b strings.Builder
+	b.WriteString(m.help.View(m.keymap))
+	b.WriteString("\n")
+	if m.mode == moveMode {
+		b.WriteString("jj rebase -r " + m.rows[m.draggedRow].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
+	}
+
+	if m.output != "" {
+		b.WriteString("\n")
+		b.WriteString(fmt.Sprintf("%v\n", m.output))
+	}
+
+	bottom := b.String()
+	bottomHeight := lipgloss.Height(bottom)
+	if m.bookmarks != nil {
+		bottomHeight += 4
+	}
+	if m.describe != nil {
+		bottomHeight += 2
+	}
+	itemsPerPage := (m.height - bottomHeight - 6) / 2
+	currentPage := m.cursor / itemsPerPage
+	viewStart := currentPage * itemsPerPage
+	viewEnd := (currentPage + 1) * itemsPerPage
+
+	var items strings.Builder
 	for i := 0; i < len(m.rows); i++ {
+		if i < viewStart {
+			continue
+		}
+		if i > viewEnd {
+			continue
+		}
 		row := &m.rows[i]
 		switch m.mode {
 		case moveMode:
@@ -272,21 +310,7 @@ func (m Model) View() string {
 		}
 	}
 	items.WriteString("\n")
-	items.WriteString(m.help.View(m.keymap))
-	items.WriteString("\n")
-	if m.mode == moveMode {
-		if m.cursor == len(m.rows) {
-			items.WriteString("jj rebase -r " + m.rows[m.draggedRow].Commit.ChangeIdShort + " --insert-before " + m.rows[len(m.rows)-1].Commit.ChangeIdShort + "\n")
-		} else {
-			items.WriteString("jj rebase -r " + m.rows[m.draggedRow].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
-		}
-	}
-
-	if m.output != "" {
-		items.WriteString("\n")
-		items.WriteString(fmt.Sprintf("%v\n", m.output))
-	}
-
+	items.WriteString(bottom)
 	return items.String()
 }
 
