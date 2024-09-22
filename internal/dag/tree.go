@@ -95,7 +95,15 @@ func (d *Dag) GetRoots() []*Node {
 
 func Walk(node *Node, renderer Renderer, context RenderContext) {
 	sort.Slice(node.Edges, func(a, b int) bool {
-		return node.Edges[a].To.Commit.Index < node.Edges[b].To.Commit.Index
+		f := node.Edges[a]
+		s := node.Edges[b]
+		if f.Type ==  s.Type {
+			return f.To.Commit.Index < s.To.Commit.Index
+		}
+		if s.Type == DirectEdge {
+			return true
+		}
+		return true
 	})
 	for i, edge := range node.Edges {
 		nl := context.Level + 1
