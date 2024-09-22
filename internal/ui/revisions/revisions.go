@@ -69,6 +69,12 @@ func newKeyMap() keymap {
 		key.NewBinding(key.WithKeys("f"), key.WithHelp("d", "git fetch")),
 		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
 	}
+	bindings['m'] = []key.Binding{
+		key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
+		key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
+		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
+		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
+	}
 
 	return keymap{
 		current:  ' ',
@@ -136,7 +142,7 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch msg.String() {
 	case "r":
 		// rebase revision
-		m.keymap.current = ' '
+		m.keymap.current = 'm'
 		if m.mode == normalMode {
 			m.mode = moveMode
 			m.draggedRow = m.cursor
@@ -145,7 +151,15 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.draggedRow = -1
 		}
 	case "b":
-		m.keymap.current = ' '
+		m.keymap.current = 'm'
+	case "down", "j":
+		if m.cursor < len(m.rows)-1 {
+			m.cursor++
+		}
+	case "up", "k":
+		if m.cursor > 0 {
+			m.cursor--
+		}
 	// rebase branch
 	case "enter":
 		if m.mode == moveMode {
@@ -207,7 +221,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch m.keymap.current {
 		case ' ':
 			return m.handleBaseKeys(msg)
-		case 'r':
+		case 'r', 'm':
 			return m.handleRebaseKeys(msg)
 		case 'b':
 			return m.handleBookmarkKeys(msg)
