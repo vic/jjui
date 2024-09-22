@@ -276,12 +276,12 @@ func (m Model) View() string {
 	return items.String()
 }
 
-func New() tea.Model {
+func New(rows []dag.GraphRow) tea.Model {
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
 	return Model{
-		rows:       []dag.GraphRow{},
+		rows:       rows,
 		draggedRow: -1,
 		mode:       normalMode,
 		cursor:     0,
