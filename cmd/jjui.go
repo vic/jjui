@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	p := tea.NewProgram(revisions.New())
+	p := tea.NewProgram(revisions.New(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running program: %v\n", err)
 		os.Exit(1)

@@ -45,7 +45,11 @@ func newKeyMap() keymap {
 	bindings[' '] = []key.Binding{
 		key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
 		key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
-		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "set description")),
+		key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit")),
+		key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase")),
+		key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "bookmark")),
+		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "description")),
+		key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git")),
 		key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 	bindings['r'] = []key.Binding{
@@ -92,95 +96,137 @@ func (m Model) Init() tea.Cmd {
 	return common.FetchRevisions(dir)
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.describe != nil {
-		switch msg.(type) {
-		case common.CloseViewMsg:
-			m.describe = nil
-			return m, nil
+func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
+	switch msg.String() {
+	case "q":
+		return m, tea.Quit
+	case "g":
+		m.keymap.current = 'g'
+		return m, nil
+	case "r":
+		m.keymap.current = 'r'
+		return m, nil
+	case "b":
+		m.keymap.current = 'b'
+		return m, nil
+	case "d":
+		return m, common.ShowDescribe(m.selectedRevision())
+	case "down", "j":
+		if m.cursor < len(m.rows)-1 {
+			m.cursor++
 		}
+	case "up", "k":
+		if m.cursor > 0 {
+			m.cursor--
+		}
+	case "esc":
+		if m.mode == moveMode {
+			m.draggedRow = -1
+			m.mode = normalMode
+			return m, nil
+		} else {
+			return m, tea.Quit
+		}
+	}
+	return m, nil
+}
 
-		var cmd tea.Cmd
+func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
+	switch msg.String() {
+	case "r":
+		// rebase revision
+		m.keymap.current = ' '
+		if m.mode == normalMode {
+			m.mode = moveMode
+			m.draggedRow = m.cursor
+		} else {
+			m.mode = normalMode
+			m.draggedRow = -1
+		}
+	case "b":
+		m.keymap.current = ' '
+	// rebase branch
+	case "enter":
+		if m.mode == moveMode {
+			m.mode = normalMode
+			fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
+			toRevision := m.rows[m.cursor].Commit.ChangeIdShort
+			m.draggedRow = -1
+			m.keymap.current = ' '
+			return m, common.RebaseCommand(fromRevision, toRevision)
+		}
+	case "esc":
+		m.keymap.current = ' '
+	}
+	return m, nil
+}
+
+func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
+	switch msg.String() {
+	case "s":
+		m.keymap.current = ' '
+		return m, common.FetchBookmarks
+	case "esc":
+		m.keymap.current = ' '
+	}
+	return m, nil
+}
+
+func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
+	switch msg.String() {
+	case "f":
+		return m, nil
+	case "p":
+		return m, nil
+	case "esc":
+		m.keymap.current = ' '
+	}
+	return m, nil
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	if _, ok := msg.(common.CloseViewMsg); ok  {
+		m.describe = nil
+		m.bookmarks = nil
+		return m, nil
+	}
+
+	var cmd tea.Cmd
+	if m.describe != nil {
 		m.describe, cmd = m.describe.Update(msg)
 		return m, cmd
 	}
-
 	if m.bookmarks != nil {
-		switch msg.(type) {
-		case common.CloseViewMsg:
-			m.bookmarks = nil
-			return m, nil
-		}
-
-		var cmd tea.Cmd
 		m.bookmarks, cmd = m.bookmarks.Update(msg)
 		return m, cmd
 	}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q":
-			return m, tea.Quit
-		case "g":
-			m.keymap.current = 'g'
-			return m, nil
-		case "r":
-			m.keymap.current = 'r'
-			return m, nil
-		case "b":
-			m.keymap.current = 'b'
-			return m, common.FetchBookmarks
-		case "d":
-			return m, common.ShowDescribe(m.selectedRevision())
-		case "down", "j":
-			if m.cursor < len(m.rows)-1 {
-				m.cursor++
-			}
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "esc":
-			if m.keymap.current != ' ' {
-				m.keymap.current = ' '
-				return m, nil
-			}
-			m.draggedRow = -1
-			m.mode = normalMode
-		case " ":
-			if m.mode == normalMode {
-				m.mode = moveMode
-				m.draggedRow = m.cursor
-			} else {
-				m.mode = normalMode
-				m.draggedRow = -1
-			}
-		case "enter":
-			if m.mode == moveMode {
-				m.mode = normalMode
-				fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
-				toRevision := m.rows[m.cursor].Commit.ChangeIdShort
-				m.draggedRow = -1
-				return m, common.RebaseCommand(fromRevision, toRevision)
-			}
-		default:
-			return m, nil
+		switch m.keymap.current {
+		case ' ':
+			return m.handleBaseKeys(msg)
+		case 'r':
+			return m.handleRebaseKeys(msg)
+		case 'b':
+			return m.handleBookmarkKeys(msg)
+		case 'g':
+			return m.handleGitKeys(msg)
 		}
+
 	case common.UpdateRevisionsMsg:
-		m.rows = []dag.GraphRow(msg)
+		m.rows = msg
 	case common.UpdateBookmarksMsg:
 		m.bookmarks = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
+		return m, m.bookmarks.Init()
 	case common.ShowDescribeViewMsg:
 		m.describe = describe.New(msg.ChangeId, msg.Description, m.width)
 		return m, m.describe.Init()
-	case common.CloseViewMsg:
-		m.describe = nil
-		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 	}
-	return m, nil
+	return m, cmd
 }
 
 func (m Model) View() string {
@@ -223,9 +269,9 @@ func (m Model) View() string {
 }
 
 func New() tea.Model {
-	help := help.New()
-	help.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
-	help.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
+	h := help.New()
+	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
+	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
 	return Model{
 		rows:       []dag.GraphRow{},
 		draggedRow: -1,
@@ -234,6 +280,6 @@ func New() tea.Model {
 		width:      20,
 		keymap:     newKeyMap(),
 		describe:   nil,
-		help:       help,
+		help:       h,
 	}
 }
