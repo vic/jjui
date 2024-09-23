@@ -29,6 +29,14 @@ type (
 	}
 )
 
+type Operation int
+
+const (
+	None Operation = iota
+	RebaseRevision
+	RebaseBranch
+)
+
 func Close() tea.Msg {
 	return CloseViewMsg{}
 }
@@ -48,8 +56,12 @@ func ShowDescribe(commit *jj.Commit) tea.Cmd {
 	}
 }
 
-func RebaseCommand(from, to string) tea.Cmd {
-	output, err := jj.RebaseCommand(from, to)
+func RebaseCommand(from, to string, operation Operation) tea.Cmd {
+	rebase := jj.RebaseCommand
+	if operation == RebaseBranch {
+		rebase = jj.RebaseBranchCommand
+	}
+	output, err := rebase(from, to)
 	return tea.Batch(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
 

@@ -22,12 +22,13 @@ type mode int
 
 const (
 	normalMode mode = iota
-	moveMode
+	dropMode
 )
 
 type Model struct {
 	rows       []dag.GraphRow
 	mode       mode
+	op         common.Operation
 	draggedRow int
 	cursor     int
 	width      int
@@ -130,7 +131,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.cursor--
 		}
 	case "esc":
-		if m.mode == moveMode {
+		if m.mode == dropMode {
 			m.draggedRow = -1
 			m.mode = normalMode
 			return m, nil
@@ -146,8 +147,9 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "r":
 		// rebase revision
 		m.keymap.current = 'm'
+		m.op = common.RebaseRevision
 		if m.mode == normalMode {
-			m.mode = moveMode
+			m.mode = dropMode
 			m.draggedRow = m.cursor
 		} else {
 			m.mode = normalMode
@@ -155,6 +157,14 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 	case "b":
 		m.keymap.current = 'm'
+		m.op = common.RebaseBranch
+		if m.mode == normalMode {
+			m.mode = dropMode
+			m.draggedRow = m.cursor
+		} else {
+			m.mode = normalMode
+			m.draggedRow = -1
+		}
 	case "down", "j":
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
@@ -165,13 +175,13 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 	// rebase branch
 	case "enter":
-		if m.mode == moveMode {
+		if m.mode == dropMode {
 			m.mode = normalMode
 			fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
 			toRevision := m.rows[m.cursor].Commit.ChangeIdShort
 			m.draggedRow = -1
 			m.keymap.current = ' '
-			return m, common.RebaseCommand(fromRevision, toRevision)
+			return m, common.RebaseCommand(fromRevision, toRevision, m.op)
 		}
 	case "esc":
 		m.keymap.current = ' '
@@ -257,8 +267,12 @@ func (m Model) View() string {
 	var b strings.Builder
 	b.WriteString(m.help.View(m.keymap))
 	b.WriteString("\n")
-	if m.mode == moveMode {
-		b.WriteString("jj rebase -r " + m.rows[m.draggedRow].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
+	if m.mode == dropMode {
+		command := "-r"
+		if m.op == common.RebaseBranch {
+			command = "-b"
+		}
+		b.WriteString("jj rebase" + command + m.rows[m.draggedRow].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
 	}
 
 	if m.output != "" {
@@ -266,15 +280,15 @@ func (m Model) View() string {
 		b.WriteString(fmt.Sprintf("%v\n", m.output))
 	}
 
-	bottom := b.String()
-	bottomHeight := lipgloss.Height(bottom)
+	footer := b.String()
+	footerHeight := lipgloss.Height(footer)
 	if m.bookmarks != nil {
-		bottomHeight += 4
+		footerHeight += 4
 	}
 	if m.describe != nil {
-		bottomHeight += 2
+		footerHeight += 2
 	}
-	itemsPerPage := (m.height - bottomHeight - 6) / 2
+	itemsPerPage := (m.height - footerHeight - 6) / 2
 	currentPage := m.cursor / itemsPerPage
 	viewStart := currentPage * itemsPerPage
 	viewEnd := (currentPage + 1) * itemsPerPage
@@ -289,7 +303,7 @@ func (m Model) View() string {
 		}
 		row := &m.rows[i]
 		switch m.mode {
-		case moveMode:
+		case dropMode:
 			if i == m.cursor {
 				indent := strings.Repeat("│ ", row.Level)
 				items.WriteString(indent)
@@ -310,7 +324,7 @@ func (m Model) View() string {
 		}
 	}
 	items.WriteString("\n")
-	items.WriteString(bottom)
+	items.WriteString(footer)
 	return items.String()
 }
 
@@ -322,6 +336,7 @@ func New(rows []dag.GraphRow) tea.Model {
 		rows:       rows,
 		draggedRow: -1,
 		mode:       normalMode,
+		op:         common.None,
 		cursor:     0,
 		width:      20,
 		keymap:     newKeyMap(),

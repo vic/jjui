@@ -1,8 +1,9 @@
 package dag
 
 import (
-	"jjui/internal/jj"
 	"sort"
+
+	"jjui/internal/jj"
 )
 
 const (
@@ -97,7 +98,7 @@ func Walk(node *Node, renderer Renderer, context RenderContext) {
 	sort.Slice(node.Edges, func(a, b int) bool {
 		f := node.Edges[a]
 		s := node.Edges[b]
-		if f.Type ==  s.Type {
+		if f.Type == s.Type {
 			return f.To.Commit.Index < s.To.Commit.Index
 		}
 		if s.Type == DirectEdge {

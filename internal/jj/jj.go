@@ -90,6 +90,12 @@ func RebaseCommand(from string, to string) ([]byte, error) {
 	return output, err
 }
 
+func RebaseBranchCommand(from string, to string) ([]byte, error) {
+	cmd := exec.Command("jj", "rebase", "-b", from, "-d", to)
+	output, err := cmd.CombinedOutput()
+	return output, err
+}
+
 func SetDescription(rev string, description string) ([]byte, error) {
 	cmd := exec.Command("jj", "describe", "-r", rev, "-m", description)
 	output, err := cmd.CombinedOutput()
