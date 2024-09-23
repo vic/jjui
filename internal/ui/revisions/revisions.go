@@ -272,7 +272,7 @@ func (m Model) View() string {
 		if m.op == common.RebaseBranch {
 			command = "-b"
 		}
-		b.WriteString("jj rebase" + command + m.rows[m.draggedRow].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
+		b.WriteString("jj rebase " + command + " " + m.rows[m.draggedRow].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
 	}
 
 	if m.output != "" {

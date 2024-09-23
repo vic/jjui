@@ -103,8 +103,8 @@ func SetDescription(rev string, description string) ([]byte, error) {
 }
 
 func BookmarkList() ([]Bookmark, error) {
-	cmd := exec.Command("jj", "bookmark", "list")
-	output, err := cmd.CombinedOutput()
+	cmd := exec.Command("jj", "bookmark", "list", "--template", "name ++ '\n'")
+	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +115,7 @@ func BookmarkList() ([]Bookmark, error) {
 		if line == "" {
 			continue
 		}
-		parts := strings.Split(line, ":")
-		bookmarks = append(bookmarks, Bookmark(parts[0]))
+		bookmarks = append(bookmarks, Bookmark(line))
 	}
 	return bookmarks, nil
 }
