@@ -17,7 +17,7 @@ Currently, you can:
 ```
 git clone https://github.com/idursun/jjui.git
 cd jjui
-go install
+go install cmd/jjui.go
 ```
 
 ### Contributing
