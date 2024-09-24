@@ -3,6 +3,7 @@ package revisions
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -242,6 +243,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleGitKeys(msg)
 		}
 
+	case common.SelectRevisionMsg:
+		idx := slices.IndexFunc(m.rows, func(row dag.GraphRow) bool {
+			return row.Commit.ChangeIdShort == string(msg)
+		})
+		if idx != -1 {
+			m.cursor = idx
+		} else {
+			m.cursor = 0
+		}
 	case common.UpdateRevisionsMsg:
 		m.rows = msg
 	case common.UpdateBookmarksMsg:

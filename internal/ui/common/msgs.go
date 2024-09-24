@@ -27,6 +27,7 @@ type (
 		Output string
 		Err    error
 	}
+	SelectRevisionMsg string
 )
 
 type Operation int
@@ -39,6 +40,12 @@ const (
 
 func Close() tea.Msg {
 	return CloseViewMsg{}
+}
+
+func SelectRevision(revision string) tea.Cmd {
+	return func() tea.Msg {
+		return SelectRevisionMsg(revision)
+	}
 }
 
 func ShowOutput(output string, err error) tea.Cmd {
@@ -62,17 +69,17 @@ func RebaseCommand(from, to string, operation Operation) tea.Cmd {
 		rebase = jj.RebaseBranchCommand
 	}
 	output, err := rebase(from, to)
-	return tea.Batch(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
+	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")), SelectRevision(from))
 }
 
 func UpdateDescription(revision string, description string) tea.Cmd {
 	output, err := jj.SetDescription(revision, description)
-	return tea.Batch(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
+	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
 
 func SetBookmark(revision string, bookmark string) tea.Cmd {
 	output, err := jj.SetBookmark(revision, bookmark)
-	return tea.Batch(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
+	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
 
 func FetchRevisions(location string) tea.Cmd {
