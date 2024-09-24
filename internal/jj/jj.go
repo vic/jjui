@@ -137,3 +137,9 @@ func GitPush() ([]byte, error) {
 	output, err := cmd.CombinedOutput()
 	return output, err
 }
+
+func Diff(revision string) ([]byte, error) {
+	cmd := exec.Command("jj", "diff", "-r", revision)
+	output, err := cmd.Output()
+	return output, err
+}

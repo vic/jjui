@@ -13,6 +13,7 @@ import (
 	"jjui/internal/ui/bookmark"
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
+	"jjui/internal/ui/diff"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -37,6 +38,7 @@ type Model struct {
 	help       help.Model
 	describe   tea.Model
 	bookmarks  tea.Model
+	diff       tea.Model
 	output     string
 	keymap     keymap
 }
@@ -56,6 +58,7 @@ func newKeyMap() keymap {
 		key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "bookmark")),
 		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "description")),
 		key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git")),
+		key.NewBinding(key.WithKeys("x"), key.WithHelp("x", "show diff")),
 		key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 	bindings['r'] = []key.Binding{
@@ -123,6 +126,8 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 	case "d":
 		return m, common.ShowDescribe(m.selectedRevision())
+	case "x":
+		return m, common.GetDiff(m.selectedRevision().ChangeId)
 	case "down", "j":
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
@@ -219,6 +224,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(common.CloseViewMsg); ok {
 		m.describe = nil
 		m.bookmarks = nil
+		m.diff = nil
 		return m, nil
 	}
 
@@ -229,6 +235,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	if m.bookmarks != nil {
 		m.bookmarks, cmd = m.bookmarks.Update(msg)
+		return m, cmd
+	}
+	if m.diff != nil {
+		m.diff, cmd = m.diff.Update(msg)
 		return m, cmd
 	}
 
@@ -262,6 +272,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.ShowDescribeViewMsg:
 		m.describe = describe.New(msg.ChangeId, msg.Description, m.width)
 		return m, m.describe.Init()
+	case common.ShowDiffMsg:
+		m.diff = diff.New(string(msg), m.width, m.height)
+		return m, m.diff.Init()
 	case common.ShowOutputMsg:
 		m.output = msg.Output
 	case tea.WindowSizeMsg:
@@ -274,6 +287,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	if m.height == 0 {
 		return "loading"
+	}
+
+	if m.diff != nil {
+		return m.diff.View()
 	}
 
 	var b strings.Builder
@@ -301,6 +318,9 @@ func (m Model) View() string {
 		footerHeight += 2
 	}
 	itemsPerPage := (m.height - footerHeight - 6) / 2
+	if itemsPerPage == 0 {
+		return b.String()
+	}
 	currentPage := m.cursor / itemsPerPage
 	viewStart := currentPage * itemsPerPage
 	viewEnd := (currentPage + 1) * itemsPerPage

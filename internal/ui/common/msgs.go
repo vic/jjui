@@ -28,6 +28,7 @@ type (
 		Err    error
 	}
 	SelectRevisionMsg string
+	ShowDiffMsg       string
 )
 
 type Operation int
@@ -104,4 +105,11 @@ func FetchRevisions(location string) tea.Cmd {
 func FetchBookmarks() tea.Msg {
 	bookmarks, _ := jj.BookmarkList()
 	return UpdateBookmarksMsg(bookmarks)
+}
+
+func GetDiff(revision string) tea.Cmd {
+	return func() tea.Msg {
+		output, _ := jj.Diff(revision)
+		return ShowDiffMsg(string(output))
+	}
 }
