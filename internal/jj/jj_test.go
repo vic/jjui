@@ -2,6 +2,7 @@ package jj
 
 import (
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
@@ -12,10 +13,11 @@ myxzmzolxmpz
 psvvkyllponl
 true
 false
+false
+false
 ibrahim dursun <some@email.cc>
 main
 add test
-
 __END__`)
 
 	expected := Commit{
@@ -24,6 +26,7 @@ __END__`)
 		Parents:       []string{"psvvkyllponl"},
 		IsWorkingCopy: true,
 		Immutable:     false,
+		Conflict:      false,
 		Author:        "ibrahim dursun <some@email.cc>",
 		Branches:      "main",
 		Description:   "add test",
@@ -37,6 +40,8 @@ func Test_parseLogOutput_RootCommit(t *testing.T) {
 z
 zzzzzz
 !!NONE
+false
+false
 false
 false
 !!NONE
@@ -65,6 +70,8 @@ psvvky
 zzzzzz
 true
 false
+false
+false
 ibrahim dursun <some@email.cc>
 !!NONE
 add test binary
@@ -74,6 +81,8 @@ __BEGIN__
 z
 zzzzzz
 !!NONE
+false
+false
 false
 false
 !!NONE
@@ -88,6 +97,7 @@ __END__`)
 			IsWorkingCopy: true,
 			Author:        "ibrahim dursun <some@email.cc>",
 			Description:   "add test binary",
+			Index:         0,
 		},
 		{
 			ChangeIdShort: "z",
@@ -97,9 +107,40 @@ __END__`)
 			Author:        "",
 			Description:   "",
 			Branches:      "",
+			Index:         1,
 		},
 	}
 
 	assert.EqualExportedValues(t, expected[0], commits[0])
 	assert.EqualExportedValues(t, expected[1], commits[1])
+}
+
+func Test_parseCommit(t *testing.T) {
+	lines := strings.Split(`__BEGIN__
+c
+current
+parent
+true
+false
+true
+false
+ibrahim dursun <some@email.cc>
+main
+add test
+__END__`, "\n")
+	commit := parseCommit(lines)
+
+	expected := Commit{
+		ChangeIdShort: "c",
+		ChangeId:      "current",
+		Parents:       []string{"parent"},
+		IsWorkingCopy: true,
+		Immutable:     false,
+		Conflict:      true,
+		Author:        "ibrahim dursun <some@email.cc>",
+		Branches:      "main",
+		Description:   "add test",
+	}
+
+	assert.EqualExportedValues(t, expected, commit)
 }

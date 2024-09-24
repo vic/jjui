@@ -46,7 +46,7 @@ func parseLogOutput(output string) []Commit {
 		}
 		if strings.Contains(lines[i], "__END__") {
 			commit := parseCommit(lines[start:i])
-			commit.Index = i
+			commit.Index = len(commits)
 			commits = append(commits, commit)
 			start = -1
 		}
