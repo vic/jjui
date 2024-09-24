@@ -35,6 +35,10 @@ func DefaultRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Palet
 	w.WriteString(palette.AuthorStyle.Render(row.Commit.Author))
 	w.WriteString(" ")
 	w.WriteString(palette.BranchesStyle.Render(row.Commit.Branches))
+	if row.Commit.Conflict {
+		w.WriteString(" ")
+		w.WriteString(palette.ConflictStyle.Render("conflict"))
+	}
 	w.WriteString("\n")
 	// description line
 	w.WriteString(indent)

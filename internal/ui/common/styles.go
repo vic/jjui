@@ -26,6 +26,9 @@ var authorStyle = lipgloss.NewStyle().
 var branchesStyle = lipgloss.NewStyle().
 	Foreground(pink)
 
+var conflictStyle = lipgloss.NewStyle().
+	Foreground(red)
+
 var normal = lipgloss.NewStyle().
 	Foreground(foreground)
 
@@ -50,6 +53,7 @@ var DefaultPalette = Palette{
 	CommitIdRestStyle: commitIdRestStyle,
 	AuthorStyle:       authorStyle,
 	BranchesStyle:     branchesStyle,
+	ConflictStyle:     conflictStyle,
 	Empty:             emptyStyle,
 	NonEmpty:          nonEmptyStyle,
 	Normal:            normal,
@@ -61,6 +65,7 @@ type Palette struct {
 	CommitIdRestStyle lipgloss.Style
 	AuthorStyle       lipgloss.Style
 	BranchesStyle     lipgloss.Style
+	ConflictStyle     lipgloss.Style
 	Empty             lipgloss.Style
 	NonEmpty          lipgloss.Style
 	Normal            lipgloss.Style
