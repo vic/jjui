@@ -205,10 +205,10 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch msg.String() {
 	case "f":
 		m.keymap.current = ' '
-		return m, common.GitFetch
+		return m, common.GitFetch()
 	case "p":
 		m.keymap.current = ' '
-		return m, common.GitPush
+		return m, common.GitPush()
 	case "esc":
 		m.keymap.current = ' '
 	}

@@ -63,12 +63,12 @@ func ShowDescribe(commit *jj.Commit) tea.Cmd {
 	}
 }
 
-func GitFetch() tea.Msg {
+func GitFetch() tea.Cmd {
 	output, err := jj.GitFetch()
 	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
 
-func GitPush() tea.Msg {
+func GitPush() tea.Cmd {
 	output, err := jj.GitPush()
 	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
