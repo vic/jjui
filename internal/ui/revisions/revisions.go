@@ -204,9 +204,11 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch msg.String() {
 	case "f":
-		return m, nil
+		m.keymap.current = ' '
+		return m, common.GitFetch
 	case "p":
-		return m, nil
+		m.keymap.current = ' '
+		return m, common.GitPush
 	case "esc":
 		m.keymap.current = ' '
 	}

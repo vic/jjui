@@ -63,6 +63,16 @@ func ShowDescribe(commit *jj.Commit) tea.Cmd {
 	}
 }
 
+func GitFetch() tea.Msg {
+	output, err := jj.GitFetch()
+	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
+}
+
+func GitPush() tea.Msg {
+	output, err := jj.GitPush()
+	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
+}
+
 func RebaseCommand(from, to string, operation Operation) tea.Cmd {
 	rebase := jj.RebaseCommand
 	if operation == RebaseBranch {

@@ -125,3 +125,15 @@ func SetBookmark(revision string, bookmark string) ([]byte, error) {
 	output, err := cmd.CombinedOutput()
 	return output, err
 }
+
+func GitFetch() ([]byte, error) {
+	cmd := exec.Command("jj", "git", "fetch")
+	output, err := cmd.CombinedOutput()
+	return output, err
+}
+
+func GitPush() ([]byte, error) {
+	cmd := exec.Command("jj", "git", "push")
+	output, err := cmd.CombinedOutput()
+	return output, err
+}
