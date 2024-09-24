@@ -17,6 +17,9 @@ func DefaultRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Palet
 	if row.Commit.Immutable {
 		nodeGlyph = "◆ "
 	}
+	if row.Commit.Conflict {
+		nodeGlyph = "× "
+	}
 
 	if !row.IsFirstChild {
 		indent = strings.Repeat("│ ", row.Level-1)
