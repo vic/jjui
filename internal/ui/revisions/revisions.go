@@ -20,13 +20,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type mode int
-
-const (
-	normalMode mode = iota
-	dropMode
-)
-
 type Model struct {
 	rows       []dag.GraphRow
 	op         common.Operation
