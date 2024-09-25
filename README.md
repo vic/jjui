@@ -11,6 +11,9 @@ Currently, you can:
 * Rebase revision/branch onto another revision
 * Set or update the description of a revisions
 * Set bookmarks to a revision
+* Create a new revision
+* Show revision diff
+* Git push/fetch
 
 ### Installation
 
