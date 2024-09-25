@@ -29,7 +29,6 @@ const (
 
 type Model struct {
 	rows       []dag.GraphRow
-	mode       mode
 	op         common.Operation
 	draggedRow int
 	cursor     int
@@ -140,13 +139,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.cursor--
 		}
 	case "esc":
-		if m.mode == dropMode {
-			m.draggedRow = -1
-			m.mode = normalMode
-			return m, nil
-		} else {
-			return m, tea.Quit
-		}
+		return m, tea.Quit
 	}
 	return m, nil
 }
@@ -154,26 +147,13 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch msg.String() {
 	case "r":
-		// rebase revision
 		m.keymap.current = 'm'
 		m.op = common.RebaseRevision
-		if m.mode == normalMode {
-			m.mode = dropMode
-			m.draggedRow = m.cursor
-		} else {
-			m.mode = normalMode
-			m.draggedRow = -1
-		}
+		m.draggedRow = m.cursor
 	case "b":
 		m.keymap.current = 'm'
 		m.op = common.RebaseBranch
-		if m.mode == normalMode {
-			m.mode = dropMode
-			m.draggedRow = m.cursor
-		} else {
-			m.mode = normalMode
-			m.draggedRow = -1
-		}
+		m.draggedRow = m.cursor
 	case "down", "j":
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
@@ -182,17 +162,15 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		if m.cursor > 0 {
 			m.cursor--
 		}
-	// rebase branch
 	case "enter":
-		if m.mode == dropMode {
-			m.mode = normalMode
-			fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
-			toRevision := m.rows[m.cursor].Commit.ChangeIdShort
-			m.draggedRow = -1
-			m.keymap.current = ' '
-			return m, common.RebaseCommand(fromRevision, toRevision, m.op)
-		}
+		m.op = common.None
+		fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
+		toRevision := m.rows[m.cursor].Commit.ChangeIdShort
+		m.draggedRow = -1
+		m.keymap.current = ' '
+		return m, common.RebaseCommand(fromRevision, toRevision, m.op)
 	case "esc":
+		m.op = common.None
 		m.keymap.current = ' '
 	}
 	return m, nil
@@ -303,7 +281,7 @@ func (m Model) View() string {
 	var b strings.Builder
 	b.WriteString(m.help.View(m.keymap))
 	b.WriteString("\n")
-	if m.mode == dropMode {
+	if m.op == common.RebaseBranch || m.op == common.RebaseRevision {
 		command := "-r"
 		if m.op == common.RebaseBranch {
 			command = "-b"
@@ -341,8 +319,8 @@ func (m Model) View() string {
 			continue
 		}
 		row := &m.rows[i]
-		switch m.mode {
-		case dropMode:
+		switch m.op {
+		case common.RebaseRevision, common.RebaseBranch:
 			if i == m.cursor {
 				indent := strings.Repeat("│ ", row.Level)
 				items.WriteString(indent)
@@ -350,7 +328,7 @@ func (m Model) View() string {
 				items.WriteString("\n")
 			}
 			DefaultRenderer(&items, row, common.DefaultPalette, i == m.draggedRow)
-		case normalMode:
+		case common.None:
 			DefaultRenderer(&items, row, common.DefaultPalette, i == m.cursor)
 			if m.describe != nil && m.cursor == i {
 				items.WriteString(m.describe.View())
@@ -374,7 +352,6 @@ func New(rows []dag.GraphRow) tea.Model {
 	return Model{
 		rows:       rows,
 		draggedRow: -1,
-		mode:       normalMode,
 		op:         common.None,
 		cursor:     0,
 		width:      20,
