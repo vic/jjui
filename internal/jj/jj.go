@@ -143,3 +143,9 @@ func Diff(revision string) ([]byte, error) {
 	output, err := cmd.Output()
 	return output, err
 }
+
+func New(from string) ([]byte, error) {
+	cmd := exec.Command("jj", "new", "-r", from)
+	output, err := cmd.Output()
+	return output, err
+}

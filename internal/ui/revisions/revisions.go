@@ -59,6 +59,7 @@ func newKeyMap() keymap {
 		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "description")),
 		key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git")),
 		key.NewBinding(key.WithKeys("x"), key.WithHelp("x", "show diff")),
+		key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new")),
 		key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 	bindings['r'] = []key.Binding{
@@ -128,6 +129,8 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, common.ShowDescribe(m.selectedRevision())
 	case "x":
 		return m, common.GetDiff(m.selectedRevision().ChangeId)
+	case "n":
+		return m, common.NewRevision(m.selectedRevision().ChangeId)
 	case "down", "j":
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++

@@ -113,3 +113,8 @@ func GetDiff(revision string) tea.Cmd {
 		return ShowDiffMsg(string(output))
 	}
 }
+
+func NewRevision(from string) tea.Cmd {
+	output, err := jj.New(from)
+	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")), SelectRevision("@"))
+}
