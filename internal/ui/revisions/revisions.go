@@ -109,7 +109,7 @@ func (m Model) Init() tea.Cmd {
 		fmt.Printf("error: %v\n", err)
 		return nil
 	}
-	return tea.Sequence(common.FetchRevisions(dir), common.SelectRevision("@"))
+	return tea.Sequence(tea.SetWindowTitle("jjui"), common.FetchRevisions(dir), common.SelectRevision("@"))
 }
 
 func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
