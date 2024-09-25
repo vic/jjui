@@ -259,9 +259,15 @@ func (m Model) View() string {
 				items.WriteString(common.DropStyle.Render("<< here >>"))
 				items.WriteString("\n")
 			}
-			DefaultRenderer(&items, row, common.DefaultPalette, i == m.draggedRow)
+			SegmentedRenderer(&items, row, common.DefaultPalette, i == m.draggedRow,
+				Indent{}, NodeGlyph{}, "  ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
+				Indent{}, Glyph{}, "  ", Description{}, "\n",
+				Indent{}, ElidedRevisions{})
 		case common.None:
-			DefaultRenderer(&items, row, common.DefaultPalette, i == m.cursor)
+			SegmentedRenderer(&items, row, common.DefaultPalette, i == m.cursor,
+				Indent{}, NodeGlyph{}, "  ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
+				Indent{}, Glyph{}, "  ", Description{}, "\n",
+				Indent{}, ElidedRevisions{})
 			if m.overlay != nil && m.cursor == i {
 				items.WriteString(m.overlay.View())
 				items.WriteString("\n")
