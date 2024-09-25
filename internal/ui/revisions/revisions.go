@@ -44,57 +44,109 @@ type Model struct {
 
 type keymap struct {
 	current  rune
-	bindings map[rune][]key.Binding
+	bindings map[rune]interface{}
+	up       key.Binding
+	down     key.Binding
+	cancel   key.Binding
+	apply    key.Binding
+}
+
+type baseLayer struct {
+	edit         key.Binding
+	rebaseMode   key.Binding
+	bookmarkMode key.Binding
+	gitMode      key.Binding
+	description  key.Binding
+	diff         key.Binding
+	new          key.Binding
+	quit         key.Binding
+}
+
+type rebaseLayer struct {
+	revision key.Binding
+	branch   key.Binding
+}
+
+type bookmarkLayer struct {
+	set    key.Binding
+	delete key.Binding
+}
+
+type gitLayer struct {
+	fetch key.Binding
+	push  key.Binding
 }
 
 func newKeyMap() keymap {
-	bindings := make(map[rune][]key.Binding)
-	bindings[' '] = []key.Binding{
-		key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
-		key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
-		key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit")),
-		key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase")),
-		key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "bookmark")),
-		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "description")),
-		key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git")),
-		key.NewBinding(key.WithKeys("x"), key.WithHelp("x", "show diff")),
-		key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new")),
-		key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
+	bindings := make(map[rune]interface{})
+	bindings[' '] = baseLayer{
+		edit:         key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit")),
+		rebaseMode:   key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase")),
+		bookmarkMode: key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "bookmark")),
+		gitMode:      key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git")),
+		description:  key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "description")),
+		diff:         key.NewBinding(key.WithKeys("x"), key.WithHelp("x", "show diff")),
+		new:          key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new")),
+		quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
-	bindings['r'] = []key.Binding{
-		key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase revision")),
-		key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "rebase branch")),
-		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "rebase apply")),
-		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
+
+	bindings['r'] = rebaseLayer{
+		revision: key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase revision")),
+		branch:   key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "rebase branch")),
 	}
-	bindings['b'] = []key.Binding{
-		key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "bookmark set")),
-		key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "bookmark delete")),
-		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
+
+	bindings['b'] = bookmarkLayer{
+		set:    key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "bookmark set")),
+		delete: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "bookmark delete")),
 	}
-	bindings['g'] = []key.Binding{
-		key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "git push")),
-		key.NewBinding(key.WithKeys("f"), key.WithHelp("d", "git fetch")),
-		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
-	}
-	bindings['m'] = []key.Binding{
-		key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
-		key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
-		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
-		key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
+
+	bindings['g'] = gitLayer{
+		fetch: key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "git push")),
+		push:  key.NewBinding(key.WithKeys("f"), key.WithHelp("d", "git fetch")),
 	}
 
 	return keymap{
 		current:  ' ',
 		bindings: bindings,
+		up:       key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
+		down:     key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
+		apply:    key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
+		cancel:   key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
 	}
 }
 
-func (k keymap) ShortHelp() []key.Binding {
-	return k.bindings[k.current]
+func (k *keymap) gitMode() {
+	k.current = 'g'
 }
 
-func (k keymap) FullHelp() [][]key.Binding {
+func (k *keymap) rebaseMode() {
+	k.current = 'r'
+}
+
+func (k *keymap) bookmarkMode() {
+	k.current = 'b'
+}
+
+func (k *keymap) resetMode() {
+	k.current = ' '
+}
+
+func (k *keymap) ShortHelp() []key.Binding {
+	switch b := k.bindings[k.current].(type) {
+	case baseLayer:
+		return []key.Binding{k.up, k.down, b.description, b.new, b.edit, b.rebaseMode, b.gitMode, b.quit}
+	case rebaseLayer:
+		return []key.Binding{b.revision, b.branch}
+	case gitLayer:
+		return []key.Binding{b.push, b.fetch}
+	case bookmarkLayer:
+		return []key.Binding{b.set, b.delete}
+	default:
+		return []key.Binding{}
+	}
+}
+
+func (k *keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{k.ShortHelp()}
 }
 
@@ -112,91 +164,95 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	switch msg.String() {
-	case "q":
+	layer := m.keymap.bindings[m.keymap.current].(baseLayer)
+	switch {
+	case key.Matches(msg, layer.quit):
 		return m, tea.Quit
-	case "g":
-		m.keymap.current = 'g'
+	case key.Matches(msg, layer.gitMode):
+		m.keymap.gitMode()
 		return m, nil
-	case "r":
-		m.keymap.current = 'r'
+	case key.Matches(msg, layer.rebaseMode):
+		m.keymap.rebaseMode()
 		return m, nil
-	case "b":
-		m.keymap.current = 'b'
+	case key.Matches(msg, layer.bookmarkMode):
+		m.keymap.bookmarkMode()
 		return m, nil
-	case "d":
+	case key.Matches(msg, layer.description):
 		return m, common.ShowDescribe(m.selectedRevision())
-	case "x":
+	case key.Matches(msg, layer.diff):
 		return m, common.GetDiff(m.selectedRevision().ChangeId)
-	case "n":
+	case key.Matches(msg, layer.new):
 		return m, common.NewRevision(m.selectedRevision().ChangeId)
-	case "down", "j":
+	case key.Matches(msg, m.keymap.down):
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
-	case "up", "k":
+	case key.Matches(msg, m.keymap.up):
 		if m.cursor > 0 {
 			m.cursor--
 		}
-	case "esc":
+	case key.Matches(msg, m.keymap.cancel):
 		return m, tea.Quit
 	}
 	return m, nil
 }
 
 func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	switch msg.String() {
-	case "r":
-		m.keymap.current = 'm'
+	layer := m.keymap.bindings[m.keymap.current].(rebaseLayer)
+	switch {
+	case key.Matches(msg, layer.revision):
+		// rebase revision
 		m.op = common.RebaseRevision
 		m.draggedRow = m.cursor
-	case "b":
+	case key.Matches(msg, layer.branch):
 		m.keymap.current = 'm'
 		m.op = common.RebaseBranch
 		m.draggedRow = m.cursor
-	case "down", "j":
+	case key.Matches(msg, m.keymap.down):
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
-	case "up", "k":
+	case key.Matches(msg, m.keymap.up):
 		if m.cursor > 0 {
 			m.cursor--
 		}
-	case "enter":
+	case key.Matches(msg, m.keymap.apply):
 		m.op = common.None
 		fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
 		toRevision := m.rows[m.cursor].Commit.ChangeIdShort
 		m.draggedRow = -1
 		m.keymap.current = ' '
 		return m, common.RebaseCommand(fromRevision, toRevision, m.op)
-	case "esc":
+	case key.Matches(msg, m.keymap.cancel):
+		m.keymap.resetMode()
 		m.op = common.None
-		m.keymap.current = ' '
 	}
 	return m, nil
 }
 
 func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	switch msg.String() {
-	case "s":
-		m.keymap.current = ' '
+	layer := m.keymap.bindings[m.keymap.current].(bookmarkLayer)
+	switch {
+	case key.Matches(msg, layer.set):
+		m.keymap.resetMode()
 		return m, common.FetchBookmarks
-	case "esc":
-		m.keymap.current = ' '
+	case key.Matches(msg, m.keymap.cancel):
+		m.keymap.resetMode()
 	}
 	return m, nil
 }
 
 func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	switch msg.String() {
-	case "f":
-		m.keymap.current = ' '
+	layer := m.keymap.bindings[m.keymap.current].(gitLayer)
+	switch {
+	case key.Matches(msg, layer.fetch):
+		m.keymap.resetMode()
 		return m, common.GitFetch()
-	case "p":
-		m.keymap.current = ' '
+	case key.Matches(msg, layer.push):
+		m.keymap.resetMode()
 		return m, common.GitPush()
-	case "esc":
-		m.keymap.current = ' '
+	case key.Matches(msg, m.keymap.cancel):
+		m.keymap.resetMode()
 	}
 	return m, nil
 }
@@ -228,7 +284,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch m.keymap.current {
 		case ' ':
 			return m.handleBaseKeys(msg)
-		case 'r', 'm':
+		case 'r':
 			return m.handleRebaseKeys(msg)
 		case 'b':
 			return m.handleBookmarkKeys(msg)
@@ -279,7 +335,7 @@ func (m Model) View() string {
 	}
 
 	var b strings.Builder
-	b.WriteString(m.help.View(m.keymap))
+	b.WriteString(m.help.View(&m.keymap))
 	b.WriteString("\n")
 	if m.op == common.RebaseBranch || m.op == common.RebaseRevision {
 		command := "-r"
