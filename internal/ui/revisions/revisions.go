@@ -28,8 +28,7 @@ type Model struct {
 	width      int
 	height     int
 	help       help.Model
-	describe   tea.Model
-	bookmarks  tea.Model
+	overlay    tea.Model
 	diff       tea.Model
 	output     string
 	keymap     keymap
@@ -86,7 +85,6 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	layer := m.keymap.bindings[m.keymap.current].(rebaseLayer)
 	switch {
 	case key.Matches(msg, layer.revision):
-		// rebase revision
 		m.op = common.RebaseRevision
 		m.draggedRow = m.cursor
 	case key.Matches(msg, layer.branch):
@@ -144,21 +142,17 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(common.CloseViewMsg); ok {
-		m.describe = nil
-		m.bookmarks = nil
+		m.overlay = nil
 		m.diff = nil
 		return m, nil
 	}
 
 	var cmd tea.Cmd
-	if m.describe != nil {
-		m.describe, cmd = m.describe.Update(msg)
+	if m.overlay != nil {
+		m.overlay, cmd = m.overlay.Update(msg)
 		return m, cmd
 	}
-	if m.bookmarks != nil {
-		m.bookmarks, cmd = m.bookmarks.Update(msg)
-		return m, cmd
-	}
+
 	if m.diff != nil {
 		m.diff, cmd = m.diff.Update(msg)
 		return m, cmd
@@ -193,11 +187,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.UpdateRevisionsMsg:
 		m.rows = msg
 	case common.UpdateBookmarksMsg:
-		m.bookmarks = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
-		return m, m.bookmarks.Init()
+		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
+		return m, m.overlay.Init()
 	case common.ShowDescribeViewMsg:
-		m.describe = describe.New(msg.ChangeId, msg.Description, m.width)
-		return m, m.describe.Init()
+		m.overlay = describe.New(msg.ChangeId, msg.Description, m.width)
+		return m, m.overlay.Init()
 	case common.ShowDiffMsg:
 		m.diff = diff.New(string(msg), m.width, m.height)
 		return m, m.diff.Init()
@@ -237,11 +231,8 @@ func (m Model) View() string {
 
 	footer := b.String()
 	footerHeight := lipgloss.Height(footer)
-	if m.bookmarks != nil {
+	if m.overlay != nil {
 		footerHeight += 4
-	}
-	if m.describe != nil {
-		footerHeight += 2
 	}
 	itemsPerPage := (m.height - footerHeight - 6) / 2
 	if itemsPerPage == 0 {
@@ -271,12 +262,8 @@ func (m Model) View() string {
 			DefaultRenderer(&items, row, common.DefaultPalette, i == m.draggedRow)
 		case common.None:
 			DefaultRenderer(&items, row, common.DefaultPalette, i == m.cursor)
-			if m.describe != nil && m.cursor == i {
-				items.WriteString(m.describe.View())
-				items.WriteString("\n")
-			}
-			if m.bookmarks != nil && m.cursor == i {
-				items.WriteString(m.bookmarks.View())
+			if m.overlay != nil && m.cursor == i {
+				items.WriteString(m.overlay.View())
 				items.WriteString("\n")
 			}
 		}
@@ -297,7 +284,6 @@ func New(rows []dag.GraphRow) tea.Model {
 		cursor:     0,
 		width:      20,
 		keymap:     newKeyMap(),
-		describe:   nil,
 		help:       h,
 	}
 }
