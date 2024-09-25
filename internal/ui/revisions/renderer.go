@@ -1,10 +1,10 @@
 package revisions
 
 import (
-	"strings"
+    "strings"
 
-	"jjui/internal/dag"
-	"jjui/internal/ui/common"
+    "jjui/internal/dag"
+    "jjui/internal/ui/common"
 )
 
 type (
@@ -16,28 +16,19 @@ type (
 	Description     struct{}
 	NodeGlyph       struct{}
 	Glyph           struct{}
-	Indent          struct{}
 	ElidedRevisions struct{}
 )
 
 func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Palette, highlighted bool, segments ...interface{}) {
-	renderSegments(w, row, palette, highlighted, segments)
-}
-
-func renderSegments(w *strings.Builder, row *dag.GraphRow, palette common.Palette, highlighted bool, segments []interface{}) {
 	for _, segment := range segments {
 		switch segment := segment.(type) {
 		case ElidedRevisions:
 			if row.Elided {
+                indent := strings.Repeat("│ ", row.Level)
+                w.WriteString(indent)
 				w.WriteString(palette.CommitIdRestStyle.Render("~ (elided revisions)"))
 				w.WriteString("\n")
 			}
-		case Indent:
-			indent := strings.Repeat("│ ", row.Level)
-			if !row.IsFirstChild {
-				indent = strings.Repeat("│ ", row.Level-1)
-			}
-			w.WriteString(indent)
 		case NodeGlyph:
 			nodeGlyph := "○"
 			switch {
@@ -47,19 +38,22 @@ func renderSegments(w *strings.Builder, row *dag.GraphRow, palette common.Palett
 				nodeGlyph = "◆"
 			case row.Commit.Conflict:
 				nodeGlyph = "×"
-			case !row.IsFirstChild:
-				nodeGlyph = "│ " + nodeGlyph
 			}
+            indent := strings.Repeat("│ ", row.Level)
+            w.WriteString(indent)
 			if highlighted {
 				w.WriteString(palette.Selected.Render(nodeGlyph))
 			} else {
 				w.WriteString(nodeGlyph)
 			}
 		case Glyph:
+			indent := strings.Repeat("│ ", row.Level)
 			glyph := "│"
-			if !row.IsFirstChild {
+			if len(row.Node.Parents) > 0 && len(row.Node.Parents[0].Edges) > 1 && row.Level > 0 {
 				glyph = "├─╯"
+				indent = strings.Repeat("│ ", row.Level-1)
 			}
+			w.WriteString(indent)
 			w.WriteString(glyph)
 		case ChangeIdShort:
 			w.WriteString(palette.CommitShortStyle.Render(row.Commit.ChangeIdShort))

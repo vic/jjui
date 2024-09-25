@@ -2,11 +2,15 @@ package jj
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
 
-const TEMPLATE = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, conflict, empty, author.email(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
+const (
+	TEMPLATE             = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, conflict, empty, author.email(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
+	DESCENDANTS_TEMPLATE = `separate(" ", change_id.shortest(8), parents.map(|x| x.change_id().shortest(8))) ++ "\n"`
+)
 
 type Commit struct {
 	ChangeIdShort string
@@ -24,15 +28,35 @@ type Commit struct {
 
 type Bookmark string
 
-func GetCommits(location string) []Commit {
+func GetCommits(location string) ([]Commit, map[string]string) {
 	cmd := exec.Command("jj", "log", "--no-graph", "--template", TEMPLATE)
 	cmd.Dir = location
 	output, err := cmd.Output()
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
-		return nil
+		return nil, nil
 	}
-	return parseLogOutput(string(output))
+	commits := parseLogOutput(string(output))
+	parents := GetDescendants(commits[len(commits)-1].ChangeId)
+	return commits, parents
+}
+
+func GetDescendants(root string) map[string]string {
+	cmd := exec.Command("jj", "log", "--no-graph", "-r", root+"::", "--template", DESCENDANTS_TEMPLATE)
+	cmd.Dir = os.Getenv("PWD")
+	output, _ := cmd.CombinedOutput()
+	lines := strings.Split(string(output), "\n")
+	parents := make(map[string]string)
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		parts := strings.Split(line, " ")
+		rev := parts[0]
+		parent := parts[1]
+		parents[rev] = parent
+	}
+	return parents
 }
 
 func parseLogOutput(output string) []Commit {

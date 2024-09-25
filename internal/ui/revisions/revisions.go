@@ -260,14 +260,14 @@ func (m Model) View() string {
 				items.WriteString("\n")
 			}
 			SegmentedRenderer(&items, row, common.DefaultPalette, i == m.draggedRow,
-				Indent{}, NodeGlyph{}, "  ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
-				Indent{}, Glyph{}, "  ", Description{}, "\n",
-				Indent{}, ElidedRevisions{})
+				NodeGlyph{}, " ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
+				Glyph{}, " ", Description{}, "\n",
+				ElidedRevisions{})
 		case common.None:
 			SegmentedRenderer(&items, row, common.DefaultPalette, i == m.cursor,
-				Indent{}, NodeGlyph{}, "  ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
-				Indent{}, Glyph{}, "  ", Description{}, "\n",
-				Indent{}, ElidedRevisions{})
+				NodeGlyph{}, " ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
+				Glyph{}, " ", Description{}, "\n",
+				ElidedRevisions{})
 			if m.overlay != nil && m.cursor == i {
 				items.WriteString(m.overlay.View())
 				items.WriteString("\n")

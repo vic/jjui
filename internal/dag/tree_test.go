@@ -23,7 +23,7 @@ func TestBuildGraphRows_WithElidedCommits(t *testing.T) {
 			Parents:  nil,
 		},
 	}
-	root := Build(commits)
+	root := Build(commits, make(map[string]string))
 	rows := BuildGraphRows(root)
 	assert.Len(t, rows, 3)
 	assert.Equal(t, commits[0].ChangeId, rows[0].Commit.ChangeId)
@@ -37,7 +37,7 @@ func TestBuildGraphRows_WithTop2Commits(t *testing.T) {
 		{ChangeId: "top_addfile", Parents: []string{"parent"}},
 		{ChangeId: "parent", Parents: nil},
 	}
-	root := Build(commits)
+	root := Build(commits, make(map[string]string))
 	rows := BuildGraphRows(root)
 
 	assert.Len(t, rows, len(commits))
@@ -52,7 +52,7 @@ func TestBuildGraphRows_LevelsWithElidedRevisions(t *testing.T) {
 		{ChangeId: "middle", Parents: []string{"middle_parent"}},
 		{ChangeId: "middle_parent", Parents: nil},
 	}
-	root := Build(commits)
+	root := Build(commits, make(map[string]string))
 	rows := BuildGraphRows(root)
 	assert.Len(t, rows, len(commits))
 	assert.Equal(t, 0, rows[0].Level, "top should be at level 0")

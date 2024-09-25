@@ -20,6 +20,7 @@ type Node struct {
 	Parents []*Node
 	Commit  *jj.Commit
 	Edges   []*Edge
+	Depth   int
 }
 
 type Edge struct {
@@ -34,7 +35,7 @@ func NewDag() *Dag {
 	}
 }
 
-func Build(commits []jj.Commit) *Node {
+func Build(commits []jj.Commit, parents map[string]string) *Node {
 	tree := NewDag()
 	for _, commit := range commits {
 		tree.AddNode(&commit)
@@ -43,18 +44,40 @@ func Build(commits []jj.Commit) *Node {
 	for _, commit := range commits {
 		node := tree.GetNode(&commit)
 		for _, parent := range commit.Parents {
-			if parent := tree.GetNodeByChangeId(parent); parent != nil {
-				parent.AddEdge(node, DirectEdge)
+			if parentNode := tree.GetNodeByChangeId(parent); parentNode != nil {
+				parentNode.AddEdge(node, DirectEdge)
+			} else {
+				current := parent
+				for {
+					if p, ok := parents[current]; ok {
+						if pn := tree.GetNodeByChangeId(p); pn != nil {
+							pn.AddEdge(node, IndirectEdge)
+							parents[parent] = current
+							break
+						}
+						current = p
+						continue
+					}
+					break
+				}
 			}
 		}
 	}
 
-	roots := tree.GetRoots()
-	for i := 0; i < len(roots)-1; i++ {
-		next := roots[i+1]
-		next.AddEdge(roots[i], IndirectEdge)
+	root := tree.GetRoot()
+	root.CalculateDepth()
+	return root
+}
+
+func (n *Node) CalculateDepth() {
+	var maxDepth int
+	for _, children := range n.Edges {
+		children.To.CalculateDepth()
+		if children.To.Depth > maxDepth {
+			maxDepth = children.To.Depth
+		}
 	}
-	return roots[len(roots)-1]
+	n.Depth = maxDepth + 1
 }
 
 func (d *Dag) AddNode(c *jj.Commit) (node *Node) {
@@ -84,29 +107,23 @@ func (d *Dag) GetNodeByChangeId(changeId string) *Node {
 	return d.lookup[changeId]
 }
 
-func (d *Dag) GetRoots() []*Node {
-	roots := make([]*Node, 0)
+func (d *Dag) GetRoot() *Node {
 	for _, node := range d.Nodes {
 		if node.Parents == nil {
-			roots = append(roots, node)
+			return node
 		}
 	}
-	return roots
+	return nil
 }
 
 func Walk(node *Node, renderer Renderer, context RenderContext) {
 	sort.Slice(node.Edges, func(a, b int) bool {
 		f := node.Edges[a]
 		s := node.Edges[b]
-		if f.Type == s.Type {
-			return f.To.Commit.Index < s.To.Commit.Index
-		}
-		if s.Type == DirectEdge {
-			return true
-		}
-		return true
+		return f.To.Depth > s.To.Depth
 	})
 	for i, edge := range node.Edges {
+		index := i
 		nl := context.Level + 1
 		if i == 0 {
 			nl = context.Level
@@ -114,7 +131,7 @@ func Walk(node *Node, renderer Renderer, context RenderContext) {
 		Walk(edge.To, renderer, RenderContext{
 			Level:        nl,
 			Elided:       edge.Type == IndirectEdge,
-			IsFirstChild: i == 0,
+			IsFirstChild: index == 0 && len(node.Edges) > 1,
 		})
 	}
 	renderer(node, context)

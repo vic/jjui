@@ -95,8 +95,8 @@ func SetBookmark(revision string, bookmark string) tea.Cmd {
 
 func FetchRevisions(location string) tea.Cmd {
 	return func() tea.Msg {
-		commits := jj.GetCommits(location)
-		root := dag.Build(commits)
+		commits, parents := jj.GetCommits(location)
+		root := dag.Build(commits, parents)
 		rows := dag.BuildGraphRows(root)
 		return UpdateRevisionsMsg(rows)
 	}

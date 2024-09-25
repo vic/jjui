@@ -15,7 +15,7 @@ func TestRender_Single(t *testing.T) {
 	commits := []jj.Commit{
 		{ChangeId: "topchange"},
 	}
-	d := dag.Build(commits)
+	d := dag.Build(commits, make(map[string]string))
 	root := dag.BuildGraphRows(d)
 	model := revisions.New(root)
 
@@ -29,7 +29,7 @@ func TestRender_ElidedRevisions(t *testing.T) {
 		{ChangeId: "a"},
 		{ChangeId: "b"},
 	}
-	d := dag.Build(commits)
+	d := dag.Build(commits, make(map[string]string))
 	root := dag.BuildGraphRows(d)
 	model := revisions.New(root)
 
@@ -49,7 +49,7 @@ func TestRender_Branched(t *testing.T) {
 		{ChangeId: "b", Parents: []string{"root"}},
 		{ChangeId: "root"},
 	}
-	d := dag.Build(commits)
+	d := dag.Build(commits, make(map[string]string))
 	root := dag.BuildGraphRows(d)
 	model := revisions.New(root)
 
@@ -83,7 +83,7 @@ func TestRender_BranchedOrdered(t *testing.T) {
 		{ChangeId: "ssrp", Index: 14, Parents: []string{"vqrx"}},
 		{ChangeId: "qnor", Index: 15, Parents: []string{"pnpu"}},
 	}
-	d := dag.Build(commits)
+	d := dag.Build(commits, make(map[string]string))
 	root := dag.BuildGraphRows(d)
 	model := revisions.New(root)
 
