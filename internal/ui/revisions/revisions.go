@@ -109,7 +109,7 @@ func (m Model) Init() tea.Cmd {
 		fmt.Printf("error: %v\n", err)
 		return nil
 	}
-	return common.FetchRevisions(dir)
+	return tea.Sequence(common.FetchRevisions(dir), common.SelectRevision("@"))
 }
 
 func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
@@ -259,8 +259,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case common.SelectRevisionMsg:
+		r := string(msg)
 		idx := slices.IndexFunc(m.rows, func(row dag.GraphRow) bool {
-			return row.Commit.ChangeIdShort == string(msg)
+			if r == "@" {
+				return row.Commit.IsWorkingCopy
+			}
+			return row.Commit.ChangeIdShort == r
 		})
 		if idx != -1 {
 			m.cursor = idx
