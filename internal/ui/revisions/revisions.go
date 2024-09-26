@@ -117,7 +117,7 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, layer.set):
 		m.keymap.resetMode()
-		return m, common.FetchBookmarks
+		return m, common.FetchBookmarks(m.selectedRevision().ChangeId)
 	case key.Matches(msg, m.keymap.cancel):
 		m.keymap.resetMode()
 	}

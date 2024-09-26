@@ -132,8 +132,8 @@ func SetDescription(rev string, description string) ([]byte, error) {
 	return output, err
 }
 
-func BookmarkList() ([]Bookmark, error) {
-	cmd := exec.Command("jj", "bookmark", "list", "--template", "name ++ '\n'")
+func BookmarkList(revision string) ([]Bookmark, error) {
+	cmd := exec.Command("jj", "log", "-r", fmt.Sprintf("::%s- & bookmarks()", revision),  "--template", "local_bookmarks ++ '\n'", "--no-graph")
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
