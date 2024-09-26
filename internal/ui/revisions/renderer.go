@@ -1,31 +1,48 @@
 package revisions
 
 import (
-    "strings"
+	"strings"
 
-    "jjui/internal/dag"
-    "jjui/internal/ui/common"
+	"jjui/internal/dag"
+	"jjui/internal/ui/common"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type (
-	ChangeIdShort   struct{}
-	ChangeIdRest    struct{}
-	Author          struct{}
-	Branches        struct{}
-	ConflictMarker  struct{}
-	Description     struct{}
+	ChangeIdShort  struct{}
+	ChangeIdRest   struct{}
+	Author         struct{}
+	Branches       struct{}
+	ConflictMarker struct{}
+	Description    struct{}
+	ifSegment      struct {
+		Cond    bool
+		Segment []interface{}
+	}
 	NodeGlyph       struct{}
 	Glyph           struct{}
 	ElidedRevisions struct{}
+	Overlay         tea.Model
 )
+
+func If(cond bool, segments ...interface{}) interface{} {
+	return ifSegment{Cond: cond, Segment: segments}
+}
 
 func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Palette, highlighted bool, segments ...interface{}) {
 	for _, segment := range segments {
 		switch segment := segment.(type) {
+		case Overlay:
+			w.WriteString(segment.View())
+		case ifSegment:
+			if segment.Cond {
+				SegmentedRenderer(w, row, palette, highlighted, segment.Segment...)
+			}
 		case ElidedRevisions:
 			if row.Elided {
-                indent := strings.Repeat("│ ", row.Level)
-                w.WriteString(indent)
+				indent := strings.Repeat("│ ", row.Level)
+				w.WriteString(indent)
 				w.WriteString(palette.CommitIdRestStyle.Render("~ (elided revisions)"))
 				w.WriteString("\n")
 			}
@@ -39,8 +56,8 @@ func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Pal
 			case row.Commit.Conflict:
 				nodeGlyph = "×"
 			}
-            indent := strings.Repeat("│ ", row.Level)
-            w.WriteString(indent)
+			indent := strings.Repeat("│ ", row.Level)
+			w.WriteString(indent)
 			if highlighted {
 				w.WriteString(palette.Selected.Render(nodeGlyph))
 			} else {

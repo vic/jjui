@@ -265,12 +265,8 @@ func (m Model) View() string {
 		case common.None:
 			SegmentedRenderer(&items, row, common.DefaultPalette, i == m.cursor,
 				NodeGlyph{}, " ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
-				Glyph{}, " ", Description{}, "\n",
+				Glyph{}, " ", If(m.overlay == nil || i != m.cursor, Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay)), "\n",
 				ElidedRevisions{})
-			if m.overlay != nil && m.cursor == i {
-				items.WriteString(m.overlay.View())
-				items.WriteString("\n")
-			}
 		}
 	}
 	items.WriteString("\n")
