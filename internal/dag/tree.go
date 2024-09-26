@@ -123,7 +123,6 @@ func Walk(node *Node, renderer Renderer, context RenderContext) {
 		return f.To.Depth > s.To.Depth
 	})
 	for i, edge := range node.Edges {
-		index := i
 		nl := context.Level + 1
 		if i == 0 {
 			nl = context.Level
@@ -131,7 +130,6 @@ func Walk(node *Node, renderer Renderer, context RenderContext) {
 		Walk(edge.To, renderer, RenderContext{
 			Level:        nl,
 			Elided:       edge.Type == IndirectEdge,
-			IsFirstChild: index == 0 && len(node.Edges) > 1,
 		})
 	}
 	renderer(node, context)
