@@ -44,6 +44,7 @@ func New(revision string, description string, width int) tea.Model {
 	t.SetWidth(width)
 	t.SetHeight(1)
 	t.CharLimit = 80
+	t.ShowLineNumbers = false
 	return Model{
 		description: t,
 		revision:    revision,
