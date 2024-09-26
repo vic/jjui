@@ -45,7 +45,7 @@ func newKeyMap() keymap {
 		bookmarkMode: key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "bookmark")),
 		gitMode:      key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git")),
 		description:  key.NewBinding(key.WithKeys("D"), key.WithHelp("D", "description")),
-		diff:         key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "show diff")),
+		diff:         key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
 		new:          key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new")),
 		quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
