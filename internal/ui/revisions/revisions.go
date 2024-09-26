@@ -88,7 +88,6 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.op = common.RebaseRevision
 		m.draggedRow = m.cursor
 	case key.Matches(msg, layer.branch):
-		m.keymap.current = 'm'
 		m.op = common.RebaseBranch
 		m.draggedRow = m.cursor
 	case key.Matches(msg, m.keymap.down):
