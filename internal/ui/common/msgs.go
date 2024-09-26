@@ -67,7 +67,7 @@ func ShowDescribe(commit *jj.Commit) tea.Cmd {
 func GitFetch() tea.Cmd {
 	f := func() tea.Msg {
 		output, err := jj.GitFetch()
-		return ShowOutput(string(output), err)
+		return ShowOutputMsg{Output: string(output), Err: err}
 	}
 	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
 }
@@ -75,7 +75,7 @@ func GitFetch() tea.Cmd {
 func GitPush() tea.Cmd {
 	f := func() tea.Msg {
 		output, err := jj.GitPush()
-		return ShowOutput(string(output), err)
+		return ShowOutputMsg{Output: string(output), Err: err}
 	}
 	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
 }
