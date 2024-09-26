@@ -6,12 +6,19 @@ A TUI for working with [Jujutsu version control system](https://github.com/marti
 
 I have built `jjui` according to my own needs and will keep adding new features as I need them.
 
+## Compatibility
+
+It's compatible with jj **v0.21**+.
+
+## Features
+
 Currently, you can:
 
 * Rebase revision/branch onto another revision
-* Set or update the description of a revisions
+* Set or update the description of a revision
 * Set bookmarks to a revision
 * Create a new revision
+* Edit a revision
 * Show revision diff
 * Git push/fetch
 
