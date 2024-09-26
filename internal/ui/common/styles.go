@@ -23,6 +23,9 @@ var commitIdRestStyle = lipgloss.NewStyle().
 var authorStyle = lipgloss.NewStyle().
 	Foreground(yellow)
 
+var timestampStyle = lipgloss.NewStyle().
+	Foreground(cyan)
+
 var branchesStyle = lipgloss.NewStyle().
 	Foreground(pink)
 
@@ -37,11 +40,11 @@ var selected = lipgloss.NewStyle().
 
 var emptyStyle = lipgloss.NewStyle().
 	Bold(true).
-	Foreground(lipgloss.Color(green))
+	Foreground(green)
 
 var nonEmptyStyle = lipgloss.NewStyle().
 	Bold(true).
-	Foreground(lipgloss.Color(yellow))
+	Foreground(yellow)
 
 var DropStyle = lipgloss.NewStyle().
 	Bold(true).
@@ -52,6 +55,7 @@ var DefaultPalette = Palette{
 	CommitShortStyle:  commitShortStyle,
 	CommitIdRestStyle: commitIdRestStyle,
 	AuthorStyle:       authorStyle,
+	TimestampStyle:    timestampStyle,
 	BranchesStyle:     branchesStyle,
 	ConflictStyle:     conflictStyle,
 	Empty:             emptyStyle,
@@ -64,6 +68,7 @@ type Palette struct {
 	CommitShortStyle  lipgloss.Style
 	CommitIdRestStyle lipgloss.Style
 	AuthorStyle       lipgloss.Style
+	TimestampStyle    lipgloss.Style
 	BranchesStyle     lipgloss.Style
 	ConflictStyle     lipgloss.Style
 	Empty             lipgloss.Style

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	TEMPLATE             = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, conflict, empty, author.email(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
+	TEMPLATE             = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
 	DESCENDANTS_TEMPLATE = `separate(" ", change_id.shortest(8), parents.map(|x| x.change_id().shortest(8))) ++ "\n"`
 )
 
@@ -18,6 +18,7 @@ type Commit struct {
 	Parents       []string
 	IsWorkingCopy bool
 	Author        string
+	Timestamp     string
 	Branches      string
 	Description   string
 	Immutable     bool
@@ -99,12 +100,13 @@ func parseCommit(lines []string) Commit {
 	if author != "!!NONE" {
 		commit.Author = author
 	}
-	branches := lines[9][indent:]
+	commit.Timestamp = lines[9][indent:]
+	branches := lines[10][indent:]
 	if branches != "!!NONE" {
 		commit.Branches = branches
 	}
-	if len(lines) >= 11 {
-		desc := lines[10][indent:]
+	if len(lines) >= 12 {
+		desc := lines[11][indent:]
 		if desc != "!!NONE" {
 			commit.Description = desc
 		}

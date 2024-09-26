@@ -13,6 +13,7 @@ type (
 	ChangeIdShort  struct{}
 	ChangeIdRest   struct{}
 	Author         struct{}
+	Timestamp      struct{}
 	Branches       struct{}
 	ConflictMarker struct{}
 	Description    struct{}
@@ -78,6 +79,8 @@ func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Pal
 			w.WriteString(palette.CommitIdRestStyle.Render(row.Commit.ChangeId[len(row.Commit.ChangeIdShort):]))
 		case Author:
 			w.WriteString(palette.AuthorStyle.Render(row.Commit.Author))
+		case Timestamp:
+			w.WriteString(palette.TimestampStyle.Render(row.Commit.Timestamp))
 		case Branches:
 			w.WriteString(palette.BranchesStyle.Render(row.Commit.Branches))
 		case ConflictMarker:
