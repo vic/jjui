@@ -258,16 +258,11 @@ func (m Model) View() string {
 				items.WriteString(common.DropStyle.Render("<< here >>"))
 				items.WriteString("\n")
 			}
-			SegmentedRenderer(&items, row, common.DefaultPalette, i == m.draggedRow,
-				NodeGlyph{}, " ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
-				Glyph{}, " ", Description{}, "\n",
-				ElidedRevisions{})
-		case common.None:
-			SegmentedRenderer(&items, row, common.DefaultPalette, i == m.cursor,
-				NodeGlyph{}, " ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
-				Glyph{}, " ", If(m.overlay == nil || i != m.cursor, Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay)), "\n",
-				ElidedRevisions{})
 		}
+		SegmentedRenderer(&items, row, common.DefaultPalette, i == m.cursor,
+			NodeGlyph{}, " ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Branches{}, ConflictMarker{}, "\n",
+			Glyph{}, " ", If(m.overlay == nil || i != m.cursor, Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay)), "\n",
+			ElidedRevisions{})
 	}
 	items.WriteString("\n")
 	items.WriteString(footer)
