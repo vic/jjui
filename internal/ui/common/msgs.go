@@ -10,13 +10,13 @@ import (
 )
 
 type (
-	ShowRevisionsView struct{}
-	CloseViewMsg      struct{}
+	ShowRevisionsViewMsg struct{}
+	CloseViewMsg         struct{}
 )
 
 type ShowDescribeViewMsg *jj.Commit
 
-type UpdateDescriptionView struct {
+type UpdateDescriptionViewMsg struct {
 	Description string
 }
 
