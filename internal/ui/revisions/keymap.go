@@ -61,8 +61,8 @@ func newKeyMap() keymap {
 	}
 
 	bindings['g'] = gitLayer{
-		fetch: key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "git push")),
-		push:  key.NewBinding(key.WithKeys("f"), key.WithHelp("d", "git fetch")),
+		fetch: key.NewBinding(key.WithKeys("f"), key.WithHelp("f", "git fetch")),
+		push:  key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "git push")),
 	}
 
 	return keymap{
