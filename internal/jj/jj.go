@@ -176,7 +176,7 @@ func Diff(revision string) ([]byte, error) {
 
 func Edit(revision string) ([]byte, error) {
 	cmd := exec.Command("jj", "edit", "-r", revision)
-	output, err := cmd.Output()
+	output, err := cmd.CombinedOutput()
 	return output, err
 }
 
