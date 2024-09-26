@@ -50,8 +50,22 @@ func (m Model) Init() tea.Cmd {
 func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	layer := m.keymap.bindings[m.keymap.current].(baseLayer)
 	switch {
-	case key.Matches(msg, layer.quit):
-		return m, tea.Quit
+	case key.Matches(msg, m.keymap.up):
+		if m.cursor > 0 {
+			m.cursor--
+		}
+	case key.Matches(msg, m.keymap.down):
+		if m.cursor < len(m.rows)-1 {
+			m.cursor++
+		}
+	case key.Matches(msg, layer.new):
+		return m, common.NewRevision(m.selectedRevision().ChangeId)
+	case key.Matches(msg, layer.edit):
+		return m, common.Edit(m.selectedRevision().ChangeId)
+	case key.Matches(msg, layer.description):
+		return m, common.ShowDescribe(m.selectedRevision())
+	case key.Matches(msg, layer.diff):
+		return m, common.GetDiff(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.gitMode):
 		m.keymap.gitMode()
 		return m, nil
@@ -61,21 +75,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.bookmarkMode):
 		m.keymap.bookmarkMode()
 		return m, nil
-	case key.Matches(msg, layer.description):
-		return m, common.ShowDescribe(m.selectedRevision())
-	case key.Matches(msg, layer.diff):
-		return m, common.GetDiff(m.selectedRevision().ChangeId)
-	case key.Matches(msg, layer.new):
-		return m, common.NewRevision(m.selectedRevision().ChangeId)
-	case key.Matches(msg, m.keymap.down):
-		if m.cursor < len(m.rows)-1 {
-			m.cursor++
-		}
-	case key.Matches(msg, m.keymap.up):
-		if m.cursor > 0 {
-			m.cursor--
-		}
-	case key.Matches(msg, m.keymap.cancel):
+	case key.Matches(msg, layer.quit), key.Matches(msg, m.keymap.cancel):
 		return m, tea.Quit
 	}
 	return m, nil

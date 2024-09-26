@@ -120,6 +120,14 @@ func GetDiff(revision string) tea.Cmd {
 	}
 }
 
+func Edit(revision string) tea.Cmd {
+	f := func() tea.Msg {
+		output, err := jj.Edit(revision)
+		return ShowOutputMsg{Output: string(output), Err: err}
+	}
+	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")), SelectRevision("@"))
+}
+
 func NewRevision(from string) tea.Cmd {
 	output, err := jj.New(from)
 	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")), SelectRevision("@"))
