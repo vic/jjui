@@ -44,8 +44,8 @@ func newKeyMap() keymap {
 		rebaseMode:   key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase")),
 		bookmarkMode: key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "bookmark")),
 		gitMode:      key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git")),
-		description:  key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "description")),
-		diff:         key.NewBinding(key.WithKeys("x"), key.WithHelp("x", "show diff")),
+		description:  key.NewBinding(key.WithKeys("D"), key.WithHelp("D", "description")),
+		diff:         key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "show diff")),
 		new:          key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new")),
 		quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
@@ -94,7 +94,7 @@ func (k *keymap) resetMode() {
 func (k *keymap) ShortHelp() []key.Binding {
 	switch b := k.bindings[k.current].(type) {
 	case baseLayer:
-		return []key.Binding{k.up, k.down, b.description, b.new, b.edit, b.rebaseMode, b.gitMode, b.quit}
+		return []key.Binding{k.up, k.down, b.new, b.diff, b.description, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
 		return []key.Binding{b.revision, b.branch}
 	case gitLayer:
