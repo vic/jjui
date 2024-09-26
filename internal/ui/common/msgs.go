@@ -65,13 +65,19 @@ func ShowDescribe(commit *jj.Commit) tea.Cmd {
 }
 
 func GitFetch() tea.Cmd {
-	output, err := jj.GitFetch()
-	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
+	f := func() tea.Msg {
+		output, err := jj.GitFetch()
+		return ShowOutput(string(output), err)
+	}
+	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
 }
 
 func GitPush() tea.Cmd {
-	output, err := jj.GitPush()
-	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
+	f := func() tea.Msg {
+		output, err := jj.GitPush()
+		return ShowOutput(string(output), err)
+	}
+	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
 }
 
 func RebaseCommand(from, to string, operation Operation) tea.Cmd {
