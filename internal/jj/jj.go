@@ -53,6 +53,10 @@ func GetDescendants(root string) map[string]string {
 		}
 		parts := strings.Split(line, " ")
 		rev := parts[0]
+		if len(parts) < 2 {
+			parents[rev] = ""
+			continue
+		}
 		parent := parts[1]
 		parents[rev] = parent
 	}
