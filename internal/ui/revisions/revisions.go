@@ -216,13 +216,6 @@ func (m Model) View() string {
 	var b strings.Builder
 	b.WriteString(m.help.View(&m.keymap))
 	b.WriteString("\n")
-	if m.op == common.RebaseBranch || m.op == common.RebaseRevision {
-		command := "-r"
-		if m.op == common.RebaseBranch {
-			command = "-b"
-		}
-		b.WriteString("jj rebase " + command + " " + m.rows[m.draggedRow].Commit.ChangeIdShort + " -d " + m.rows[m.cursor].Commit.ChangeIdShort + "\n")
-	}
 
 	if m.output != "" {
 		b.WriteString("\n")
