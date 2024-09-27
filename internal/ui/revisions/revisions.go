@@ -20,9 +20,15 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type viewRange struct {
+	start int
+	end   int
+}
+
 type Model struct {
 	rows       []dag.GraphRow
 	op         common.Operation
+	viewRange  *viewRange
 	draggedRow int
 	cursor     int
 	width      int
@@ -217,59 +223,55 @@ func (m Model) View() string {
 	b.WriteString(m.help.View(&m.keymap))
 	b.WriteString("\n")
 
-	if m.output != "" {
-		b.WriteString("\n")
-		b.WriteString(fmt.Sprintf("%v\n", m.output))
-	}
-
 	footer := b.String()
 	footerHeight := lipgloss.Height(footer)
-	if m.overlay != nil {
-		footerHeight += 4
+	space := m.height - footerHeight
+
+	if m.cursor < m.viewRange.start && m.viewRange.start > 0 {
+		m.viewRange.start--
 	}
-	itemsPerPage := (m.height - footerHeight - 6) / 2
-	if itemsPerPage == 0 {
-		return b.String()
+	if m.cursor > m.viewRange.end && m.cursor < len(m.rows) {
+		m.viewRange.start++
 	}
-	currentPage := m.cursor / itemsPerPage
-	viewStart := currentPage * itemsPerPage
-	viewEnd := (currentPage + 1) * itemsPerPage
 
 	var items strings.Builder
-	for i := 0; i < len(m.rows); i++ {
-		if i < viewStart {
-			continue
+	for i := m.viewRange.start; i < len(m.rows); i++ {
+		if space <= 4 {
+			break
 		}
-		if i > viewEnd {
-			continue
-		}
+		line := strings.Builder{}
 		row := &m.rows[i]
 		switch m.op {
 		case common.RebaseRevision, common.RebaseBranch:
 			if i == m.cursor {
 				indent := strings.Repeat("│ ", row.Level)
-				items.WriteString(indent)
-				items.WriteString(common.DropStyle.Render("<< here >>"))
-				items.WriteString("\n")
+				line.WriteString(indent)
+				line.WriteString(common.DropStyle.Render("<< here >>"))
+				line.WriteString("\n")
 			}
 		}
-		SegmentedRenderer(&items, row, common.DefaultPalette, i == m.cursor,
+		SegmentedRenderer(&line, row, common.DefaultPalette, i == m.cursor,
 			NodeGlyph{}, " ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Timestamp{}, " ", Branches{}, ConflictMarker{}, "\n",
 			Glyph{}, " ", If(m.overlay == nil || i != m.cursor, If(row.Commit.Empty, Empty{}, " "), Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay)), "\n",
 			ElidedRevisions{})
+		s := line.String()
+		space -= lipgloss.Height(s) - 1
+		m.viewRange.end = i
+		items.WriteString(s)
 	}
-	items.WriteString("\n")
-	items.WriteString(footer)
-	return items.String()
+	result := lipgloss.Place(m.width, m.height-footerHeight, 0, 0, items.String())
+	return lipgloss.JoinVertical(0, result, footer)
 }
 
 func New(rows []dag.GraphRow) tea.Model {
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
+	v := viewRange{start: 0, end: 0}
 	return Model{
 		rows:       rows,
 		draggedRow: -1,
+		viewRange:  &v,
 		op:         common.None,
 		cursor:     0,
 		width:      20,
