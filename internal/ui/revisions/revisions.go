@@ -99,12 +99,13 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.cursor--
 		}
 	case key.Matches(msg, m.keymap.apply):
-		m.op = common.None
+		rebaseOperation := m.op
 		fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
 		toRevision := m.rows[m.cursor].Commit.ChangeIdShort
+		m.op = common.None
 		m.draggedRow = -1
 		m.keymap.current = ' '
-		return m, common.RebaseCommand(fromRevision, toRevision, m.op)
+		return m, common.RebaseCommand(fromRevision, toRevision, rebaseOperation)
 	case key.Matches(msg, m.keymap.cancel):
 		m.keymap.resetMode()
 		m.op = common.None
