@@ -16,6 +16,7 @@ type (
 	Timestamp      struct{}
 	Branches       struct{}
 	ConflictMarker struct{}
+	Empty          struct{}
 	Description    struct{}
 	ifSegment      struct {
 		Cond    bool
@@ -87,12 +88,16 @@ func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Pal
 			if row.Commit.Conflict {
 				w.WriteString(palette.ConflictStyle.Render("conflict"))
 			}
+		case Empty:
+			if row.Commit.Empty {
+				w.WriteString(palette.Empty.Render("(empty)"))
+			}
 		case Description:
 			if row.Commit.Description == "" {
 				if row.Commit.Empty {
-					w.WriteString(palette.Empty.Render("(empty) (no description)"))
+					w.WriteString(palette.Empty.Render("(no description set)"))
 				} else {
-					w.WriteString(palette.NonEmpty.Render("(no description)"))
+					w.WriteString(palette.NonEmpty.Render("(no description set)"))
 				}
 			} else {
 				w.WriteString(palette.Normal.Render(row.Commit.Description))
