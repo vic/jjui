@@ -10,25 +10,20 @@ import (
 )
 
 type (
-	ShowRevisionsViewMsg struct{}
-	CloseViewMsg         struct{}
-)
-
-type ShowDescribeViewMsg *jj.Commit
-
-type UpdateDescriptionViewMsg struct {
-	Description string
-}
-
-type (
-	UpdateRevisionsMsg []dag.GraphRow
-	UpdateBookmarksMsg []jj.Bookmark
-	ShowOutputMsg      struct {
+	ShowRevisionsViewMsg     struct{}
+	CloseViewMsg             struct{}
+	ShowDescribeViewMsg      *jj.Commit
+	SelectRevisionMsg        string
+	ShowDiffMsg              string
+	UpdateRevisionsMsg       []dag.GraphRow
+	UpdateBookmarksMsg       []jj.Bookmark
+	UpdateDescriptionViewMsg struct {
+		Description string
+	}
+	ShowOutputMsg struct {
 		Output string
 		Err    error
 	}
-	SelectRevisionMsg string
-	ShowDiffMsg       string
 )
 
 type Operation int
