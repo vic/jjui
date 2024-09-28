@@ -15,7 +15,6 @@ import (
 	"jjui/internal/ui/describe"
 	"jjui/internal/ui/diff"
 
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -33,11 +32,10 @@ type Model struct {
 	cursor     int
 	width      int
 	height     int
-	help       help.Model
 	overlay    tea.Model
 	diff       tea.Model
 	output     string
-	keymap     keymap
+	Keymap     keymap
 }
 
 func (m Model) selectedRevision() *jj.Commit {
@@ -54,13 +52,13 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	layer := m.keymap.bindings[m.keymap.current].(baseLayer)
+	layer := m.Keymap.bindings[m.Keymap.current].(baseLayer)
 	switch {
-	case key.Matches(msg, m.keymap.up):
+	case key.Matches(msg, m.Keymap.up):
 		if m.cursor > 0 {
 			m.cursor--
 		}
-	case key.Matches(msg, m.keymap.down):
+	case key.Matches(msg, m.Keymap.down):
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
@@ -73,22 +71,22 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.diff):
 		return m, common.GetDiff(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.gitMode):
-		m.keymap.gitMode()
+		m.Keymap.gitMode()
 		return m, nil
 	case key.Matches(msg, layer.rebaseMode):
-		m.keymap.rebaseMode()
+		m.Keymap.rebaseMode()
 		return m, nil
 	case key.Matches(msg, layer.bookmarkMode):
-		m.keymap.bookmarkMode()
+		m.Keymap.bookmarkMode()
 		return m, nil
-	case key.Matches(msg, layer.quit), key.Matches(msg, m.keymap.cancel):
+	case key.Matches(msg, layer.quit), key.Matches(msg, m.Keymap.cancel):
 		return m, tea.Quit
 	}
 	return m, nil
 }
 
 func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	layer := m.keymap.bindings[m.keymap.current].(rebaseLayer)
+	layer := m.Keymap.bindings[m.Keymap.current].(rebaseLayer)
 	switch {
 	case key.Matches(msg, layer.revision):
 		m.op = common.RebaseRevision
@@ -96,57 +94,57 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.branch):
 		m.op = common.RebaseBranch
 		m.draggedRow = m.cursor
-	case key.Matches(msg, m.keymap.down):
+	case key.Matches(msg, m.Keymap.down):
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
-	case key.Matches(msg, m.keymap.up):
+	case key.Matches(msg, m.Keymap.up):
 		if m.cursor > 0 {
 			m.cursor--
 		}
-	case key.Matches(msg, m.keymap.apply):
+	case key.Matches(msg, m.Keymap.apply):
 		rebaseOperation := m.op
 		fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
 		toRevision := m.rows[m.cursor].Commit.ChangeIdShort
 		m.op = common.None
 		m.draggedRow = -1
-		m.keymap.current = ' '
+		m.Keymap.current = ' '
 		return m, common.RebaseCommand(fromRevision, toRevision, rebaseOperation)
-	case key.Matches(msg, m.keymap.cancel):
-		m.keymap.resetMode()
+	case key.Matches(msg, m.Keymap.cancel):
+		m.Keymap.resetMode()
 		m.op = common.None
 	}
 	return m, nil
 }
 
 func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	layer := m.keymap.bindings[m.keymap.current].(bookmarkLayer)
+	layer := m.Keymap.bindings[m.Keymap.current].(bookmarkLayer)
 	switch {
 	case key.Matches(msg, layer.set):
-		m.keymap.resetMode()
+		m.Keymap.resetMode()
 		return m, common.FetchBookmarks(m.selectedRevision().ChangeId)
-	case key.Matches(msg, m.keymap.cancel):
-		m.keymap.resetMode()
+	case key.Matches(msg, m.Keymap.cancel):
+		m.Keymap.resetMode()
 	}
 	return m, nil
 }
 
 func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	layer := m.keymap.bindings[m.keymap.current].(gitLayer)
+	layer := m.Keymap.bindings[m.Keymap.current].(gitLayer)
 	switch {
 	case key.Matches(msg, layer.fetch):
-		m.keymap.resetMode()
+		m.Keymap.resetMode()
 		return m, common.GitFetch()
 	case key.Matches(msg, layer.push):
-		m.keymap.resetMode()
+		m.Keymap.resetMode()
 		return m, common.GitPush()
-	case key.Matches(msg, m.keymap.cancel):
-		m.keymap.resetMode()
+	case key.Matches(msg, m.Keymap.cancel):
+		m.Keymap.resetMode()
 	}
 	return m, nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	if _, ok := msg.(common.CloseViewMsg); ok {
 		m.overlay = nil
 		m.diff = nil
@@ -166,7 +164,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch m.keymap.current {
+		switch m.Keymap.current {
 		case ' ':
 			return m.handleBaseKeys(msg)
 		case 'r':
@@ -219,13 +217,7 @@ func (m Model) View() string {
 		return m.diff.View()
 	}
 
-	var b strings.Builder
-	b.WriteString(m.help.View(&m.keymap))
-	b.WriteString("\n")
-
-	footer := b.String()
-	footerHeight := lipgloss.Height(footer)
-	space := m.height - footerHeight
+	space := m.height - 0
 
 	if m.cursor < m.viewRange.start && m.viewRange.start > 0 {
 		m.viewRange.start--
@@ -259,14 +251,10 @@ func (m Model) View() string {
 		m.viewRange.end = i
 		items.WriteString(s)
 	}
-	result := lipgloss.Place(m.width, m.height-footerHeight, 0, 0, items.String())
-	return lipgloss.JoinVertical(0, result, footer)
+	return items.String()
 }
 
-func New(rows []dag.GraphRow) tea.Model {
-	h := help.New()
-	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
-	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
+func New(rows []dag.GraphRow) Model {
 	v := viewRange{start: 0, end: 0}
 	return Model{
 		rows:       rows,
@@ -275,7 +263,6 @@ func New(rows []dag.GraphRow) tea.Model {
 		op:         common.None,
 		cursor:     0,
 		width:      20,
-		keymap:     newKeyMap(),
-		help:       h,
+		Keymap:     newKeyMap(),
 	}
 }
