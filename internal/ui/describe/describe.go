@@ -43,7 +43,7 @@ func New(revision string, description string, width int) tea.Model {
 	t.Focus()
 	t.SetWidth(width)
 	t.SetHeight(1)
-	t.CharLimit = 80
+	t.CharLimit = 120
 	t.ShowLineNumbers = false
 	return Model{
 		description: t,
