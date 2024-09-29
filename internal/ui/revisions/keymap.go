@@ -13,6 +13,7 @@ type keymap struct {
 
 type baseLayer struct {
 	edit         key.Binding
+	split        key.Binding
 	rebaseMode   key.Binding
 	bookmarkMode key.Binding
 	gitMode      key.Binding
@@ -41,6 +42,7 @@ func newKeyMap() keymap {
 	bindings := make(map[rune]interface{})
 	bindings[' '] = baseLayer{
 		edit:         key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit")),
+		split:        key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "split")),
 		rebaseMode:   key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase")),
 		bookmarkMode: key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "bookmark")),
 		gitMode:      key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git")),
@@ -94,7 +96,7 @@ func (k *keymap) resetMode() {
 func (k *keymap) ShortHelp() []key.Binding {
 	switch b := k.bindings[k.current].(type) {
 	case baseLayer:
-		return []key.Binding{k.up, k.down, b.new, b.edit, b.diff, b.description, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
+		return []key.Binding{k.up, k.down, b.new, b.edit, b.diff, b.description, b.split, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
 		return []key.Binding{b.revision, b.branch}
 	case gitLayer:

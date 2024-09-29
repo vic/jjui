@@ -66,6 +66,8 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, common.NewRevision(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.edit):
 		return m, common.Edit(m.selectedRevision().ChangeId)
+	case key.Matches(msg, layer.split):
+		return m, common.Split(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.description):
 		return m, common.ShowDescribe(m.selectedRevision())
 	case key.Matches(msg, layer.diff):

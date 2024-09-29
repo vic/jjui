@@ -2,6 +2,7 @@ package common
 
 import (
 	"os"
+	"os/exec"
 
 	"jjui/internal/dag"
 	"jjui/internal/jj"
@@ -123,6 +124,10 @@ func Edit(revision string) tea.Cmd {
 		return ShowOutputMsg{Output: string(output), Err: err}
 	}
 	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")), SelectRevision("@"))
+}
+
+func Split(revision string) tea.Cmd {
+	return tea.Sequence(tea.ExecProcess(exec.Command("jj", "split", "-r", revision), nil), tea.ClearScreen, FetchRevisions(os.Getenv("PWD")))
 }
 
 func NewRevision(from string) tea.Cmd {
