@@ -12,6 +12,7 @@ type keymap struct {
 }
 
 type baseLayer struct {
+	abandon      key.Binding
 	edit         key.Binding
 	split        key.Binding
 	rebaseMode   key.Binding
@@ -41,6 +42,7 @@ type gitLayer struct {
 func newKeyMap() keymap {
 	bindings := make(map[rune]interface{})
 	bindings[' '] = baseLayer{
+		abandon:      key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "abandon")),
 		edit:         key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit")),
 		split:        key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "split")),
 		rebaseMode:   key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase")),

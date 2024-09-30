@@ -10,6 +10,7 @@ import (
 
 	"jjui/internal/dag"
 	"jjui/internal/jj"
+	"jjui/internal/ui/abandon"
 	"jjui/internal/ui/bookmark"
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
@@ -66,6 +67,8 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, common.NewRevision(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.edit):
 		return m, common.Edit(m.selectedRevision().ChangeId)
+	case key.Matches(msg, layer.abandon):
+		return m, common.ShowAbandon(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.split):
 		return m, common.Split(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.description):
@@ -197,6 +200,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, m.overlay.Init()
 	case common.ShowDescribeViewMsg:
 		m.overlay = describe.New(msg.ChangeId, msg.Description, m.width)
+		return m, m.overlay.Init()
+	case common.ShowAbandonViewMsg:
+		m.overlay = abandon.New(string(msg))
 		return m, m.overlay.Init()
 	case common.ShowDiffMsg:
 		m.diff = diff.New(string(msg), m.width, m.height)

@@ -14,6 +14,7 @@ type (
 	ShowRevisionsViewMsg     struct{}
 	CloseViewMsg             struct{}
 	ShowDescribeViewMsg      *jj.Commit
+	ShowAbandonViewMsg       string
 	SelectRevisionMsg        string
 	ShowDiffMsg              string
 	UpdateRevisionsMsg       []dag.GraphRow
@@ -57,6 +58,12 @@ func ShowOutput(output string, err error) tea.Cmd {
 func ShowDescribe(commit *jj.Commit) tea.Cmd {
 	return func() tea.Msg {
 		return ShowDescribeViewMsg(commit)
+	}
+}
+
+func ShowAbandon(revision string) tea.Cmd {
+	return func() tea.Msg {
+		return ShowAbandonViewMsg(revision)
 	}
 }
 
@@ -128,6 +135,14 @@ func Edit(revision string) tea.Cmd {
 
 func Split(revision string) tea.Cmd {
 	return tea.Sequence(tea.ExecProcess(exec.Command("jj", "split", "-r", revision), nil), tea.ClearScreen, FetchRevisions(os.Getenv("PWD")))
+}
+
+func Abandon(revision string) tea.Cmd {
+	f := func() tea.Msg {
+		output, err := jj.Abandon(revision)
+		return ShowOutputMsg{Output: string(output), Err: err}
+	}
+	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
 }
 
 func NewRevision(from string) tea.Cmd {
