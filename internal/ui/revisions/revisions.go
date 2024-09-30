@@ -14,7 +14,6 @@ import (
 	"jjui/internal/ui/bookmark"
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
-	"jjui/internal/ui/diff"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -34,7 +33,6 @@ type Model struct {
 	width      int
 	height     int
 	overlay    tea.Model
-	diff       tea.Model
 	output     string
 	Keymap     keymap
 }
@@ -152,18 +150,12 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	if _, ok := msg.(common.CloseViewMsg); ok {
 		m.overlay = nil
-		m.diff = nil
 		return m, nil
 	}
 
 	var cmd tea.Cmd
 	if m.overlay != nil {
 		m.overlay, cmd = m.overlay.Update(msg)
-		return m, cmd
-	}
-
-	if m.diff != nil {
-		m.diff, cmd = m.diff.Update(msg)
 		return m, cmd
 	}
 
@@ -204,9 +196,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.ShowAbandonOverlayMsg:
 		m.overlay = abandon.New(string(msg))
 		return m, m.overlay.Init()
-	case common.ShowDiffMsg:
-		m.diff = diff.New(string(msg), m.width, m.height)
-		return m, m.diff.Init()
 	case common.ShowOutputMsg:
 		m.output = msg.Output
 	case tea.WindowSizeMsg:
@@ -219,10 +208,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 func (m Model) View() string {
 	if m.height == 0 {
 		return "loading"
-	}
-
-	if m.diff != nil {
-		return m.diff.View()
 	}
 
 	space := m.height - 0

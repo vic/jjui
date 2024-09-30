@@ -5,6 +5,7 @@ import (
 
 	"jjui/internal/dag"
 	"jjui/internal/ui/common"
+	"jjui/internal/ui/diff"
 	"jjui/internal/ui/revisions"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -14,6 +15,7 @@ import (
 
 type Model struct {
 	revisions revisions.Model
+	diff      tea.Model
 	help      help.Model
 	width     int
 	height    int
@@ -24,8 +26,21 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if _, ok := msg.(common.CloseViewMsg); ok && m.diff != nil {
+		m.diff = nil
+		return m, nil
+	}
+
 	var cmd tea.Cmd
+	if m.diff != nil {
+		m.diff, cmd = m.diff.Update(msg)
+		return m, cmd
+	}
+
 	switch msg := msg.(type) {
+	case common.ShowDiffMsg:
+		m.diff = diff.New(string(msg), m.width, m.height)
+		return m, m.diff.Init()
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -37,6 +52,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	if m.height == 0 {
 		return "loading"
+	}
+
+	if m.diff != nil {
+		return m.diff.View()
 	}
 
 	var b strings.Builder
