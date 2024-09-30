@@ -30,7 +30,7 @@ type rebaseLayer struct {
 }
 
 type bookmarkLayer struct {
-	set    key.Binding
+	move   key.Binding
 	delete key.Binding
 }
 
@@ -60,7 +60,7 @@ func newKeyMap() keymap {
 	}
 
 	bindings['b'] = bookmarkLayer{
-		set:    key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "bookmark set")),
+		move:   key.NewBinding(key.WithKeys("m"), key.WithHelp("m", "bookmark move")),
 		delete: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "bookmark delete")),
 	}
 
@@ -104,7 +104,7 @@ func (k *keymap) ShortHelp() []key.Binding {
 	case gitLayer:
 		return []key.Binding{b.push, b.fetch}
 	case bookmarkLayer:
-		return []key.Binding{b.set, b.delete}
+		return []key.Binding{b.move, b.delete}
 	default:
 		return []key.Binding{}
 	}

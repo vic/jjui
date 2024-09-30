@@ -97,8 +97,8 @@ func SetDescription(revision string, description string) tea.Cmd {
 	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
 
-func SetBookmark(revision string, bookmark string) tea.Cmd {
-	output, err := jj.SetBookmark(revision, bookmark)
+func MoveBookmark(revision string, bookmark string) tea.Cmd {
+	output, err := jj.MoveBookmark(revision, bookmark)
 	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }
 
@@ -113,7 +113,7 @@ func FetchRevisions(location string) tea.Cmd {
 
 func FetchBookmarks(revision string) tea.Cmd {
 	return func() tea.Msg {
-		bookmarks, _ := jj.BookmarkList(revision)
+		bookmarks, _ := jj.ListBookmark(revision)
 		return UpdateBookmarksMsg(bookmarks)
 	}
 }
