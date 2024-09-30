@@ -13,8 +13,8 @@ import (
 type (
 	ShowRevisionsViewMsg     struct{}
 	CloseViewMsg             struct{}
-	ShowDescribeViewMsg      *jj.Commit
-	ShowAbandonViewMsg       string
+	ShowDescribeOverlayMsg   *jj.Commit
+	ShowAbandonOverlayMsg    string
 	SelectRevisionMsg        string
 	ShowDiffMsg              string
 	UpdateRevisionsMsg       []dag.GraphRow
@@ -55,15 +55,15 @@ func ShowOutput(output string, err error) tea.Cmd {
 	}
 }
 
-func ShowDescribe(commit *jj.Commit) tea.Cmd {
+func ShowDescribeOverlay(commit *jj.Commit) tea.Cmd {
 	return func() tea.Msg {
-		return ShowDescribeViewMsg(commit)
+		return ShowDescribeOverlayMsg(commit)
 	}
 }
 
-func ShowAbandon(revision string) tea.Cmd {
+func ShowAbandonOverlay(revision string) tea.Cmd {
 	return func() tea.Msg {
-		return ShowAbandonViewMsg(revision)
+		return ShowAbandonOverlayMsg(revision)
 	}
 }
 
@@ -83,7 +83,7 @@ func GitPush() tea.Cmd {
 	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
 }
 
-func RebaseCommand(from, to string, operation Operation) tea.Cmd {
+func Rebase(from, to string, operation Operation) tea.Cmd {
 	rebase := jj.RebaseCommand
 	if operation == RebaseBranch {
 		rebase = jj.RebaseBranchCommand
@@ -92,7 +92,7 @@ func RebaseCommand(from, to string, operation Operation) tea.Cmd {
 	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")), SelectRevision(from))
 }
 
-func UpdateDescription(revision string, description string) tea.Cmd {
+func SetDescription(revision string, description string) tea.Cmd {
 	output, err := jj.SetDescription(revision, description)
 	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
 }

@@ -23,7 +23,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			return m, common.Close
 		case "enter":
-			return m, tea.Batch(common.Close, common.UpdateDescription(m.revision, m.description.Value()))
+			return m, tea.Batch(common.Close, common.SetDescription(m.revision, m.description.Value()))
 		}
 	case tea.WindowSizeMsg:
 		m.description.SetWidth(msg.Width)

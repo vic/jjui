@@ -68,11 +68,11 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.edit):
 		return m, common.Edit(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.abandon):
-		return m, common.ShowAbandon(m.selectedRevision().ChangeId)
+		return m, common.ShowAbandonOverlay(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.split):
 		return m, common.Split(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.description):
-		return m, common.ShowDescribe(m.selectedRevision())
+		return m, common.ShowDescribeOverlay(m.selectedRevision())
 	case key.Matches(msg, layer.diff):
 		return m, common.GetDiff(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.gitMode):
@@ -114,7 +114,7 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.op = common.None
 		m.draggedRow = -1
 		m.Keymap.current = ' '
-		return m, common.RebaseCommand(fromRevision, toRevision, rebaseOperation)
+		return m, common.Rebase(fromRevision, toRevision, rebaseOperation)
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
 		m.op = common.None
@@ -198,10 +198,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
 		return m, m.overlay.Init()
-	case common.ShowDescribeViewMsg:
+	case common.ShowDescribeOverlayMsg:
 		m.overlay = describe.New(msg.ChangeId, msg.Description, m.width)
 		return m, m.overlay.Init()
-	case common.ShowAbandonViewMsg:
+	case common.ShowAbandonOverlayMsg:
 		m.overlay = abandon.New(string(msg))
 		return m, m.overlay.Init()
 	case common.ShowDiffMsg:
