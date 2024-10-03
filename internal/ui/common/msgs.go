@@ -11,17 +11,11 @@ import (
 )
 
 type (
-	ShowRevisionsViewMsg     struct{}
 	CloseViewMsg             struct{}
-	ShowDescribeOverlayMsg   *jj.Commit
-	ShowAbandonOverlayMsg    string
 	SelectRevisionMsg        string
 	ShowDiffMsg              string
 	UpdateRevisionsMsg       []dag.GraphRow
 	UpdateBookmarksMsg       []jj.Bookmark
-	UpdateDescriptionViewMsg struct {
-		Description string
-	}
 	ShowOutputMsg struct {
 		Output string
 		Err    error
@@ -52,18 +46,6 @@ func ShowOutput(output string, err error) tea.Cmd {
 			Output: output,
 			Err:    err,
 		}
-	}
-}
-
-func ShowDescribeOverlay(commit *jj.Commit) tea.Cmd {
-	return func() tea.Msg {
-		return ShowDescribeOverlayMsg(commit)
-	}
-}
-
-func ShowAbandonOverlay(revision string) tea.Cmd {
-	return func() tea.Msg {
-		return ShowAbandonOverlayMsg(revision)
 	}
 }
 

@@ -66,11 +66,13 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.edit):
 		return m, common.Edit(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.abandon):
-		return m, common.ShowAbandonOverlay(m.selectedRevision().ChangeId)
+		m.overlay = abandon.New(m.selectedRevision().ChangeId)
+		return m, m.overlay.Init()
 	case key.Matches(msg, layer.split):
 		return m, common.Split(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.description):
-		return m, common.ShowDescribeOverlay(m.selectedRevision())
+		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.width)
+		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
 		return m, common.GetDiff(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.gitMode):
@@ -189,12 +191,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.rows = msg
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
-		return m, m.overlay.Init()
-	case common.ShowDescribeOverlayMsg:
-		m.overlay = describe.New(msg.ChangeId, msg.Description, m.width)
-		return m, m.overlay.Init()
-	case common.ShowAbandonOverlayMsg:
-		m.overlay = abandon.New(string(msg))
 		return m, m.overlay.Init()
 	case common.ShowOutputMsg:
 		m.output = msg.Output
