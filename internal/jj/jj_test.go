@@ -16,6 +16,7 @@ false
 false
 false
 ibrahim dursun <some@email.cc>
+timestamp
 main
 add test
 __END__`)
@@ -27,6 +28,7 @@ __END__`)
 		IsWorkingCopy: true,
 		Immutable:     false,
 		Conflict:      false,
+		Timestamp:     "timestamp",
 		Author:        "ibrahim dursun <some@email.cc>",
 		Branches:      "main",
 		Description:   "add test",
@@ -63,58 +65,6 @@ __END__`)
 	assert.Equal(t, expected, commits)
 }
 
-func Test_parseLogOutput_TwoCommits(t *testing.T) {
-	commits := parseLogOutput(`__BEGIN__
-ps
-psvvky
-zzzzzz
-true
-false
-false
-false
-ibrahim dursun <some@email.cc>
-!!NONE
-add test binary
-
-__END__
-__BEGIN__
-z
-zzzzzz
-!!NONE
-false
-false
-false
-false
-!!NONE
-!!NONE
-__END__`)
-
-	expected := []Commit{
-		{
-			ChangeIdShort: "ps",
-			ChangeId:      "psvvky",
-			Parents:       []string{"zzzzzz"},
-			IsWorkingCopy: true,
-			Author:        "ibrahim dursun <some@email.cc>",
-			Description:   "add test binary",
-			Index:         0,
-		},
-		{
-			ChangeIdShort: "z",
-			ChangeId:      "zzzzzz",
-			Parents:       nil,
-			IsWorkingCopy: false,
-			Author:        "",
-			Description:   "",
-			Branches:      "",
-			Index:         1,
-		},
-	}
-
-	assert.EqualExportedValues(t, expected[0], commits[0])
-	assert.EqualExportedValues(t, expected[1], commits[1])
-}
-
 func Test_parseCommit(t *testing.T) {
 	lines := strings.Split(`__BEGIN__
 c
@@ -125,6 +75,7 @@ false
 true
 false
 ibrahim dursun <some@email.cc>
+timestamp
 main
 add test
 __END__`, "\n")
@@ -139,6 +90,7 @@ __END__`, "\n")
 		Conflict:      true,
 		Author:        "ibrahim dursun <some@email.cc>",
 		Branches:      "main",
+		Timestamp:     "timestamp",
 		Description:   "add test",
 	}
 

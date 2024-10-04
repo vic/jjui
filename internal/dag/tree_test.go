@@ -12,7 +12,7 @@ func TestBuildGraphRows_WithElidedCommits(t *testing.T) {
 	commits := []jj.Commit{
 		{
 			ChangeId: "topchange",
-			Parents:  nil,
+			Parents:  []string{"nonexistent"},
 		},
 		{
 			ChangeId: "psvvky",
@@ -23,7 +23,13 @@ func TestBuildGraphRows_WithElidedCommits(t *testing.T) {
 			Parents:  nil,
 		},
 	}
-	root := Build(commits, make(map[string]string))
+	lookup := make(map[string]string)
+	lookup["topchange"] = "nonexistent"
+	lookup["nonexistent"] = "zzzzzz"
+	lookup["psvvky"] = "zzzzzz"
+	lookup["zzzzzz"] = ""
+
+	root := Build(commits, lookup)
 	rows := BuildGraphRows(root)
 	assert.Len(t, rows, 3)
 	assert.Equal(t, commits[0].ChangeId, rows[0].Commit.ChangeId)
@@ -37,7 +43,11 @@ func TestBuildGraphRows_WithTop2Commits(t *testing.T) {
 		{ChangeId: "top_addfile", Parents: []string{"parent"}},
 		{ChangeId: "parent", Parents: nil},
 	}
-	root := Build(commits, make(map[string]string))
+	parents := make(map[string]string)
+	parents["top_empty"] = "parent"
+	parents["top_addfile"] = "parent"
+	parents["parent"] = ""
+	root := Build(commits, parents)
 	rows := BuildGraphRows(root)
 
 	assert.Len(t, rows, len(commits))
@@ -48,11 +58,16 @@ func TestBuildGraphRows_WithTop2Commits(t *testing.T) {
 
 func TestBuildGraphRows_LevelsWithElidedRevisions(t *testing.T) {
 	commits := []jj.Commit{
-		{ChangeId: "top", Parents: nil},
+		{ChangeId: "top", Parents: []string{"nonexistent"}},
 		{ChangeId: "middle", Parents: []string{"middle_parent"}},
 		{ChangeId: "middle_parent", Parents: nil},
 	}
-	root := Build(commits, make(map[string]string))
+	parents := make(map[string]string)
+	parents["nonexistent"] = "middle_parent"
+	parents["top"] = ""
+	parents["middle"] = "middle_parent"
+	parents["middle_parent"] = ""
+	root := Build(commits, parents)
 	rows := BuildGraphRows(root)
 	assert.Len(t, rows, len(commits))
 	assert.Equal(t, 0, rows[0].Level, "top should be at level 0")
