@@ -74,7 +74,7 @@ func New(revision string) tea.Model {
 	return Model{
 		message:  "Are you sure you want to abandon this revision?",
 		revision: revision,
-		options:  []string{"No", "Yes"},
+		options:  []string{"Yes", "No"},
 		selected: 0,
 	}
 }
