@@ -11,12 +11,13 @@ import (
 )
 
 type (
-	CloseViewMsg             struct{}
-	SelectRevisionMsg        string
-	ShowDiffMsg              string
-	UpdateRevisionsMsg       []dag.GraphRow
-	UpdateBookmarksMsg       []jj.Bookmark
-	ShowOutputMsg struct {
+	CloseViewMsg        struct{}
+	SelectRevisionMsg   string
+	ShowDiffMsg         string
+	UpdateRevisionsMsg  []dag.GraphRow
+	UpdateBookmarksMsg  []jj.Bookmark
+	CommandRunningMsg   string
+	CommandCompletedMsg struct {
 		Output string
 		Err    error
 	}
@@ -40,9 +41,15 @@ func SelectRevision(revision string) tea.Cmd {
 	}
 }
 
+func CommandRunning(command string) tea.Cmd {
+	return func() tea.Msg {
+		return CommandRunningMsg(command)
+	}
+}
+
 func ShowOutput(output string, err error) tea.Cmd {
 	return func() tea.Msg {
-		return ShowOutputMsg{
+		return CommandCompletedMsg{
 			Output: output,
 			Err:    err,
 		}
@@ -52,17 +59,17 @@ func ShowOutput(output string, err error) tea.Cmd {
 func GitFetch() tea.Cmd {
 	f := func() tea.Msg {
 		output, err := jj.GitFetch()
-		return ShowOutputMsg{Output: string(output), Err: err}
+		return CommandCompletedMsg{Output: string(output), Err: err}
 	}
-	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
+	return tea.Sequence(CommandRunning("jj git fetch"), f, FetchRevisions(os.Getenv("PWD")))
 }
 
 func GitPush() tea.Cmd {
 	f := func() tea.Msg {
 		output, err := jj.GitPush()
-		return ShowOutputMsg{Output: string(output), Err: err}
+		return CommandCompletedMsg{Output: string(output), Err: err}
 	}
-	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
+	return tea.Sequence(CommandRunning("jj git push"), f, FetchRevisions(os.Getenv("PWD")))
 }
 
 func Rebase(from, to string, operation Operation) tea.Cmd {
@@ -110,7 +117,7 @@ func GetDiff(revision string) tea.Cmd {
 func Edit(revision string) tea.Cmd {
 	f := func() tea.Msg {
 		output, err := jj.Edit(revision)
-		return ShowOutputMsg{Output: string(output), Err: err}
+		return CommandCompletedMsg{Output: string(output), Err: err}
 	}
 	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")), SelectRevision("@"))
 }
@@ -122,7 +129,7 @@ func Split(revision string) tea.Cmd {
 func Abandon(revision string) tea.Cmd {
 	f := func() tea.Msg {
 		output, err := jj.Abandon(revision)
-		return ShowOutputMsg{Output: string(output), Err: err}
+		return CommandCompletedMsg{Output: string(output), Err: err}
 	}
 	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
 }

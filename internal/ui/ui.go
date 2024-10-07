@@ -7,6 +7,7 @@ import (
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/diff"
 	"jjui/internal/ui/revisions"
+	"jjui/internal/ui/status"
 
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
@@ -17,6 +18,7 @@ type Model struct {
 	revisions revisions.Model
 	diff      tea.Model
 	help      help.Model
+	status    status.Model
 	width     int
 	height    int
 }
@@ -46,7 +48,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 	}
 	m.revisions, cmd = m.revisions.Update(msg)
-	return m, cmd
+	var statusCmd tea.Cmd
+	m.status, statusCmd = m.status.Update(msg)
+	return m, tea.Batch(cmd, statusCmd)
 }
 
 func (m Model) View() string {
@@ -61,6 +65,7 @@ func (m Model) View() string {
 	var b strings.Builder
 	b.WriteString(m.help.View(&m.revisions.Keymap))
 	b.WriteString("\n")
+	b.WriteString(m.status.View())
 
 	footer := b.String()
 	footerHeight := lipgloss.Height(footer)
@@ -75,5 +80,6 @@ func New() tea.Model {
 	return Model{
 		revisions: revisions.New([]dag.GraphRow{}),
 		help:      h,
+		status:    status.New(),
 	}
 }
