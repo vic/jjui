@@ -180,6 +180,12 @@ func Edit(revision string) ([]byte, error) {
 	return output, err
 }
 
+func DiffEdit(revision string) ([]byte, error) {
+	cmd := exec.Command("jj", "diffedit", "-r", revision)
+	output, err := cmd.CombinedOutput()
+	return output, err
+}
+
 func Abandon(revision string) ([]byte, error) {
 	cmd := exec.Command("jj", "abandon", "-r", revision)
 	output, err := cmd.CombinedOutput()

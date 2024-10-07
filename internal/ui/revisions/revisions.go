@@ -64,6 +64,8 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, common.NewRevision(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.edit):
 		return m, common.Edit(m.selectedRevision().ChangeId)
+	case key.Matches(msg, layer.diffedit):
+		return m, common.DiffEdit(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.abandon):
 		m.overlay = abandon.New(m.selectedRevision().ChangeId)
 		return m, m.overlay.Init()

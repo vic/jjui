@@ -122,6 +122,10 @@ func Edit(revision string) tea.Cmd {
 	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")), SelectRevision("@"))
 }
 
+func DiffEdit(revision string) tea.Cmd {
+	return tea.Sequence(tea.ExecProcess(exec.Command("jj", "diffedit", "-r", revision), nil), tea.ClearScreen)
+}
+
 func Split(revision string) tea.Cmd {
 	return tea.Sequence(tea.ExecProcess(exec.Command("jj", "split", "-r", revision), nil), tea.ClearScreen, FetchRevisions(os.Getenv("PWD")))
 }
