@@ -33,7 +33,6 @@ type Model struct {
 	width      int
 	height     int
 	overlay    tea.Model
-	output     string
 	Keymap     keymap
 }
 
@@ -192,8 +191,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
 		return m, m.overlay.Init()
-	case common.CommandCompletedMsg:
-		m.output = msg.Output
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height

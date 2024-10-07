@@ -19,6 +19,7 @@ type Model struct {
 	diff      tea.Model
 	help      help.Model
 	status    status.Model
+	output    string
 	width     int
 	height    int
 }
@@ -43,6 +44,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.ShowDiffMsg:
 		m.diff = diff.New(string(msg), m.width, m.height)
 		return m, m.diff.Init()
+	case common.CommandCompletedMsg:
+		m.output = msg.Output
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
