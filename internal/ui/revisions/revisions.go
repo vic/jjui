@@ -201,11 +201,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if m.height == 0 {
-		return "loading"
-	}
-
-	space := m.height - 0
+	space := m.height
 
 	if m.cursor < m.viewRange.start && m.viewRange.start > 0 {
 		m.viewRange.start--
@@ -231,8 +227,8 @@ func (m Model) View() string {
 			}
 		}
 		SegmentedRenderer(&line, row, common.DefaultPalette, i == m.cursor,
-			NodeGlyph{}, " ", ChangeIdShort{}, ChangeIdRest{}, " ", Author{}, " ", Timestamp{}, " ", Branches{}, ConflictMarker{}, "\n",
-			Glyph{}, " ", If(m.overlay == nil || i != m.cursor, If(row.Commit.Empty, Empty{}, " "), Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay)), "\n",
+			Separate(" ", NodeGlyph{}, ChangeId{}, Author{}, Timestamp{}, Branches{}, ConflictMarker{}), "\n",
+			Separate(" ", Glyph{}, If(m.overlay == nil || i != m.cursor, If(row.Commit.Empty, Empty{}, " "), Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay))), "\n",
 			ElidedRevisions{})
 		s := line.String()
 		space -= lipgloss.Height(s) - 1

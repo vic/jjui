@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	tea "github.com/charmbracelet/bubbletea"
+
 	"jjui/internal/dag"
 	"jjui/internal/jj"
 	"jjui/internal/ui/revisions"
@@ -15,30 +17,44 @@ func TestRender_Single(t *testing.T) {
 	commits := []jj.Commit{
 		{ChangeId: "topchange"},
 	}
-	d := dag.Build(commits, make(map[string]string))
+	parents := make(map[string]string)
+	parents["topchange"] = ""
+	d := dag.Build(commits, parents)
 	root := dag.BuildGraphRows(d)
 	model := revisions.New(root)
+	model, _ = model.Update(tea.WindowSizeMsg{
+		Width:  100,
+		Height: 100,
+	})
 
 	expected := `○ topchange
-               │ (no description)`
+                 │ (no description set)`
 	verifyOutput(t, expected, model.View())
 }
 
 func TestRender_ElidedRevisions(t *testing.T) {
 	commits := []jj.Commit{
-		{ChangeId: "a"},
+		{ChangeId: "a", Parents: []string{"c"}},
 		{ChangeId: "b"},
 	}
-	d := dag.Build(commits, make(map[string]string))
+	parents := make(map[string]string)
+	parents["a"] = "c"
+	parents["c"] = "b"
+	parents["b"] = ""
+	d := dag.Build(commits, parents)
 	root := dag.BuildGraphRows(d)
 	model := revisions.New(root)
+	model, _ = model.Update(tea.WindowSizeMsg{
+		Width:  100,
+		Height: 100,
+	})
 
 	expected := `
   ○ a  
-  │ (no description)
+  │ (no description set)
   ~ (elided revisions)
   ○ b  
-  │ (no description)
+  │ (no description set)
   `
 	verifyOutput(t, expected, model.View())
 }
@@ -49,25 +65,31 @@ func TestRender_Branched(t *testing.T) {
 		{ChangeId: "b", Parents: []string{"root"}},
 		{ChangeId: "root"},
 	}
-	d := dag.Build(commits, make(map[string]string))
+	parents := make(map[string]string)
+	parents["a1"] = "root"
+	parents["b"] = "root"
+	parents["root"] = ""
+	d := dag.Build(commits, parents)
 	root := dag.BuildGraphRows(d)
 	model := revisions.New(root)
+	model, _ = model.Update(tea.WindowSizeMsg{
+		Width:  100,
+		Height: 100,
+	})
 
 	expected := `
   ○ a1
-  │ (no description)
+  │ (no description set)
   │ ○ b
-  ├─╯ (no description)
+  ├─╯ (no description set)
   ○ root
-  │ (no description)
+  │ (no description set)
   `
 	verifyOutput(t, expected, model.View())
 }
 
 func TestRender_BranchedOrdered(t *testing.T) {
 	commits := []jj.Commit{
-		{ChangeId: "zzwt", Index: 0, Parents: []string{"ulvv"}},
-		{ChangeId: "ulvv", Index: 1, Parents: []string{"wzpt"}},
 		{ChangeId: "wzpt", Index: 2, Parents: []string{"xumz"}},
 		{ChangeId: "mxum", Index: 3, Parents: []string{"tklw"}},
 		{ChangeId: "ywyr", Index: 4, Parents: []string{"tklw"}},
@@ -83,26 +105,45 @@ func TestRender_BranchedOrdered(t *testing.T) {
 		{ChangeId: "ssrp", Index: 14, Parents: []string{"vqrx"}},
 		{ChangeId: "qnor", Index: 15, Parents: []string{"pnpu"}},
 	}
-	d := dag.Build(commits, make(map[string]string))
+	parents := make(map[string]string)
+	parents["mxsp"] = "uolv"
+	parents["vqrx"] = "qnor"
+
+	parents["wzpt"] = "xumz"
+	parents["mxum"] = "tklw"
+	parents["ywyr"] = "tklw"
+	parents["mppl"] = "tklw"
+	parents["tklw"] = "qnor"
+	parents["xumz"] = "mxsp"
+	parents["tnww"] = "uolv"
+	parents["rnym"] = "uolv"
+	parents["uolv"] = "mvwv"
+	parents["ukkz"] = "mpkz"
+	parents["mpkz"] = "ssrp"
+	parents["puqn"] = "ssrp"
+	parents["ssrp"] = "vqrx"
+	parents["qnor"] = "pnpu"
+
+	d := dag.Build(commits, parents)
 	root := dag.BuildGraphRows(d)
 	model := revisions.New(root)
+	model, _ = model.Update(tea.WindowSizeMsg{
+		Width:  100,
+		Height: 100,
+	})
 
 	expected := `
-  ○ zzwt
-  │ (no description)
-  ○ ulvv
-  │ (no description)
   ○ wzpt
-  │ (no description)
+  │ (no description set)
   ○ xumz
-  │ (no description)
+  │ (no description set)
   ~ (elided revisions)
   │ ○ tnww
-  ├─╯ (no description)
+  ├─╯ (no description set)
   │ ○ rnym
-  ├─╯ (no description)
+  ├─╯ (no description set)
   ○ uolv
-  │ (no description)
+  │ (no description set)
   `
 	verifyOutput(t, expected, model.View())
 }
@@ -110,8 +151,7 @@ func TestRender_BranchedOrdered(t *testing.T) {
 func verifyOutput(t *testing.T, expected, view string) {
 	expected = deindent(expected)
 	actual := deindent(view)
-	prefix := actual[:len(expected)]
-	assert.Equal(t, expected, prefix)
+	assert.Equal(t, expected, actual)
 }
 
 func deindent(s string) string {
@@ -126,5 +166,6 @@ func deindent(s string) string {
 		line = strings.TrimSpace(line)
 		output = append(output, line)
 	}
-	return strings.Join(output, "\n")
+	ret := strings.Join(output, "\n")
+	return strings.TrimRight(ret, "\n")
 }

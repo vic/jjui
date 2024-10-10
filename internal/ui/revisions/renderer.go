@@ -10,17 +10,20 @@ import (
 )
 
 type (
-	ChangeIdShort  struct{}
-	ChangeIdRest   struct{}
+	ChangeId       struct{}
 	Author         struct{}
 	Timestamp      struct{}
 	Branches       struct{}
 	ConflictMarker struct{}
 	Empty          struct{}
 	Description    struct{}
-	ifSegment      struct {
-		Cond    bool
-		Segment []interface{}
+	separate       struct {
+		sep      string
+		segments []interface{}
+	}
+	ifSegment struct {
+		Cond     bool
+		Segments []interface{}
 	}
 	NodeGlyph       struct{}
 	Glyph           struct{}
@@ -29,7 +32,11 @@ type (
 )
 
 func If(cond bool, segments ...interface{}) interface{} {
-	return ifSegment{Cond: cond, Segment: segments}
+	return ifSegment{Cond: cond, Segments: segments}
+}
+
+func Separate(sep string, segments ...interface{}) interface{} {
+	return separate{sep: sep, segments: segments}
 }
 
 func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Palette, highlighted bool, segments ...interface{}) {
@@ -37,9 +44,18 @@ func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Pal
 		switch segment := segment.(type) {
 		case Overlay:
 			w.WriteString(segment.View())
+		case separate:
+			for i, s := range segment.segments {
+				previousLength := w.Len()
+				SegmentedRenderer(w, row, palette, highlighted, s)
+				written := w.Len() > previousLength
+				if written && i < len(segment.segments)-1 {
+					w.WriteString(segment.sep)
+				}
+			}
 		case ifSegment:
 			if segment.Cond {
-				SegmentedRenderer(w, row, palette, highlighted, segment.Segment...)
+				SegmentedRenderer(w, row, palette, highlighted, segment.Segments...)
 			}
 		case ElidedRevisions:
 			if row.Elided {
@@ -74,9 +90,8 @@ func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Pal
 			}
 			w.WriteString(indent)
 			w.WriteString(glyph)
-		case ChangeIdShort:
+		case ChangeId:
 			w.WriteString(palette.CommitShortStyle.Render(row.Commit.ChangeIdShort))
-		case ChangeIdRest:
 			w.WriteString(palette.CommitIdRestStyle.Render(row.Commit.ChangeId[len(row.Commit.ChangeIdShort):]))
 		case Author:
 			w.WriteString(palette.AuthorStyle.Render(row.Commit.Author))
@@ -102,7 +117,6 @@ func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Pal
 			} else {
 				w.WriteString(palette.Normal.Render(row.Commit.Description))
 			}
-
 		case string:
 			w.WriteString(segment)
 		}
