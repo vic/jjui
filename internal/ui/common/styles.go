@@ -3,14 +3,14 @@ package common
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	Black      = lipgloss.Color("#000000")
-	Cyan       = lipgloss.Color("#8be9fd")
-	Pink       = lipgloss.Color("#ff79c6")
-	Yellow     = lipgloss.Color("#f1fa8c")
-	Red        = lipgloss.Color("#ff5555")
-	Green      = lipgloss.Color("#50fa7b")
-	Comment    = lipgloss.Color("#6272a4")
-	Foreground = lipgloss.Color("#f8f8f2")
+	Black      = lipgloss.Color("0")
+	Cyan       = lipgloss.Color("6")
+	Pink       = lipgloss.Color("4")
+	Yellow     = lipgloss.Color("3")
+	Red        = lipgloss.Color("1")
+	Green      = lipgloss.Color("2")
+	Comment    = lipgloss.Color("8")
+	Foreground = lipgloss.Color("7")
 )
 
 var commitShortStyle = lipgloss.NewStyle().
