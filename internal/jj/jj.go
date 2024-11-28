@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	TEMPLATE             = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), coalesce(branches, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
+	TEMPLATE             = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), coalesce(bookmarks, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
 	DESCENDANTS_TEMPLATE = `separate(" ", change_id.shortest(8), parents.map(|x| x.change_id().shortest(8))) ++ "\n"`
 )
 
@@ -101,9 +101,9 @@ func parseCommit(lines []string) Commit {
 		commit.Author = author
 	}
 	commit.Timestamp = lines[9][indent:]
-	branches := lines[10][indent:]
-	if branches != "!!NONE" {
-		commit.Branches = branches
+	bookmarks := lines[10][indent:]
+	if bookmarks != "!!NONE" {
+		commit.Branches = bookmarks
 	}
 	if len(lines) >= 12 {
 		desc := lines[11][indent:]
