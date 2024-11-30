@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	NEW_TEMPLATE         = `separate(";", change_id.shortest(1), change_id.shortest(8), current_working_copy, immutable, conflict,empty, author.email(), author.timestamp().ago(), description)`
 	TEMPLATE             = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), coalesce(bookmarks, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
 	DESCENDANTS_TEMPLATE = `separate(" ", change_id.shortest(8), parents.map(|x| x.change_id().shortest(8))) ++ "\n"`
 )
@@ -28,6 +29,52 @@ type Commit struct {
 }
 
 type Bookmark string
+
+//func GetCommitsNew(location string) []Commit {
+//	cmd := exec.Command("jj", "log", "--template", NEW_TEMPLATE)
+//	cmd.Dir = location
+//	output, err := cmd.Output()
+//	if err != nil {
+//		fmt.Printf("error: %v\n", err)
+//		return nil
+//	}
+//	commits := parseLogOutputNew(string(output))
+//	return commits
+//}
+
+//func parseLogOutputNew(output string) []Commit {
+//	lines := strings.Split(output, "\n")
+//	commits := make([]Commit, 0)
+//	newDag := dag.NewDag()
+//	var parentNode *dag.Node
+//	for i := len(lines) - 1; i >= 0; i-- {
+//		line := lines[i]
+//		if line == "" || line == "~" {
+//			continue
+//		}
+//		parts := strings.Split(line, ";")
+//
+//		commit := Commit{
+//			ChangeIdShort: parts[0],
+//			ChangeId:      parts[1],
+//			IsWorkingCopy: parts[2] == "true",
+//			Immutable:     parts[3] == "true",
+//			Conflict:      parts[4] == "true",
+//			Empty:         parts[5] == "true",
+//			Author:        parts[6],
+//			Timestamp:     parts[7],
+//			Description:   parts[8],
+//		}
+//		node := newDag.AddNode(&commit)
+//		if parentNode != nil {
+//			node.AddEdge(parentNode, dag.IndirectEdge)
+//		} else {
+//			parentNode = node
+//		}
+//
+//	}
+//	return commits
+//}
 
 func GetCommits(location string) ([]Commit, map[string]string) {
 	cmd := exec.Command("jj", "log", "--no-graph", "--template", TEMPLATE)
