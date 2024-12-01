@@ -19,9 +19,9 @@ type Commit struct {
 	Parents       []string
 	IsWorkingCopy bool
 	Author        string
-	Timestamp   string
-	Bookmarks   []string
-	Description string
+	Timestamp     string
+	Bookmarks     []string
+	Description   string
 	Immutable     bool
 	Conflict      bool
 	Empty         bool
@@ -30,7 +30,7 @@ type Commit struct {
 
 type Bookmark string
 
-func GetCommits(location string) []GraphRow {
+func GetCommits(location string) *Node {
 	cmd := exec.Command("jj", "log", "--reversed", "--template", TEMPLATE)
 	cmd.Dir = location
 	output, err := cmd.Output()
@@ -38,11 +38,10 @@ func GetCommits(location string) []GraphRow {
 		fmt.Printf("error: %v\n", err)
 		return nil
 	}
-	rows := Parse(bytes.NewReader(output))
-	return rows
+    return Parse(bytes.NewReader(output))
 }
 
-func Parse(reader io.Reader) []GraphRow {
+func Parse(reader io.Reader) *Node {
 	all, err := io.ReadAll(reader)
 	if err != nil {
 		return nil
@@ -78,7 +77,7 @@ func Parse(reader io.Reader) []GraphRow {
 			commit.Parents = strings.Split(parts[2], ",")
 			for _, parent := range commit.Parents {
 				if _, ok := seen[parent]; !ok {
-				   edgeType = IndirectEdge
+					edgeType = IndirectEdge
 				}
 			}
 		}
@@ -122,13 +121,7 @@ func Parse(reader io.Reader) []GraphRow {
 			stack = append(stack, node)
 		}
 	}
-	rows := list.New()
-	BuildGraphRows(d.GetRoot(), IndirectEdge, 0, rows)
-	graphRows := make([]GraphRow, 0)
-	for e := rows.Front(); e != nil; e = e.Next() {
-		graphRows = append(graphRows, e.Value.(GraphRow))
-	}
-	return graphRows
+	return d.GetRoot()
 }
 
 func BuildGraphRows(root *Node, edgeType int, level int, rows *list.List) {

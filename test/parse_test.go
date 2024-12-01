@@ -1,47 +1,27 @@
 package test
 
 import (
-	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
+    "github.com/stretchr/testify/assert"
+    "os"
+    "testing"
 
-	"jjui/internal/jj"
+    "jjui/internal/jj"
 )
 
-func Test_parseLogOutput_ManyLevels(t *testing.T) {
+func Test_Parse_Tree(t *testing.T) {
 	fileName := "testdata/many-levels.log"
 	file, err := os.Open(fileName)
 	if err != nil {
 		t.Fatalf("could not open file: %v", err)
 	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-	rows := jj.Parse(file)
-	assert.Equal(t, 8, len(rows))
-}
+	defer file.Close()
 
-func Test_parseLogOutput_TwoLevels(t *testing.T) {
-	fileName := "testdata/two-level.log"
-	file, err := os.Open(fileName)
+	node := jj.Parse(file)
+	treeRenderer := jj.NewTreeRenderer()
+	buffer := treeRenderer.RenderTree(node)
+	content, err := os.ReadFile("testdata/many-levels.rendered")
 	if err != nil {
-		t.Fatalf("could not open file: %v", err)
+		t.Fatalf("could not read file: %v", err)
 	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-	rows := jj.Parse(file)
-	assert.Equal(t, 10, len(rows))
-}
-func Test_Parse_ElidedRevisions(t *testing.T) {
-	fileName := "testdata/elided-revisions.log"
-	file, err := os.Open(fileName)
-	if err != nil {
-		t.Fatalf("could not open file: %v", err)
-	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-	rows := jj.Parse(file)
-	assert.Equal(t, 6, len(rows))
+	assert.Equal(t, string(content), buffer)
 }
