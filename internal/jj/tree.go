@@ -6,7 +6,6 @@ const (
 )
 
 type Dag struct {
-	lookup map[string]*Node
 	Nodes  []*Node
 }
 
@@ -14,7 +13,6 @@ type Node struct {
 	Parents []*Node
 	Commit  *Commit
 	Edges   []*Edge
-	Depth   int
 }
 
 type Edge struct {
@@ -24,7 +22,6 @@ type Edge struct {
 
 func NewDag() *Dag {
 	return &Dag{
-		lookup: make(map[string]*Node),
 		Nodes:  make([]*Node, 0),
 	}
 }
@@ -35,7 +32,6 @@ func (d *Dag) AddNode(c *Commit) (node *Node) {
 		Edges:  make([]*Edge, 0),
 	}
 	d.Nodes = append(d.Nodes, node)
-	d.lookup[c.ChangeId] = node
 	return node
 }
 
@@ -46,14 +42,6 @@ func (n *Node) AddEdge(other *Node, typ int) {
 	}
 	other.Parents = append(other.Parents, n)
 	n.Edges = append(n.Edges, e)
-}
-
-func (d *Dag) GetNode(c *Commit) *Node {
-	return d.GetNodeByChangeId(c.ChangeId)
-}
-
-func (d *Dag) GetNodeByChangeId(changeId string) *Node {
-	return d.lookup[changeId]
 }
 
 func (d *Dag) GetRoot() *Node {
