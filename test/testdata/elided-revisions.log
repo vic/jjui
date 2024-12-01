@@ -1,0 +1,10 @@
+◆      uo;uolvlvsq;false;true;false;false;ibrahim@dursun.cc;2 months ago;refactor: extract styles and renderer into their own files
+├─┬─╮
+~ │ │  (elided revisions)
+│ │ ○  r;rnymlszl;false;false;false;false;ibrahim@dursun.cc;2 months ago;wip: try viewport to draw some parts of the revision graph
+│ ○  t;tnwwkmry;false;false;false;false;ibrahim@dursun.cc;2 months ago;refactor: show operation windows as detail view
+◆    vn;vnzyvqkx;false;true;false;false;ibrahim@dursun.cc;2 months ago;refactor: move help rendering out of revisions
+├─╮
+~ │  (elided revisions)
+│ ○  vx;vxvtkvrz;false;false;false;false;ibrahim@dursun.cc;2 months ago;wip: refactor: use different renderers in revisions component depending on mode
+◆    s;swkztzll;false;true;false;false;ibrahim@dursun.cc;2 months ago;refactor: move diff view out of revisions

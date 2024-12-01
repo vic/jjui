@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	TEMPLATE = `separate(";", change_id.shortest(1), change_id.shortest(8), current_working_copy, immutable, conflict,empty, author.email(), author.timestamp().ago(), description)`
+	TEMPLATE = `separate(";", change_id.shortest(1), change_id.shortest(8), separate(",", parents.map(|x| x.change_id().shortest(1))), current_working_copy, immutable, conflict,empty, author.email(), author.timestamp().ago(), description)`
 )
 
 type Commit struct {
@@ -53,6 +53,8 @@ func Parse(reader io.Reader) []GraphRow {
 	stack = append(stack, nil)
 	levels := make([]int, 0)
 	levels = append(levels, -1)
+	seen := make(map[string]bool)
+
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 		if line == "" || line == "~" {
@@ -67,29 +69,39 @@ func Parse(reader io.Reader) []GraphRow {
 		commit := Commit{
 			ChangeIdShort: strings.TrimSpace(parts[0]),
 		}
+		seen[commit.ChangeIdShort] = true
 		if len(parts) > 1 {
 			commit.ChangeId = parts[1]
 		}
+		edgeType := DirectEdge
 		if len(parts) > 2 {
-			commit.IsWorkingCopy = parts[2] == "true"
+			commit.Parents = strings.Split(parts[2], ",")
+			for _, parent := range commit.Parents {
+				if _, ok := seen[parent]; !ok {
+				   edgeType = IndirectEdge
+				}
+			}
 		}
 		if len(parts) > 3 {
-			commit.Immutable = parts[3] == "true"
+			commit.IsWorkingCopy = parts[3] == "true"
 		}
 		if len(parts) > 4 {
-			commit.Conflict = parts[4] == "true"
+			commit.Immutable = parts[4] == "true"
 		}
 		if len(parts) > 5 {
-			commit.Empty = parts[5] == "true"
+			commit.Conflict = parts[5] == "true"
 		}
 		if len(parts) > 6 {
-			commit.Author = parts[6]
+			commit.Empty = parts[6] == "true"
 		}
 		if len(parts) > 7 {
-			commit.Timestamp = parts[7]
+			commit.Author = parts[7]
 		}
 		if len(parts) > 8 {
-			commit.Description = parts[8]
+			commit.Timestamp = parts[8]
+		}
+		if len(parts) > 9 {
+			commit.Description = parts[9]
 		}
 		node := d.AddNode(&commit)
 		if index < levels[len(levels)-1] {
@@ -97,7 +109,7 @@ func Parse(reader io.Reader) []GraphRow {
 			stack = stack[:len(stack)-1]
 		}
 		if stack[len(stack)-1] != nil {
-			stack[len(stack)-1].AddEdge(node, DirectEdge)
+			stack[len(stack)-1].AddEdge(node, edgeType)
 		}
 		if index == levels[len(levels)-1] {
 			stack[len(stack)-1] = node
@@ -108,8 +120,7 @@ func Parse(reader io.Reader) []GraphRow {
 		}
 	}
 	rows := list.New()
-	BuildGraphRows(d.GetRoot(), 0, rows)
-	fmt.Printf("%v\n", rows)
+	BuildGraphRows(d.GetRoot(), IndirectEdge, 0, rows)
 	graphRows := make([]GraphRow, 0)
 	for e := rows.Front(); e != nil; e = e.Next() {
 		graphRows = append(graphRows, e.Value.(GraphRow))
@@ -117,15 +128,15 @@ func Parse(reader io.Reader) []GraphRow {
 	return graphRows
 }
 
-func BuildGraphRows(root *Node, level int, rows *list.List) {
-	row := GraphRow{Node: root, Commit: root.Commit, RenderContext: RenderContext{Level: level, Elided: false}}
+func BuildGraphRows(root *Node, edgeType int, level int, rows *list.List) {
+	row := GraphRow{Node: root, Commit: root.Commit, RenderContext: RenderContext{Level: level, Elided: edgeType == IndirectEdge}}
 	rows.PushFront(row)
 	for i, edge := range root.Edges {
 		nl := level + 1
 		if i == len(root.Edges)-1 {
 			nl = level
 		}
-		BuildGraphRows(edge.To, nl, rows)
+		BuildGraphRows(edge.To, edge.Type, nl, rows)
 	}
 }
 
