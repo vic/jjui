@@ -1,9 +1,5 @@
 package jj
 
-import (
-	"sort"
-)
-
 const (
 	DirectEdge   = 1
 	IndirectEdge = 2
@@ -67,23 +63,4 @@ func (d *Dag) GetRoot() *Node {
 		}
 	}
 	return nil
-}
-
-func Walk(node *Node, renderer Renderer, context RenderContext) {
-	sort.Slice(node.Edges, func(a, b int) bool {
-		f := node.Edges[a]
-		s := node.Edges[b]
-		return f.To.Depth > s.To.Depth
-	})
-	for i, edge := range node.Edges {
-		nl := context.Level + 1
-		if i == 0 {
-			nl = context.Level
-		}
-		Walk(edge.To, renderer, RenderContext{
-			Level:        nl,
-			Elided:       edge.Type == IndirectEdge,
-		})
-	}
-	renderer(node, context)
 }

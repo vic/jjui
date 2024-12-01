@@ -13,7 +13,7 @@ type (
 	ChangeId       struct{}
 	Author         struct{}
 	Timestamp      struct{}
-	Branches       struct{}
+	Bookmarks      struct{}
 	ConflictMarker struct{}
 	Empty          struct{}
 	Description    struct{}
@@ -97,8 +97,8 @@ func SegmentedRenderer(w *strings.Builder, row *jj.GraphRow, palette common.Pale
 			w.WriteString(palette.AuthorStyle.Render(row.Commit.Author))
 		case Timestamp:
 			w.WriteString(palette.TimestampStyle.Render(row.Commit.Timestamp))
-		case Branches:
-			w.WriteString(palette.BranchesStyle.Render(row.Commit.Branches))
+		case Bookmarks:
+			w.WriteString(palette.BookmarksStyle.Render(strings.Join(row.Commit.Bookmarks, " ")))
 		case ConflictMarker:
 			if row.Commit.Conflict {
 				w.WriteString(palette.ConflictStyle.Render("conflict"))

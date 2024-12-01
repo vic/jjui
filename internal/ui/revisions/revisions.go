@@ -226,7 +226,7 @@ func (m Model) View() string {
 			}
 		}
 		SegmentedRenderer(&line, row, common.DefaultPalette, i == m.cursor,
-			Separate(" ", NodeGlyph{}, ChangeId{}, Author{}, Timestamp{}, Branches{}, ConflictMarker{}), "\n",
+			Separate(" ", NodeGlyph{}, ChangeId{}, Author{}, Timestamp{}, Bookmarks{}, ConflictMarker{}), "\n",
 			Separate(" ", Glyph{}, If(m.overlay == nil || i != m.cursor, If(row.Commit.Empty, Empty{}, " "), Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay))), "\n",
 			ElidedRevisions{})
 		s := line.String()

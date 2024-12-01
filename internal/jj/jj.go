@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	TEMPLATE = `separate(";", change_id.shortest(1), change_id.shortest(8), separate(",", parents.map(|x| x.change_id().shortest(1))), current_working_copy, immutable, conflict,empty, author.email(), author.timestamp().ago(), description)`
+	TEMPLATE = `separate(";", change_id.shortest(1), change_id.shortest(8), separate(",", parents.map(|x| x.change_id().shortest(1))), separate(",", coalesce(bookmarks, ".")), current_working_copy, immutable, conflict,empty, author.email(), author.timestamp().ago(), description)`
 )
 
 type Commit struct {
@@ -19,9 +19,9 @@ type Commit struct {
 	Parents       []string
 	IsWorkingCopy bool
 	Author        string
-	Timestamp     string
-	Branches      string
-	Description   string
+	Timestamp   string
+	Bookmarks   []string
+	Description string
 	Immutable     bool
 	Conflict      bool
 	Empty         bool
@@ -82,26 +82,29 @@ func Parse(reader io.Reader) []GraphRow {
 				}
 			}
 		}
-		if len(parts) > 3 {
-			commit.IsWorkingCopy = parts[3] == "true"
+		if len(parts) > 3 && parts[3] != "." {
+			commit.Bookmarks = strings.Split(parts[3], ",")
 		}
 		if len(parts) > 4 {
-			commit.Immutable = parts[4] == "true"
+			commit.IsWorkingCopy = parts[4] == "true"
 		}
 		if len(parts) > 5 {
-			commit.Conflict = parts[5] == "true"
+			commit.Immutable = parts[5] == "true"
 		}
 		if len(parts) > 6 {
-			commit.Empty = parts[6] == "true"
+			commit.Conflict = parts[6] == "true"
 		}
 		if len(parts) > 7 {
-			commit.Author = parts[7]
+			commit.Empty = parts[7] == "true"
 		}
 		if len(parts) > 8 {
-			commit.Timestamp = parts[8]
+			commit.Author = parts[8]
 		}
 		if len(parts) > 9 {
-			commit.Description = parts[9]
+			commit.Timestamp = parts[9]
+		}
+		if len(parts) > 10 {
+			commit.Description = parts[10]
 		}
 		node := d.AddNode(&commit)
 		if index < levels[len(levels)-1] {
@@ -138,56 +141,6 @@ func BuildGraphRows(root *Node, edgeType int, level int, rows *list.List) {
 		}
 		BuildGraphRows(edge.To, edge.Type, nl, rows)
 	}
-}
-
-func parseLogOutput(output string) []Commit {
-	lines := strings.Split(output, "\n")
-	start := -1
-	commits := make([]Commit, 0)
-	for i := 0; i < len(lines); i++ {
-		if strings.Contains(lines[i], "__BEGIN__") {
-			start = i
-			continue
-		}
-		if strings.Contains(lines[i], "__END__") {
-			commit := parseCommit(lines[start:i])
-			commit.Index = len(commits)
-			commits = append(commits, commit)
-			start = -1
-		}
-	}
-	return commits
-}
-
-func parseCommit(lines []string) Commit {
-	indent := strings.Index(lines[0], "__BEGIN__")
-	commit := Commit{}
-	commit.ChangeIdShort = lines[1][indent:]
-	commit.ChangeId = lines[2][indent:]
-	parents := lines[3][indent:]
-	if parents != "!!NONE" {
-		commit.Parents = strings.Split(parents, " ")
-	}
-	commit.IsWorkingCopy = lines[4][indent:] == "true"
-	commit.Immutable = lines[5][indent:] == "true"
-	commit.Conflict = lines[6][indent:] == "true"
-	commit.Empty = lines[7][indent:] == "true"
-	author := lines[8][indent:]
-	if author != "!!NONE" {
-		commit.Author = author
-	}
-	commit.Timestamp = lines[9][indent:]
-	bookmarks := lines[10][indent:]
-	if bookmarks != "!!NONE" {
-		commit.Branches = bookmarks
-	}
-	if len(lines) >= 12 {
-		desc := lines[11][indent:]
-		if desc != "!!NONE" {
-			commit.Description = desc
-		}
-	}
-	return commit
 }
 
 func RebaseCommand(from string, to string) ([]byte, error) {
