@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/exec"
 
-	"jjui/internal/dag"
 	"jjui/internal/jj"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,7 +13,7 @@ type (
 	CloseViewMsg        struct{}
 	SelectRevisionMsg   string
 	ShowDiffMsg         string
-	UpdateRevisionsMsg  []dag.GraphRow
+	UpdateRevisionsMsg  []jj.GraphRow
 	UpdateBookmarksMsg  []jj.Bookmark
 	CommandRunningMsg   string
 	CommandCompletedMsg struct {
@@ -93,9 +92,7 @@ func MoveBookmark(revision string, bookmark string) tea.Cmd {
 
 func FetchRevisions(location string) tea.Cmd {
 	return func() tea.Msg {
-		commits, parents := jj.GetCommits(location)
-		root := dag.Build(commits, parents)
-		rows := dag.BuildGraphRows(root)
+		rows := jj.GetCommits(location)
 		return UpdateRevisionsMsg(rows)
 	}
 }

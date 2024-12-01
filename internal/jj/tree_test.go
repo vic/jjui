@@ -1,15 +1,13 @@
-package dag
+package jj
 
 import (
 	"testing"
 
-	"jjui/internal/jj"
-
-	"github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/assert"
 )
 
 func TestBuildGraphRows_WithElidedCommits(t *testing.T) {
-	commits := []jj.Commit{
+	commits := []Commit{
 		{
 			ChangeId: "topchange",
 			Parents:  []string{"nonexistent"},
@@ -38,7 +36,7 @@ func TestBuildGraphRows_WithElidedCommits(t *testing.T) {
 }
 
 func TestBuildGraphRows_WithTop2Commits(t *testing.T) {
-	commits := []jj.Commit{
+	commits := []Commit{
 		{ChangeId: "top_empty", Parents: []string{"parent"}},
 		{ChangeId: "top_addfile", Parents: []string{"parent"}},
 		{ChangeId: "parent", Parents: nil},
@@ -57,7 +55,7 @@ func TestBuildGraphRows_WithTop2Commits(t *testing.T) {
 }
 
 func TestBuildGraphRows_LevelsWithElidedRevisions(t *testing.T) {
-	commits := []jj.Commit{
+	commits := []Commit{
 		{ChangeId: "top", Parents: []string{"nonexistent"}},
 		{ChangeId: "middle", Parents: []string{"middle_parent"}},
 		{ChangeId: "middle_parent", Parents: nil},

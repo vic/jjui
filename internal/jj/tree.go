@@ -1,9 +1,7 @@
-package dag
+package jj
 
 import (
 	"sort"
-
-	"jjui/internal/jj"
 )
 
 const (
@@ -18,7 +16,7 @@ type Dag struct {
 
 type Node struct {
 	Parents []*Node
-	Commit  *jj.Commit
+	Commit  *Commit
 	Edges   []*Edge
 	Depth   int
 }
@@ -35,52 +33,7 @@ func NewDag() *Dag {
 	}
 }
 
-func Build(commits []jj.Commit, parents map[string]string) *Node {
-	tree := NewDag()
-	for _, commit := range commits {
-		tree.AddNode(&commit)
-	}
-
-	for _, commit := range commits {
-		node := tree.GetNode(&commit)
-		for _, parent := range commit.Parents {
-			if parentNode := tree.GetNodeByChangeId(parent); parentNode != nil {
-				parentNode.AddEdge(node, DirectEdge)
-			} else {
-				current := parent
-				for {
-					if p, ok := parents[current]; ok {
-						if pn := tree.GetNodeByChangeId(p); pn != nil {
-							pn.AddEdge(node, IndirectEdge)
-							parents[parent] = current
-							break
-						}
-						current = p
-						continue
-					}
-					break
-				}
-			}
-		}
-	}
-
-	root := tree.GetRoot()
-	root.CalculateDepth()
-	return root
-}
-
-func (n *Node) CalculateDepth() {
-	var maxDepth int
-	for _, children := range n.Edges {
-		children.To.CalculateDepth()
-		if children.To.Depth > maxDepth {
-			maxDepth = children.To.Depth
-		}
-	}
-	n.Depth = maxDepth + 1
-}
-
-func (d *Dag) AddNode(c *jj.Commit) (node *Node) {
+func (d *Dag) AddNode(c *Commit) (node *Node) {
 	node = &Node{
 		Commit: c,
 		Edges:  make([]*Edge, 0),
@@ -99,7 +52,7 @@ func (n *Node) AddEdge(other *Node, typ int) {
 	n.Edges = append(n.Edges, e)
 }
 
-func (d *Dag) GetNode(c *jj.Commit) *Node {
+func (d *Dag) GetNode(c *Commit) *Node {
 	return d.GetNodeByChangeId(c.ChangeId)
 }
 

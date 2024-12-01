@@ -1,16 +1,16 @@
 package jj
 
 import (
+	"bytes"
+	"container/list"
 	"fmt"
-	"os"
+	"io"
 	"os/exec"
 	"strings"
 )
 
 const (
-	NEW_TEMPLATE         = `separate(";", change_id.shortest(1), change_id.shortest(8), current_working_copy, immutable, conflict,empty, author.email(), author.timestamp().ago(), description)`
-	TEMPLATE             = `separate("\n", "__BEGIN__", change_id.shortest(1), change_id.short(8), coalesce(parents.map(|c| c.change_id().short(8)), "!!NONE"), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), coalesce(bookmarks, "!!NONE"), coalesce(description, "!!NONE"), "__END__\n")`
-	DESCENDANTS_TEMPLATE = `separate(" ", change_id.shortest(8), parents.map(|x| x.change_id().shortest(8))) ++ "\n"`
+	TEMPLATE = `separate(";", change_id.shortest(1), change_id.shortest(8), current_working_copy, immutable, conflict,empty, author.email(), author.timestamp().ago(), description)`
 )
 
 type Commit struct {
@@ -30,85 +30,103 @@ type Commit struct {
 
 type Bookmark string
 
-//func GetCommitsNew(location string) []Commit {
-//	cmd := exec.Command("jj", "log", "--template", NEW_TEMPLATE)
-//	cmd.Dir = location
-//	output, err := cmd.Output()
-//	if err != nil {
-//		fmt.Printf("error: %v\n", err)
-//		return nil
-//	}
-//	commits := parseLogOutputNew(string(output))
-//	return commits
-//}
-
-//func parseLogOutputNew(output string) []Commit {
-//	lines := strings.Split(output, "\n")
-//	commits := make([]Commit, 0)
-//	newDag := dag.NewDag()
-//	var parentNode *dag.Node
-//	for i := len(lines) - 1; i >= 0; i-- {
-//		line := lines[i]
-//		if line == "" || line == "~" {
-//			continue
-//		}
-//		parts := strings.Split(line, ";")
-//
-//		commit := Commit{
-//			ChangeIdShort: parts[0],
-//			ChangeId:      parts[1],
-//			IsWorkingCopy: parts[2] == "true",
-//			Immutable:     parts[3] == "true",
-//			Conflict:      parts[4] == "true",
-//			Empty:         parts[5] == "true",
-//			Author:        parts[6],
-//			Timestamp:     parts[7],
-//			Description:   parts[8],
-//		}
-//		node := newDag.AddNode(&commit)
-//		if parentNode != nil {
-//			node.AddEdge(parentNode, dag.IndirectEdge)
-//		} else {
-//			parentNode = node
-//		}
-//
-//	}
-//	return commits
-//}
-
-func GetCommits(location string) ([]Commit, map[string]string) {
-	cmd := exec.Command("jj", "log", "--no-graph", "--template", TEMPLATE)
+func GetCommits(location string) []GraphRow {
+	cmd := exec.Command("jj", "log", "--reversed", "--template", TEMPLATE)
 	cmd.Dir = location
 	output, err := cmd.Output()
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
-		return nil, nil
+		return nil
 	}
-	commits := parseLogOutput(string(output))
-	parents := GetDescendants(commits[len(commits)-1].ChangeId)
-	return commits, parents
+	rows := Parse(bytes.NewReader(output))
+	return rows
 }
 
-func GetDescendants(root string) map[string]string {
-	cmd := exec.Command("jj", "log", "--no-graph", "-r", root+"::", "--template", DESCENDANTS_TEMPLATE)
-	cmd.Dir = os.Getenv("PWD")
-	output, _ := cmd.CombinedOutput()
-	lines := strings.Split(string(output), "\n")
-	parents := make(map[string]string)
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		parts := strings.Split(line, " ")
-		rev := parts[0]
-		if len(parts) < 2 {
-			parents[rev] = ""
-			continue
-		}
-		parent := parts[1]
-		parents[rev] = parent
+func Parse(reader io.Reader) []GraphRow {
+	all, err := io.ReadAll(reader)
+	if err != nil {
+		return nil
 	}
-	return parents
+	d := NewDag()
+	lines := strings.Split(string(all), "\n")
+	stack := make([]*Node, 0)
+	stack = append(stack, nil)
+	levels := make([]int, 0)
+	levels = append(levels, -1)
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		if line == "" || line == "~" {
+			continue
+		}
+		index := strings.IndexAny(line, "○◆@")
+		if index == -1 {
+			continue
+		}
+		_, after, _ := strings.Cut(line[index:], " ")
+		parts := strings.Split(after, ";")
+		commit := Commit{
+			ChangeIdShort: strings.TrimSpace(parts[0]),
+		}
+		if len(parts) > 1 {
+			commit.ChangeId = parts[1]
+		}
+		if len(parts) > 2 {
+			commit.IsWorkingCopy = parts[2] == "true"
+		}
+		if len(parts) > 3 {
+			commit.Immutable = parts[3] == "true"
+		}
+		if len(parts) > 4 {
+			commit.Conflict = parts[4] == "true"
+		}
+		if len(parts) > 5 {
+			commit.Empty = parts[5] == "true"
+		}
+		if len(parts) > 6 {
+			commit.Author = parts[6]
+		}
+		if len(parts) > 7 {
+			commit.Timestamp = parts[7]
+		}
+		if len(parts) > 8 {
+			commit.Description = parts[8]
+		}
+		node := d.AddNode(&commit)
+		if index < levels[len(levels)-1] {
+			levels = levels[:len(levels)-1]
+			stack = stack[:len(stack)-1]
+		}
+		if stack[len(stack)-1] != nil {
+			stack[len(stack)-1].AddEdge(node, DirectEdge)
+		}
+		if index == levels[len(levels)-1] {
+			stack[len(stack)-1] = node
+		}
+		if index > levels[len(levels)-1] {
+			levels = append(levels, index)
+			stack = append(stack, node)
+		}
+	}
+	rows := list.New()
+	BuildGraphRows(d.GetRoot(), 0, rows)
+	fmt.Printf("%v\n", rows)
+	graphRows := make([]GraphRow, 0)
+	for e := rows.Front(); e != nil; e = e.Next() {
+		graphRows = append(graphRows, e.Value.(GraphRow))
+	}
+	return graphRows
+}
+
+func BuildGraphRows(root *Node, level int, rows *list.List) {
+	row := GraphRow{Node: root, Commit: root.Commit, RenderContext: RenderContext{Level: level, Elided: false}}
+	rows.PushFront(row)
+	for i, edge := range root.Edges {
+		nl := level + 1
+		if i == len(root.Edges)-1 {
+			nl = level
+		}
+		BuildGraphRows(edge.To, nl, rows)
+	}
 }
 
 func parseLogOutput(output string) []Commit {

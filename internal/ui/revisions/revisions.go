@@ -8,7 +8,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"jjui/internal/dag"
 	"jjui/internal/jj"
 	"jjui/internal/ui/abandon"
 	"jjui/internal/ui/bookmark"
@@ -25,7 +24,7 @@ type viewRange struct {
 }
 
 type Model struct {
-	rows       []dag.GraphRow
+	rows       []jj.GraphRow
 	op         common.Operation
 	viewRange  *viewRange
 	draggedRow int
@@ -177,7 +176,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	case common.SelectRevisionMsg:
 		r := string(msg)
-		idx := slices.IndexFunc(m.rows, func(row dag.GraphRow) bool {
+		idx := slices.IndexFunc(m.rows, func(row jj.GraphRow) bool {
 			if r == "@" {
 				return row.Commit.IsWorkingCopy
 			}
@@ -238,7 +237,7 @@ func (m Model) View() string {
 	return items.String()
 }
 
-func New(rows []dag.GraphRow) Model {
+func New(rows []jj.GraphRow) Model {
 	v := viewRange{start: 0, end: 0}
 	return Model{
 		rows:       rows,

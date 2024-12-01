@@ -1,9 +1,9 @@
 package revisions
 
 import (
+	"jjui/internal/jj"
 	"strings"
 
-	"jjui/internal/dag"
 	"jjui/internal/ui/common"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -39,7 +39,7 @@ func Separate(sep string, segments ...interface{}) interface{} {
 	return separate{sep: sep, segments: segments}
 }
 
-func SegmentedRenderer(w *strings.Builder, row *dag.GraphRow, palette common.Palette, highlighted bool, segments ...interface{}) {
+func SegmentedRenderer(w *strings.Builder, row *jj.GraphRow, palette common.Palette, highlighted bool, segments ...interface{}) {
 	for _, segment := range segments {
 		switch segment := segment.(type) {
 		case Overlay:
