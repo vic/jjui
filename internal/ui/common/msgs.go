@@ -13,7 +13,7 @@ type (
 	CloseViewMsg        struct{}
 	SelectRevisionMsg   string
 	ShowDiffMsg         string
-	UpdateRevisionsMsg  []jj.GraphRow
+	UpdateRevisionsMsg  *jj.Dag
 	UpdateBookmarksMsg  []jj.Bookmark
 	CommandRunningMsg   string
 	CommandCompletedMsg struct {
@@ -92,8 +92,8 @@ func MoveBookmark(revision string, bookmark string) tea.Cmd {
 
 func FetchRevisions(location string) tea.Cmd {
 	return func() tea.Msg {
-		rows := jj.GetCommits(location)
-		return UpdateRevisionsMsg(rows)
+		dag := jj.GetCommits(location)
+		return UpdateRevisionsMsg(dag)
 	}
 }
 

@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 
 	"jjui/internal/jj"
 	"jjui/internal/ui/abandon"
@@ -24,7 +21,8 @@ type viewRange struct {
 }
 
 type Model struct {
-	rows       []jj.GraphRow
+	dag        *jj.Dag
+	revisions  []*jj.Commit
 	op         common.Operation
 	viewRange  *viewRange
 	draggedRow int
@@ -36,7 +34,7 @@ type Model struct {
 }
 
 func (m Model) selectedRevision() *jj.Commit {
-	return m.rows[m.cursor].Commit
+	return m.revisions[m.cursor]
 }
 
 func (m Model) Init() tea.Cmd {
@@ -56,7 +54,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.cursor--
 		}
 	case key.Matches(msg, m.Keymap.down):
-		if m.cursor < len(m.rows)-1 {
+		if m.cursor < len(m.revisions)-1 {
 			m.cursor++
 		}
 	case key.Matches(msg, layer.new):
@@ -100,7 +98,7 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.op = common.RebaseBranch
 		m.draggedRow = m.cursor
 	case key.Matches(msg, m.Keymap.down):
-		if m.cursor < len(m.rows)-1 {
+		if m.cursor < len(m.revisions)-1 {
 			m.cursor++
 		}
 	case key.Matches(msg, m.Keymap.up):
@@ -109,8 +107,8 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 	case key.Matches(msg, m.Keymap.apply):
 		rebaseOperation := m.op
-		fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
-		toRevision := m.rows[m.cursor].Commit.ChangeIdShort
+		fromRevision := m.revisions[m.draggedRow].ChangeIdShort
+		toRevision := m.revisions[m.cursor].ChangeIdShort
 		m.op = common.None
 		m.draggedRow = -1
 		m.Keymap.current = ' '
@@ -176,11 +174,11 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	case common.SelectRevisionMsg:
 		r := string(msg)
-		idx := slices.IndexFunc(m.rows, func(row jj.GraphRow) bool {
+		idx := slices.IndexFunc(m.revisions, func(commit *jj.Commit) bool {
 			if r == "@" {
-				return row.Commit.IsWorkingCopy
+				return commit.IsWorkingCopy
 			}
-			return row.Commit.ChangeIdShort == r
+			return commit.ChangeIdShort == r
 		})
 		if idx != -1 {
 			m.cursor = idx
@@ -188,7 +186,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.cursor = 0
 		}
 	case common.UpdateRevisionsMsg:
-		m.rows = msg
+		if msg != nil {
+			m.revisions = (*msg).GetRevisions()
+			m.dag = msg
+		}
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
 		return m, m.overlay.Init()
@@ -200,47 +201,62 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	space := m.height
+	//space := m.height
 
 	if m.cursor < m.viewRange.start && m.viewRange.start > 0 {
 		m.viewRange.start--
 	}
-	if m.cursor > m.viewRange.end && m.cursor < len(m.rows) {
+	if m.cursor > m.viewRange.end && m.cursor < len(m.revisions) {
 		m.viewRange.start++
 	}
 
-	var items strings.Builder
-	for i := m.viewRange.start; i < len(m.rows); i++ {
-		if space <= 4 {
-			break
-		}
-		line := strings.Builder{}
-		row := &m.rows[i]
-		switch m.op {
-		case common.RebaseRevision, common.RebaseBranch:
-			if i == m.cursor {
-				indent := strings.Repeat("│ ", row.Level)
-				line.WriteString(indent)
-				line.WriteString(common.DropStyle.Render("<< here >>"))
-				line.WriteString("\n")
-			}
-		}
-		SegmentedRenderer(&line, row, common.DefaultPalette, i == m.cursor,
-			Separate(" ", NodeGlyph{}, ChangeId{}, Author{}, Timestamp{}, Bookmarks{}, ConflictMarker{}), "\n",
-			Separate(" ", Glyph{}, If(m.overlay == nil || i != m.cursor, If(row.Commit.Empty, Empty{}, " "), Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay))), "\n",
-			ElidedRevisions{})
-		s := line.String()
-		space -= lipgloss.Height(s) - 1
-		m.viewRange.end = i
-		items.WriteString(s)
+	commitRenderer := SegmentedRenderer{Palette: common.DefaultPalette}
+	if len(m.revisions) > 0 {
+		commitRenderer.HighlightedRevision = m.revisions[m.cursor].ChangeIdShort
+		commitRenderer.Overlay = m.overlay
 	}
-	return items.String()
+	renderer := jj.NewTreeRenderer(m.dag, &commitRenderer)
+	view := renderer.RenderTree()
+	return view
+
+	//var items strings.Builder
+	//for i := m.viewRange.start; i < len(m.revisions); i++ {
+	//	if space <= 4 {
+	//		break
+	//	}
+	//	line := strings.Builder{}
+	//	commit := m.revisions[i]
+	//	switch m.op {
+	//	case common.RebaseRevision, common.RebaseBranch:
+	//        //FIX: add support for rendering rebase drop marker in the rendered tree
+	//		//if i == m.cursor {
+	//		//	indent := strings.Repeat("│ ", commit.Level)
+	//		//	line.WriteString(indent)
+	//		//	line.WriteString(common.DropStyle.Render("<< here >>"))
+	//		//	line.WriteString("\n")
+	//		//}
+	//	}
+	//	SegmentedRenderer(&line, commit, common.DefaultPalette, i == m.cursor,
+	//		Separate(" ", ChangeId{}, Author{}, Timestamp{}, Bookmarks{}, ConflictMarker{}), "\n",
+	//		Separate(" ", If(m.overlay == nil || i != m.cursor, If(commit.Empty, Empty{}, " "), Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay))),
+	//        "\n")
+	//	s := line.String()
+	//	space -= lipgloss.Height(s) - 1
+	//	m.viewRange.end = i
+	//	items.WriteString(s)
+	//}
+	//return items.String()
 }
 
-func New(rows []jj.GraphRow) Model {
+func New(dag *jj.Dag) Model {
 	v := viewRange{start: 0, end: 0}
+    var revisions []*jj.Commit
+    if dag != nil {
+        revisions = dag.GetRevisions()
+    }
 	return Model{
-		rows:       rows,
+		dag:        dag,
+		revisions:  revisions,
 		draggedRow: -1,
 		viewRange:  &v,
 		op:         common.None,

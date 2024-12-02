@@ -2,7 +2,6 @@ package jj
 
 import (
 	"bytes"
-	"container/list"
 	"fmt"
 	"io"
 	"os/exec"
@@ -30,7 +29,7 @@ type Commit struct {
 
 type Bookmark string
 
-func GetCommits(location string) *Node {
+func GetCommits(location string) *Dag {
 	cmd := exec.Command("jj", "log", "--reversed", "--template", TEMPLATE)
 	cmd.Dir = location
 	output, err := cmd.Output()
@@ -38,15 +37,16 @@ func GetCommits(location string) *Node {
 		fmt.Printf("error: %v\n", err)
 		return nil
 	}
-    return Parse(bytes.NewReader(output))
+	d := Parse(bytes.NewReader(output))
+	return &d
 }
 
-func Parse(reader io.Reader) *Node {
+func Parse(reader io.Reader) Dag {
+	d := NewDag()
 	all, err := io.ReadAll(reader)
 	if err != nil {
-		return nil
+		return d
 	}
-	d := NewDag()
 	lines := strings.Split(string(all), "\n")
 	stack := make([]*Node, 0)
 	stack = append(stack, nil)
@@ -121,19 +121,7 @@ func Parse(reader io.Reader) *Node {
 			stack = append(stack, node)
 		}
 	}
-	return d.GetRoot()
-}
-
-func BuildGraphRows(root *Node, edgeType int, level int, rows *list.List) {
-	row := GraphRow{Node: root, Commit: root.Commit, RenderContext: RenderContext{Level: level, Elided: edgeType == IndirectEdge}}
-	rows.PushFront(row)
-	for i, edge := range root.Edges {
-		nl := level + 1
-		if i == len(root.Edges)-1 {
-			nl = level
-		}
-		BuildGraphRows(edge.To, edge.Type, nl, rows)
-	}
+	return d
 }
 
 func RebaseCommand(from string, to string) ([]byte, error) {

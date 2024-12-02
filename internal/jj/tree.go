@@ -1,5 +1,7 @@
 package jj
 
+import "container/list"
+
 const (
 	DirectEdge   = 1
 	IndirectEdge = 2
@@ -20,8 +22,8 @@ type Edge struct {
 	Type int
 }
 
-func NewDag() *Dag {
-	return &Dag{
+func NewDag() Dag {
+	return Dag{
 		Nodes:  make([]*Node, 0),
 	}
 }
@@ -51,4 +53,30 @@ func (d *Dag) GetRoot() *Node {
 		}
 	}
 	return nil
+}
+
+func (d *Dag) GetRevisions() []*Commit {
+	//var revisions []*Commit
+	revisions := list.New()
+	root := d.GetRoot()
+	if root == nil {
+		return make([]*Commit, 0)
+	}
+	var stack []*Node
+
+	stack = append(stack, root)
+	for len(stack) > 0 {
+		node := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		for i := len(node.Edges) - 1; i >= 0; i-- {
+			edge := node.Edges[i]
+			stack = append(stack, edge.To)
+		}
+		revisions.PushBack(node.Commit)
+	}
+	var ret []*Commit
+	for e := revisions.Back(); e != nil; e = e.Prev() {
+		ret = append(ret, e.Value.(*Commit))
+	}
+	return ret
 }

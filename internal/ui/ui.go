@@ -80,8 +80,9 @@ func New() tea.Model {
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
+	d := jj.NewDag()
 	return Model{
-		revisions: revisions.New([]jj.GraphRow{}),
+		revisions: revisions.New(&d),
 		help:      h,
 		status:    status.New(),
 	}
