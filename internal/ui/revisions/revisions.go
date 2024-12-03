@@ -201,8 +201,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	//space := m.height
-
 	if m.cursor < m.viewRange.start && m.viewRange.start > 0 {
 		m.viewRange.start--
 	}
@@ -210,7 +208,7 @@ func (m Model) View() string {
 		m.viewRange.start++
 	}
 
-	commitRenderer := SegmentedRenderer{Palette: common.DefaultPalette}
+	commitRenderer := SegmentedRenderer{Palette: common.DefaultPalette, op: m.op}
 	if len(m.revisions) > 0 {
 		commitRenderer.HighlightedRevision = m.revisions[m.cursor].ChangeIdShort
 		commitRenderer.Overlay = m.overlay
@@ -218,34 +216,6 @@ func (m Model) View() string {
 	renderer := jj.NewTreeRenderer(m.dag, &commitRenderer)
 	view := renderer.RenderTree()
 	return view
-
-	//var items strings.Builder
-	//for i := m.viewRange.start; i < len(m.revisions); i++ {
-	//	if space <= 4 {
-	//		break
-	//	}
-	//	line := strings.Builder{}
-	//	commit := m.revisions[i]
-	//	switch m.op {
-	//	case common.RebaseRevision, common.RebaseBranch:
-	//        //FIX: add support for rendering rebase drop marker in the rendered tree
-	//		//if i == m.cursor {
-	//		//	indent := strings.Repeat("│ ", commit.Level)
-	//		//	line.WriteString(indent)
-	//		//	line.WriteString(common.DropStyle.Render("<< here >>"))
-	//		//	line.WriteString("\n")
-	//		//}
-	//	}
-	//	SegmentedRenderer(&line, commit, common.DefaultPalette, i == m.cursor,
-	//		Separate(" ", ChangeId{}, Author{}, Timestamp{}, Bookmarks{}, ConflictMarker{}), "\n",
-	//		Separate(" ", If(m.overlay == nil || i != m.cursor, If(commit.Empty, Empty{}, " "), Description{}), If(m.overlay != nil && i == m.cursor, Overlay(m.overlay))),
-	//        "\n")
-	//	s := line.String()
-	//	space -= lipgloss.Height(s) - 1
-	//	m.viewRange.end = i
-	//	items.WriteString(s)
-	//}
-	//return items.String()
 }
 
 func New(dag *jj.Dag) Model {
