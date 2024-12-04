@@ -8,7 +8,7 @@ const (
 )
 
 type Dag struct {
-	Nodes  []*Node
+	Nodes []*Node
 }
 
 type Node struct {
@@ -24,7 +24,7 @@ type Edge struct {
 
 func NewDag() Dag {
 	return Dag{
-		Nodes:  make([]*Node, 0),
+		Nodes: make([]*Node, 0),
 	}
 }
 
@@ -56,7 +56,6 @@ func (d *Dag) GetRoot() *Node {
 }
 
 func (d *Dag) GetRevisions() []*Commit {
-	//var revisions []*Commit
 	revisions := list.New()
 	root := d.GetRoot()
 	if root == nil {

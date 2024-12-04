@@ -1,60 +1,86 @@
 package jj
 
 import (
-	"bufio"
-	"io"
 	"strings"
 )
 
-type renderedCommit struct {
-	height  int
-	lines   []string
-	content string
+type TreeRenderer struct {
+	buffer   strings.Builder
+	dag      *Dag
+	renderer TreeNodeRenderer
 }
 
-type TreeRenderer struct {
-	buffer          strings.Builder
-	dag             *Dag
-	renderer        TreeNodeRenderer
-	renderedCommits map[string]renderedCommit
+type RenderContext struct {
+	Level         int
+	IndentedChild bool
+	buffer        *strings.Builder
+	lines         []string
+	glyphAtLine   int
+	glyph         string
+}
+
+func (rc *RenderContext) RenderLine(line string) {
+	rc.lines = append(rc.lines, line)
+}
+
+func (rc *RenderContext) Flush() {
+	for i := 0; i < rc.glyphAtLine; i++ {
+		rc.buffer.WriteString(strings.Repeat("│ ", rc.Level))
+		rc.buffer.WriteString(rc.lines[i])
+		rc.buffer.WriteString("\n")
+	}
+
+    finalGutterWritten := false
+	for i := rc.glyphAtLine; i < len(rc.lines); i++ {
+		if i == rc.glyphAtLine {
+			rc.buffer.WriteString(strings.Repeat("│ ", rc.Level))
+			rc.buffer.WriteString(rc.glyph)
+			rc.buffer.WriteString("  ")
+		} else {
+			if rc.IndentedChild && i == len(rc.lines)-1 {
+				rc.buffer.WriteString(strings.Repeat("│ ", rc.Level-1))
+				rc.buffer.WriteString("├─╯  ")
+                finalGutterWritten = true
+			} else {
+				rc.buffer.WriteString(strings.Repeat("│ ", rc.Level))
+                rc.buffer.WriteString("│  ")
+			}
+		}
+		rc.buffer.WriteString(rc.lines[i])
+		rc.buffer.WriteString("\n")
+	}
+
+    if !finalGutterWritten && rc.IndentedChild {
+        rc.buffer.WriteString(strings.Repeat("│ ", rc.Level-1))
+        rc.buffer.WriteString("├─╯\n")
+    }
+    rc.lines = nil
+    rc.glyphAtLine = 0
+    rc.glyph = ""
+}
+
+func (rc *RenderContext) SetGlyph(glyph string) {
+	rc.glyph = glyph
+	rc.glyphAtLine = len(rc.lines)
 }
 
 type TreeNodeRenderer interface {
-	RenderCommit(commit *Commit) string
+	RenderCommit(commit *Commit, context *RenderContext)
 	RenderElidedRevisions() string
-	RenderGlyph(commit *Commit) string
 }
 
 func NewTreeRenderer(dag *Dag, renderer TreeNodeRenderer) *TreeRenderer {
 	return &TreeRenderer{
-		dag:             dag,
-		renderer:        renderer,
-		renderedCommits: make(map[string]renderedCommit),
+		dag:      dag,
+		renderer: renderer,
 	}
 }
 
+func (t *TreeRenderer) NewLine() {
+	t.buffer.WriteString("\n")
+}
+
 func (t *TreeRenderer) RenderTree() string {
-	revisions := t.dag.GetRevisions()
-	for _, revision := range revisions {
-		content := t.renderer.RenderCommit(revision)
-		height := 0
-		reader := bufio.NewReader(strings.NewReader(content))
-		var lines []string
-		for {
-			line, _, err := reader.ReadLine()
-			if err == io.EOF {
-				height++
-				break
-			}
-			lines = append(lines, string(line))
-			height++
-		}
-		t.renderedCommits[revision.ChangeIdShort] = renderedCommit{
-			height:  height,
-			lines:   lines,
-			content: content,
-		}
-	}
 	t.renderNode(0, t.dag.GetRoot(), DirectEdge, false)
 	return t.buffer.String()
 }
@@ -63,31 +89,24 @@ func (t *TreeRenderer) renderNode(level int, node *Node, edgeType int, indentedC
 	if node == nil {
 		return
 	}
+	// last edge is to the top node
 	for i := len(node.Edges) - 1; i >= 0; i-- {
 		edge := node.Edges[i]
 		if i == len(node.Edges)-1 {
-			t.renderNode(level , edge.To, edge.Type, false)
+			t.renderNode(level, edge.To, edge.Type, false)
 		} else {
-			t.renderNode(level + 1, edge.To, edge.Type, true)
+			t.renderNode(level+1, edge.To, edge.Type, true)
 		}
 	}
-	indent := strings.Repeat("│ ", level)
-	t.buffer.WriteString(indent)
-	t.buffer.WriteString(t.renderer.RenderGlyph(node.Commit))
-	rc, _ := t.renderedCommits[node.Commit.ChangeIdShort]
-	for i, line := range rc.lines {
-		if i != 0 && !indentedChild {
-			t.buffer.WriteString(indent + "│  ")
-		}
-		if i == len(rc.lines)-1 && indentedChild {
-			indent = strings.Repeat("│ ", level - 1)
-			t.buffer.WriteString(indent + "├─╯  ")
-		}
-		t.buffer.WriteString(line)
-		t.buffer.WriteString("\n")
+	context := RenderContext{
+		Level:         level,
+		IndentedChild: indentedChild,
+		buffer:        &t.buffer,
 	}
+	t.renderer.RenderCommit(node.Commit, &context)
+    context.Flush()
 	if edgeType == IndirectEdge {
-		t.buffer.WriteString(t.renderer.RenderElidedRevisions())
+        t.buffer.WriteString(t.renderer.RenderElidedRevisions())
 		t.buffer.WriteString("\n")
 	}
 }

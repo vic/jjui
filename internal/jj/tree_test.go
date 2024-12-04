@@ -3,7 +3,7 @@ package jj
 import (
 	"testing"
 
-    "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBuildGraphRows_WithElidedCommits(t *testing.T) {

@@ -26,23 +26,21 @@ func Test_Parse_Tree(t *testing.T) {
 	assert.Equal(t, string(content), buffer)
 }
 
-type TestRenderer struct { }
+type TestRenderer struct{}
 
-func (t TestRenderer) RenderCommit(commit *jj.Commit) string {
-	return commit.ChangeIdShort
-}
-
-func (t TestRenderer) RenderElidedRevisions() string {
-	//TODO implement me
-	return "~  (elided revisions)"
-}
-
-func (t TestRenderer) RenderGlyph(commit *jj.Commit) string {
+func (t TestRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderContext) {
+	glyph := ""
 	if commit.Immutable {
-		return "◆  "
+		glyph = "◆"
 	} else if commit.IsWorkingCopy {
-		return "@  "
+		glyph = "@"
 	} else {
-		return "○  "
+		glyph = "○"
 	}
+	context.SetGlyph(glyph)
+	context.RenderLine(commit.ChangeIdShort)
+}
+
+func (t TestRenderer) RenderElidedRevisions(context *jj.RenderContext) {
+	context.RenderLine("~  (elided revisions)")
 }

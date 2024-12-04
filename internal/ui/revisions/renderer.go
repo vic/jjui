@@ -16,36 +16,47 @@ type SegmentedRenderer struct {
 	op                  common.Operation
 }
 
-func (s *SegmentedRenderer) RenderCommit(commit *jj.Commit) string {
+func (s *SegmentedRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderContext) {
 	highlighted := commit.ChangeIdShort == s.HighlightedRevision
-	var w strings.Builder
-
 	if (s.op == common.RebaseBranch || s.op == common.RebaseRevision) && highlighted {
-		w.WriteString(common.DropStyle.Render("<< here >>"))
-		w.WriteString("\n")
+		context.RenderLine(common.DropStyle.Render("<< here >>"))
 	}
 
+	style := s.Palette.Normal
+	if highlighted {
+		style = s.Palette.Selected
+	}
+	if commit.Immutable {
+		context.SetGlyph(style.Render("◆"))
+	} else if commit.IsWorkingCopy {
+		context.SetGlyph(style.Render("@"))
+	} else {
+		context.SetGlyph(style.Render("○"))
+	}
+
+	var w strings.Builder
 	w.WriteString(s.Palette.CommitShortStyle.Render(commit.ChangeIdShort))
 	w.WriteString(s.Palette.CommitIdRestStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):]))
-	w.Write([]byte{' '})
+	w.WriteString(" ")
 
 	w.WriteString(s.Palette.AuthorStyle.Render(commit.Author))
-	w.Write([]byte{' '})
+	w.WriteString(" ")
 
 	w.WriteString(s.Palette.TimestampStyle.Render(commit.Timestamp))
-	w.Write([]byte{' '})
+	w.WriteString(" ")
 
 	w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
-	w.Write([]byte{' '})
 
 	if commit.Conflict {
+		w.WriteString(" ")
 		w.WriteString(s.Palette.ConflictStyle.Render("conflict"))
 	}
-	w.Write([]byte{'\n'})
+	context.RenderLine(w.String())
 
+	w.Reset()
 	if commit.Empty {
 		w.WriteString(s.Palette.Empty.Render("(empty)"))
-		w.Write([]byte{' '})
+		w.WriteString(" ")
 	}
 	if commit.Description == "" {
 		if commit.Empty {
@@ -57,29 +68,12 @@ func (s *SegmentedRenderer) RenderCommit(commit *jj.Commit) string {
 		w.WriteString(s.Palette.Normal.Render(commit.Description))
 	}
 
-	w.Write([]byte{'\n'})
+	context.RenderLine(w.String())
 	if s.Overlay != nil && highlighted {
-		w.WriteString(s.Overlay.View())
+		context.RenderLine(s.Overlay.View())
 	}
-	return w.String()
 }
 
 func (s *SegmentedRenderer) RenderElidedRevisions() string {
 	return s.Palette.CommitIdRestStyle.Render("~  (elided revisions)")
-}
-
-func (s *SegmentedRenderer) RenderGlyph(commit *jj.Commit) string {
-	highlighted := commit.ChangeIdShort == s.HighlightedRevision
-	style := s.Palette.Normal
-	if highlighted {
-		style = s.Palette.Selected
-	}
-
-	if commit.Immutable {
-		return style.Render("◆  ")
-	} else if commit.IsWorkingCopy {
-		return style.Render("@  ")
-	} else {
-		return style.Render("○  ")
-	}
 }
