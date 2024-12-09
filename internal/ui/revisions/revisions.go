@@ -22,6 +22,7 @@ type viewRange struct {
 
 type Model struct {
 	dag        *jj.Dag
+	renderer   *jj.TreeRenderer
 	revisions  []*jj.Commit
 	op         common.Operation
 	viewRange  *viewRange
@@ -189,6 +190,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		if msg != nil {
 			m.revisions = (*msg).GetRevisions()
 			m.dag = msg
+            m.renderer = jj.NewTreeRenderer(msg)
 		}
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
@@ -213,20 +215,20 @@ func (m Model) View() string {
 		commitRenderer.HighlightedRevision = m.revisions[m.cursor].ChangeIdShort
 		commitRenderer.Overlay = m.overlay
 	}
-	renderer := jj.NewTreeRenderer(m.dag, &commitRenderer)
-	view := renderer.RenderTree()
+	view := m.renderer.RenderTree(commitRenderer)
 	return view
 }
 
 func New(dag *jj.Dag) Model {
 	v := viewRange{start: 0, end: 0}
-    var revisions []*jj.Commit
-    if dag != nil {
-        revisions = dag.GetRevisions()
-    }
+	var revisions []*jj.Commit
+	if dag != nil {
+		revisions = dag.GetRevisions()
+	}
 	return Model{
 		dag:        dag,
 		revisions:  revisions,
+		renderer:   jj.NewTreeRenderer(dag),
 		draggedRow: -1,
 		viewRange:  &v,
 		op:         common.None,

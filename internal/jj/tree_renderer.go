@@ -6,10 +6,9 @@ import (
 )
 
 type TreeRenderer struct {
-	buffer   strings.Builder
-	dag      *Dag
-	renderer TreeNodeRenderer
-	rows     []RenderContext
+	buffer strings.Builder
+	dag    *Dag
+	rows   []RenderContext
 }
 
 type RenderContext struct {
@@ -27,20 +26,20 @@ type TreeNodeRenderer interface {
 	RenderElidedRevisions() string
 }
 
-func NewTreeRenderer(dag *Dag, renderer TreeNodeRenderer) *TreeRenderer {
+func NewTreeRenderer(dag *Dag) *TreeRenderer {
 	return &TreeRenderer{
-		dag:      dag,
-		renderer: renderer,
-		rows:     make([]RenderContext, 0),
+		dag:  dag,
+		rows: make([]RenderContext, 0),
 	}
 }
 
-func (t *TreeRenderer) RenderTree() string {
-	t.renderNode(0, 0, t.dag.GetRoot(), DirectEdge)
+func (t *TreeRenderer) RenderTree(nodeRenderer TreeNodeRenderer) string {
+	t.buffer.Reset()
+	t.renderNode(0, 0, t.dag.GetRoot(), DirectEdge, nodeRenderer)
 	return t.buffer.String()
 }
 
-func (t *TreeRenderer) renderNode(level int, parentLevel int, node *Node, edgeType int) {
+func (t *TreeRenderer) renderNode(level int, parentLevel int, node *Node, edgeType int, renderer TreeNodeRenderer) {
 	if node == nil {
 		return
 	}
@@ -48,52 +47,53 @@ func (t *TreeRenderer) renderNode(level int, parentLevel int, node *Node, edgeTy
 	for i := len(node.Edges) - 1; i >= 0; i-- {
 		edge := node.Edges[i]
 		if i == len(node.Edges)-1 {
-			t.renderNode(level, level, edge.To, edge.Type)
+			t.renderNode(level, level, edge.To, edge.Type, renderer)
 		} else {
-			t.renderNode(level+1, level, edge.To, edge.Type)
+			t.renderNode(level+1, level, edge.To, edge.Type, renderer)
 		}
 	}
 	context := RenderContext{
 		ParentLevel: parentLevel,
 		Level:       level,
 	}
-	t.renderer.RenderCommit(node.Commit, &context)
+	renderer.RenderCommit(node.Commit, &context)
 	t.rows = append(t.rows, context)
-    for _, line := range parseLines(context.Before) {
-        t.buffer.WriteString(strings.Repeat("│ ", context.Level))
-        t.buffer.WriteString(line)
-        t.buffer.WriteString("\n")
-        context.height++
-    }
+	for _, line := range parseLines(context.Before) {
+		t.buffer.WriteString(strings.Repeat("│ ", context.Level))
+		t.buffer.WriteString(line)
+		t.buffer.WriteString("\n")
+		context.height++
+	}
 
-    lines := parseLines(context.Content)
-    context.height += len(lines)
+	lines := parseLines(context.Content)
+	context.height += len(lines)
 
-    for i, line := range lines {
-        t.buffer.WriteString(strings.Repeat("│ ", context.ParentLevel))
-        if i == 0 {
-            t.buffer.WriteString(strings.Repeat("│ ", context.Level-context.ParentLevel))
-            t.buffer.WriteString(context.Glyph)
-            t.buffer.WriteString("  ")
-        } else if i < len(lines)-1 {
-            t.buffer.WriteString(strings.Repeat("│ ", context.Level-context.ParentLevel))
-            t.buffer.WriteString("│  ")
-        } else {
-            if level > parentLevel {
-                t.buffer.WriteString("├─╯  ")
-            } else {
-                t.buffer.WriteString("│  ")
-            }
-        }
-        t.buffer.WriteString(line)
-    }
-    if edgeType == IndirectEdge {
-        t.buffer.WriteString(t.renderer.RenderElidedRevisions())
-        t.buffer.WriteString("\n")
-    }
+	for i, line := range lines {
+		t.buffer.WriteString(strings.Repeat("│ ", context.ParentLevel))
+		if i == 0 {
+			t.buffer.WriteString(strings.Repeat("│ ", context.Level-context.ParentLevel))
+			t.buffer.WriteString(context.Glyph)
+			t.buffer.WriteString("  ")
+		} else if i < len(lines)-1 {
+			t.buffer.WriteString(strings.Repeat("│ ", context.Level-context.ParentLevel))
+			t.buffer.WriteString("│  ")
+		} else {
+			if level > parentLevel {
+				t.buffer.WriteString("├─╯  ")
+			} else {
+				t.buffer.WriteString("│  ")
+			}
+		}
+		t.buffer.WriteString(line)
+		t.buffer.WriteString("\n")
+	}
 	if len(lines) == 1 && context.Level > context.ParentLevel {
 		t.buffer.WriteString(strings.Repeat("│ ", context.ParentLevel))
 		t.buffer.WriteString("├─╯\n")
+	}
+	if edgeType == IndirectEdge {
+		t.buffer.WriteString(renderer.RenderElidedRevisions())
+		t.buffer.WriteString("\n")
 	}
 }
 
