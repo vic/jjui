@@ -1,6 +1,7 @@
 package jj
 
 import (
+	"bufio"
 	"strings"
 )
 
@@ -8,58 +9,17 @@ type TreeRenderer struct {
 	buffer   strings.Builder
 	dag      *Dag
 	renderer TreeNodeRenderer
+	rows     []RenderContext
 }
 
 type RenderContext struct {
 	ParentLevel int
 	Level       int
-	buffer      *strings.Builder
-	lines       []string
-	glyphAtLine int
-	glyph       string
-}
-
-func (rc *RenderContext) RenderLine(line string) {
-	rc.lines = append(rc.lines, line)
-}
-
-func (rc *RenderContext) Flush() {
-	for i := 0; i < rc.glyphAtLine; i++ {
-		rc.buffer.WriteString(strings.Repeat("│ ", rc.Level))
-		rc.buffer.WriteString(rc.lines[i])
-		rc.buffer.WriteString("\n")
-	}
-
-	rc.buffer.WriteString(strings.Repeat("│ ", rc.Level))
-	rc.buffer.WriteString(rc.glyph)
-	rc.buffer.WriteString("  ")
-	rc.buffer.WriteString(rc.lines[rc.glyphAtLine])
-	rc.buffer.WriteString("\n")
-
-	finalGutterWritten := false
-	for i := rc.glyphAtLine + 1; i < len(rc.lines); i++ {
-		if rc.Level > rc.ParentLevel && i == len(rc.lines)-1 {
-			rc.buffer.WriteString("├─╯  ")
-			finalGutterWritten = true
-		} else {
-			rc.buffer.WriteString("│  ")
-		}
-		rc.buffer.WriteString(rc.lines[i])
-		rc.buffer.WriteString("\n")
-	}
-
-	if !finalGutterWritten && rc.Level > rc.ParentLevel {
-		rc.buffer.WriteString(strings.Repeat("│ ", rc.ParentLevel))
-		rc.buffer.WriteString("├─╯\n")
-	}
-	rc.lines = nil
-	rc.glyphAtLine = 0
-	rc.glyph = ""
-}
-
-func (rc *RenderContext) SetGlyph(glyph string) {
-	rc.glyph = glyph
-	rc.glyphAtLine = len(rc.lines)
+	Glyph       string
+	Content     string
+	Before      string
+	After       string
+	height      int
 }
 
 type TreeNodeRenderer interface {
@@ -71,11 +31,8 @@ func NewTreeRenderer(dag *Dag, renderer TreeNodeRenderer) *TreeRenderer {
 	return &TreeRenderer{
 		dag:      dag,
 		renderer: renderer,
+		rows:     make([]RenderContext, 0),
 	}
-}
-
-func (t *TreeRenderer) NewLine() {
-	t.buffer.WriteString("\n")
 }
 
 func (t *TreeRenderer) RenderTree() string {
@@ -99,12 +56,52 @@ func (t *TreeRenderer) renderNode(level int, parentLevel int, node *Node, edgeTy
 	context := RenderContext{
 		ParentLevel: parentLevel,
 		Level:       level,
-		buffer:      &t.buffer,
 	}
 	t.renderer.RenderCommit(node.Commit, &context)
-	context.Flush()
-	if edgeType == IndirectEdge {
-		t.buffer.WriteString(t.renderer.RenderElidedRevisions())
-		t.buffer.WriteString("\n")
+	t.rows = append(t.rows, context)
+    for _, line := range parseLines(context.Before) {
+        t.buffer.WriteString(strings.Repeat("│ ", context.Level))
+        t.buffer.WriteString(line)
+        t.buffer.WriteString("\n")
+        context.height++
+    }
+
+    lines := parseLines(context.Content)
+    context.height += len(lines)
+
+    for i, line := range lines {
+        t.buffer.WriteString(strings.Repeat("│ ", context.ParentLevel))
+        if i == 0 {
+            t.buffer.WriteString(strings.Repeat("│ ", context.Level-context.ParentLevel))
+            t.buffer.WriteString(context.Glyph)
+            t.buffer.WriteString("  ")
+        } else if i < len(lines)-1 {
+            t.buffer.WriteString(strings.Repeat("│ ", context.Level-context.ParentLevel))
+            t.buffer.WriteString("│  ")
+        } else {
+            if level > parentLevel {
+                t.buffer.WriteString("├─╯  ")
+            } else {
+                t.buffer.WriteString("│  ")
+            }
+        }
+        t.buffer.WriteString(line)
+    }
+    if edgeType == IndirectEdge {
+        t.buffer.WriteString(t.renderer.RenderElidedRevisions())
+        t.buffer.WriteString("\n")
+    }
+	if len(lines) == 1 && context.Level > context.ParentLevel {
+		t.buffer.WriteString(strings.Repeat("│ ", context.ParentLevel))
+		t.buffer.WriteString("├─╯\n")
 	}
+}
+
+func parseLines(content string) []string {
+	scanner := bufio.NewScanner(strings.NewReader(content))
+	var lines []string
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines
 }

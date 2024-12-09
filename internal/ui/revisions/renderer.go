@@ -19,7 +19,7 @@ type SegmentedRenderer struct {
 func (s *SegmentedRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderContext) {
 	highlighted := commit.ChangeIdShort == s.HighlightedRevision
 	if (s.op == common.RebaseBranch || s.op == common.RebaseRevision) && highlighted {
-		context.RenderLine(common.DropStyle.Render("<< here >>"))
+		context.Before = common.DropStyle.Render("<< here >>")
 	}
 
 	style := s.Palette.Normal
@@ -27,11 +27,11 @@ func (s *SegmentedRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderCo
 		style = s.Palette.Selected
 	}
 	if commit.Immutable {
-		context.SetGlyph(style.Render("◆"))
+		context.Glyph = style.Render("◆")
 	} else if commit.IsWorkingCopy {
-		context.SetGlyph(style.Render("@"))
+		context.Glyph = style.Render("@")
 	} else {
-		context.SetGlyph(style.Render("○"))
+		context.Glyph = style.Render("○")
 	}
 
 	var w strings.Builder
@@ -51,9 +51,7 @@ func (s *SegmentedRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderCo
 		w.WriteString(" ")
 		w.WriteString(s.Palette.ConflictStyle.Render("conflict"))
 	}
-	context.RenderLine(w.String())
-
-	w.Reset()
+	w.Write([]byte{'\n'})
 	if commit.Empty {
 		w.WriteString(s.Palette.Empty.Render("(empty)"))
 		w.WriteString(" ")
@@ -67,11 +65,12 @@ func (s *SegmentedRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderCo
 	} else {
 		w.WriteString(s.Palette.Normal.Render(commit.Description))
 	}
-
-	context.RenderLine(w.String())
+	w.Write([]byte{'\n'})
 	if s.Overlay != nil && highlighted {
-		context.RenderLine(s.Overlay.View())
+		w.WriteString(s.Overlay.View())
+		w.Write([]byte{'\n'})
 	}
+	context.Content = w.String()
 }
 
 func (s *SegmentedRenderer) RenderElidedRevisions() string {
