@@ -11,12 +11,12 @@ type TreeRenderer struct {
 }
 
 type RenderContext struct {
-	Level         int
-	IndentedChild bool
-	buffer        *strings.Builder
-	lines         []string
-	glyphAtLine   int
-	glyph         string
+	ParentLevel int
+	Level       int
+	buffer      *strings.Builder
+	lines       []string
+	glyphAtLine int
+	glyph       string
 }
 
 func (rc *RenderContext) RenderLine(line string) {
@@ -30,33 +30,31 @@ func (rc *RenderContext) Flush() {
 		rc.buffer.WriteString("\n")
 	}
 
-    finalGutterWritten := false
-	for i := rc.glyphAtLine; i < len(rc.lines); i++ {
-		if i == rc.glyphAtLine {
-			rc.buffer.WriteString(strings.Repeat("│ ", rc.Level))
-			rc.buffer.WriteString(rc.glyph)
-			rc.buffer.WriteString("  ")
+	rc.buffer.WriteString(strings.Repeat("│ ", rc.Level))
+	rc.buffer.WriteString(rc.glyph)
+	rc.buffer.WriteString("  ")
+	rc.buffer.WriteString(rc.lines[rc.glyphAtLine])
+	rc.buffer.WriteString("\n")
+
+	finalGutterWritten := false
+	for i := rc.glyphAtLine + 1; i < len(rc.lines); i++ {
+		if rc.Level > rc.ParentLevel && i == len(rc.lines)-1 {
+			rc.buffer.WriteString("├─╯  ")
+			finalGutterWritten = true
 		} else {
-			if rc.IndentedChild && i == len(rc.lines)-1 {
-				rc.buffer.WriteString(strings.Repeat("│ ", rc.Level-1))
-				rc.buffer.WriteString("├─╯  ")
-                finalGutterWritten = true
-			} else {
-				rc.buffer.WriteString(strings.Repeat("│ ", rc.Level))
-                rc.buffer.WriteString("│  ")
-			}
+			rc.buffer.WriteString("│  ")
 		}
 		rc.buffer.WriteString(rc.lines[i])
 		rc.buffer.WriteString("\n")
 	}
 
-    if !finalGutterWritten && rc.IndentedChild {
-        rc.buffer.WriteString(strings.Repeat("│ ", rc.Level-1))
-        rc.buffer.WriteString("├─╯\n")
-    }
-    rc.lines = nil
-    rc.glyphAtLine = 0
-    rc.glyph = ""
+	if !finalGutterWritten && rc.Level > rc.ParentLevel {
+		rc.buffer.WriteString(strings.Repeat("│ ", rc.ParentLevel))
+		rc.buffer.WriteString("├─╯\n")
+	}
+	rc.lines = nil
+	rc.glyphAtLine = 0
+	rc.glyph = ""
 }
 
 func (rc *RenderContext) SetGlyph(glyph string) {
@@ -81,11 +79,11 @@ func (t *TreeRenderer) NewLine() {
 }
 
 func (t *TreeRenderer) RenderTree() string {
-	t.renderNode(0, t.dag.GetRoot(), DirectEdge, false)
+	t.renderNode(0, 0, t.dag.GetRoot(), DirectEdge)
 	return t.buffer.String()
 }
 
-func (t *TreeRenderer) renderNode(level int, node *Node, edgeType int, indentedChild bool) {
+func (t *TreeRenderer) renderNode(level int, parentLevel int, node *Node, edgeType int) {
 	if node == nil {
 		return
 	}
@@ -93,20 +91,20 @@ func (t *TreeRenderer) renderNode(level int, node *Node, edgeType int, indentedC
 	for i := len(node.Edges) - 1; i >= 0; i-- {
 		edge := node.Edges[i]
 		if i == len(node.Edges)-1 {
-			t.renderNode(level, edge.To, edge.Type, false)
+			t.renderNode(level, level, edge.To, edge.Type)
 		} else {
-			t.renderNode(level+1, edge.To, edge.Type, true)
+			t.renderNode(level+1, level, edge.To, edge.Type)
 		}
 	}
 	context := RenderContext{
-		Level:         level,
-		IndentedChild: indentedChild,
-		buffer:        &t.buffer,
+		ParentLevel: parentLevel,
+		Level:       level,
+		buffer:      &t.buffer,
 	}
 	t.renderer.RenderCommit(node.Commit, &context)
-    context.Flush()
+	context.Flush()
 	if edgeType == IndirectEdge {
-        t.buffer.WriteString(t.renderer.RenderElidedRevisions())
+		t.buffer.WriteString(t.renderer.RenderElidedRevisions())
 		t.buffer.WriteString("\n")
 	}
 }
