@@ -190,7 +190,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		if msg != nil {
 			m.revisions = (*msg).GetRevisions()
 			m.dag = msg
-            m.renderer = jj.NewTreeRenderer(msg)
+			m.renderer = jj.NewTreeRenderer(msg)
 		}
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)

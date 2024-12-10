@@ -68,9 +68,9 @@ type Palette struct {
 	CommitShortStyle  lipgloss.Style
 	CommitIdRestStyle lipgloss.Style
 	AuthorStyle       lipgloss.Style
-	TimestampStyle lipgloss.Style
-	BookmarksStyle lipgloss.Style
-	ConflictStyle  lipgloss.Style
+	TimestampStyle    lipgloss.Style
+	BookmarksStyle    lipgloss.Style
+	ConflictStyle     lipgloss.Style
 	Empty             lipgloss.Style
 	NonEmpty          lipgloss.Style
 	Normal            lipgloss.Style

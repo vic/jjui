@@ -129,8 +129,8 @@ func Parse(reader io.Reader) Dag {
 			commit.Conflict = false
 			commit.Parents = nil
 			commit.Immutable = false
-            commit.Author = ""
-            commit.Bookmarks = nil
+			commit.Author = ""
+			commit.Bookmarks = nil
 			commit.Description = ""
 		}
 	}
