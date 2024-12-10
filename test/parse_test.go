@@ -18,7 +18,8 @@ func Test_Parse_Tree(t *testing.T) {
 
 	dag := jj.Parse(file)
 	treeRenderer := jj.NewTreeRenderer(&dag)
-	buffer := treeRenderer.RenderTree(TestRenderer{})
+	treeRenderer.Update(TestRenderer{})
+	buffer := treeRenderer.View("HEAD", 0, TestRenderer{})
 	content, err := os.ReadFile("testdata/many-levels.rendered")
 	if err != nil {
 		t.Fatalf("could not read file: %v", err)

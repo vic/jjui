@@ -210,13 +210,18 @@ func (m Model) View() string {
 		m.viewRange.start++
 	}
 
-	commitRenderer := SegmentedRenderer{Palette: common.DefaultPalette, op: m.op}
-	if len(m.revisions) > 0 {
-		commitRenderer.HighlightedRevision = m.revisions[m.cursor].ChangeIdShort
-		commitRenderer.Overlay = m.overlay
+	if len(m.revisions) == 0 {
+		return "loading"
 	}
-	view := m.renderer.RenderTree(commitRenderer)
-	return view
+
+	commitRenderer := SegmentedRenderer{
+		Palette:             common.DefaultPalette,
+		op:                  m.op,
+		HighlightedRevision: m.revisions[m.cursor].ChangeIdShort,
+		Overlay:             m.overlay,
+	}
+	m.renderer.Update(commitRenderer)
+	return m.renderer.View(m.revisions[m.cursor].ChangeIdShort, m.height, commitRenderer)
 }
 
 func New(dag *jj.Dag) Model {
