@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	TEMPLATE = `separate(";", change_id.shortest(1), change_id.shortest(8), separate(",", parents.map(|x| x.change_id().shortest(1))), separate(",", coalesce(bookmarks, ".")), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), description)`
+	TEMPLATE     = `separate(";", change_id.shortest(1), change_id.shortest(8), separate(",", parents.map(|x| x.change_id().shortest(1))), separate(",", coalesce(bookmarks, ".")), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), description)`
+	RootChangeId = "zzzzzzzz"
 )
 
 type Commit struct {
@@ -25,6 +26,10 @@ type Commit struct {
 	Conflict      bool
 	Empty         bool
 	Index         int
+}
+
+func (c Commit) IsRoot() bool {
+	return c.ChangeId == RootChangeId
 }
 
 type Bookmark string
@@ -119,6 +124,14 @@ func Parse(reader io.Reader) Dag {
 		if index > levels[len(levels)-1] {
 			levels = append(levels, index)
 			stack = append(stack, node)
+		}
+		if commit.ChangeId == RootChangeId {
+			commit.Conflict = false
+			commit.Parents = nil
+			commit.Immutable = false
+            commit.Author = ""
+            commit.Bookmarks = nil
+			commit.Description = ""
 		}
 	}
 	return d

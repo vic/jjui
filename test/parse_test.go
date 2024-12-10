@@ -44,5 +44,5 @@ func (t TestRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderContext)
 }
 
 func (t TestRenderer) RenderElidedRevisions() string {
-	return "~  (elided revisions)"
+	return "~"
 }

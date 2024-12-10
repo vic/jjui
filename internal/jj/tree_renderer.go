@@ -35,7 +35,15 @@ func NewTreeRenderer(dag *Dag) *TreeRenderer {
 
 func (t *TreeRenderer) RenderTree(nodeRenderer TreeNodeRenderer) string {
 	t.buffer.Reset()
-	t.renderNode(0, 0, t.dag.GetRoot(), DirectEdge, nodeRenderer)
+	root := t.dag.GetRoot()
+	if root == nil {
+		return ""
+	}
+	edge := IndirectEdge
+	if root.Commit.IsRoot() {
+		edge = DirectEdge
+	}
+	t.renderNode(0, 0, root, edge, nodeRenderer)
 	return t.buffer.String()
 }
 
