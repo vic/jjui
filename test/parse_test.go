@@ -34,6 +34,8 @@ func (t TestRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderContext)
 		glyph = "◆"
 	} else if commit.IsWorkingCopy {
 		glyph = "@"
+	} else if commit.Conflict {
+		glyph = "×"
 	} else {
 		glyph = "○"
 	}

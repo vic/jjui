@@ -30,6 +30,8 @@ func (s SegmentedRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderCon
 		context.Glyph = style.Render("◆")
 	} else if commit.IsWorkingCopy {
 		context.Glyph = style.Render("@")
+	} else if commit.Conflict {
+		context.Glyph = style.Render("×")
 	} else {
 		context.Glyph = style.Render("○")
 	}
