@@ -54,6 +54,12 @@ func (s SegmentedRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderCon
 		w.WriteString(s.Palette.ConflictStyle.Render("conflict"))
 	}
 	w.Write([]byte{'\n'})
+	if s.op == common.EditDescription && highlighted {
+		w.WriteString(s.Overlay.View())
+		w.Write([]byte{'\n'})
+		context.Content = w.String()
+		return
+	}
 	if commit.Empty {
 		w.WriteString(s.Palette.Empty.Render("(empty)"))
 		w.WriteString(" ")

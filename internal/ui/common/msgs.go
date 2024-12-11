@@ -28,6 +28,7 @@ const (
 	None Operation = iota
 	RebaseRevision
 	RebaseBranch
+	EditDescription
 )
 
 func Close() tea.Msg {

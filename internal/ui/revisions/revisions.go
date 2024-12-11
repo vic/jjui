@@ -71,6 +71,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, common.Split(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.description):
 		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.width)
+		m.op = common.EditDescription
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
 		return m, common.GetDiff(m.selectedRevision().ChangeId)
@@ -151,6 +152,7 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	if _, ok := msg.(common.CloseViewMsg); ok {
 		m.overlay = nil
+		m.op = common.None
 		return m, nil
 	}
 
