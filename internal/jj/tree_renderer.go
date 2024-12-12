@@ -1,29 +1,12 @@
 package jj
 
 import (
-	"bufio"
 	"strings"
 )
 
 type TreeRenderer struct {
 	dag  *Dag
 	rows []RenderContext
-}
-
-type RenderContext struct {
-	ParentLevel int
-	Level       int
-	EdgeType    int
-	Glyph       string
-	Content     string
-	Before      string
-	After       string
-	height      int
-}
-
-type TreeNodeRenderer interface {
-	RenderCommit(commit *Commit, context *RenderContext)
-	RenderElidedRevisions() string
 }
 
 func NewTreeRenderer(dag *Dag) *TreeRenderer {
@@ -110,13 +93,4 @@ func (t *TreeRenderer) renderNode(level int, parentLevel int, node *Node, edgeTy
 	renderer.RenderCommit(node.Commit, &context)
 	context.height = len(parseLines(context.Content)) + len(parseLines(context.Before))
 	t.rows = append(t.rows, context)
-}
-
-func parseLines(content string) []string {
-	scanner := bufio.NewScanner(strings.NewReader(content))
-	var lines []string
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	return lines
 }
