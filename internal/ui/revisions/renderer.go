@@ -16,7 +16,8 @@ type SegmentedRenderer struct {
 	op                  common.Operation
 }
 
-func (s SegmentedRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderContext) {
+func (s SegmentedRenderer) Render(context *jj.TreeRow) {
+	commit := context.Commit
 	highlighted := commit.ChangeIdShort == s.HighlightedRevision
 	if (s.op == common.RebaseBranch || s.op == common.RebaseRevision) && highlighted {
 		context.Before = common.DropStyle.Render("<< here >>")
@@ -79,8 +80,8 @@ func (s SegmentedRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderCon
 		w.Write([]byte{'\n'})
 	}
 	context.Content = w.String()
-}
 
-func (s SegmentedRenderer) RenderElidedRevisions() string {
-	return s.Palette.CommitIdRestStyle.Render("~  (elided revisions)")
+	if context.EdgeType == jj.IndirectEdge {
+		context.ElidedRevision = s.Palette.CommitIdRestStyle.Render("~  (elided revisions)")
+	}
 }

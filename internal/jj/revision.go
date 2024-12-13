@@ -22,7 +22,6 @@ type Commit struct {
 	Immutable     bool
 	Conflict      bool
 	Empty         bool
-	Index         int
 }
 
 func (c Commit) IsRoot() bool {

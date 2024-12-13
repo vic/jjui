@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/stretchr/testify/assert"
 	"os"
+	"strings"
 	"testing"
 
 	"jjui/internal/jj"
@@ -17,19 +18,22 @@ func Test_Parse_Tree(t *testing.T) {
 	defer file.Close()
 
 	dag := jj.Parse(file)
-	treeRenderer := jj.NewTreeRenderer(&dag)
-	treeRenderer.Update(TestRenderer{})
-	buffer := treeRenderer.View("HEAD", 0, TestRenderer{})
+	var buffer strings.Builder
+	rows := dag.GetTreeRows()
+	for _, row := range rows {
+		jj.RenderRow(&buffer, row, TestRenderer{})
+	}
 	content, err := os.ReadFile("testdata/many-levels.rendered")
 	if err != nil {
 		t.Fatalf("could not read file: %v", err)
 	}
-	assert.Equal(t, string(content), buffer)
+	assert.Equal(t, string(content), buffer.String())
 }
 
 type TestRenderer struct{}
 
-func (t TestRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderContext) {
+func (t TestRenderer) Render(row *jj.TreeRow) {
+	commit := row.Commit
 	glyph := ""
 	if commit.Immutable {
 		glyph = "◆"
@@ -40,10 +44,9 @@ func (t TestRenderer) RenderCommit(commit *jj.Commit, context *jj.RenderContext)
 	} else {
 		glyph = "○"
 	}
-	context.Glyph = glyph
-	context.Content = commit.ChangeIdShort
-}
-
-func (t TestRenderer) RenderElidedRevisions() string {
-	return "~"
+	row.Glyph = glyph
+	row.Content = commit.ChangeIdShort
+	if row.EdgeType == jj.IndirectEdge {
+		row.ElidedRevision = "~"
+	}
 }

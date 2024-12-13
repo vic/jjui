@@ -79,3 +79,39 @@ func (d *Dag) GetRevisions() []*Commit {
 	}
 	return ret
 }
+
+func (d *Dag) GetTreeRows() []TreeRow {
+	rows := make([]TreeRow, 0)
+	root := d.GetRoot()
+	if root == nil {
+		return rows
+	}
+	edge := IndirectEdge
+	if root.Commit.IsRoot() {
+		edge = DirectEdge
+	}
+	addRow(&rows, 0, 0, root, edge)
+	return rows
+}
+
+func addRow(rows *[]TreeRow, level int, parentLevel int, node *Node, edgeType int) {
+	if node == nil {
+		return
+	}
+	// last edge is connecting to the node that's at the same level
+	for i := len(node.Edges) - 1; i >= 0; i-- {
+		edge := node.Edges[i]
+		if i == len(node.Edges)-1 {
+			addRow(rows, level, level, edge.To, edge.Type)
+		} else {
+			addRow(rows, level+1, level, edge.To, edge.Type)
+		}
+	}
+	context := TreeRow{
+		ParentLevel: parentLevel,
+		Level:       level,
+		EdgeType:    edgeType,
+		Commit:      *node.Commit,
+	}
+	*rows = append(*rows, context)
+}

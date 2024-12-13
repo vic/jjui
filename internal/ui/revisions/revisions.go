@@ -2,14 +2,13 @@ package revisions
 
 import (
 	"fmt"
-	"os"
-	"slices"
-
 	"jjui/internal/jj"
 	"jjui/internal/ui/abandon"
 	"jjui/internal/ui/bookmark"
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
+	"os"
+	"slices"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -22,8 +21,8 @@ type viewRange struct {
 
 type Model struct {
 	dag        *jj.Dag
-	renderer   *jj.TreeRenderer
 	revisions  []*jj.Commit
+	rows       []jj.TreeRow
 	op         common.Operation
 	viewRange  *viewRange
 	draggedRow int
@@ -192,50 +191,65 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		if msg != nil {
 			m.revisions = (*msg).GetRevisions()
 			m.dag = msg
-			m.renderer = jj.NewTreeRenderer(msg)
+			m.rows = (*msg).GetTreeRows()
 		}
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
 		return m, m.overlay.Init()
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
-		m.height = msg.Height
+		m.height = msg.Height - 3
 	}
 	return m, cmd
 }
 
 func (m Model) View() string {
-	if m.cursor < m.viewRange.start && m.viewRange.start > 0 {
-		m.viewRange.start--
-	}
-	if m.cursor > m.viewRange.end && m.cursor < len(m.revisions) {
-		m.viewRange.start++
-	}
-
 	if len(m.revisions) == 0 {
 		return "loading"
 	}
 
-	commitRenderer := SegmentedRenderer{
+	nodeRenderer := SegmentedRenderer{
 		Palette:             common.DefaultPalette,
 		op:                  m.op,
 		HighlightedRevision: m.revisions[m.cursor].ChangeIdShort,
 		Overlay:             m.overlay,
 	}
-	m.renderer.Update(commitRenderer)
-	return m.renderer.View(m.revisions[m.cursor].ChangeIdShort, m.height, commitRenderer)
+
+	var w jj.LineTrackingWriter
+	selectedLineStart := -1
+	selectedLineEnd := -1
+	for i, row := range m.rows {
+		if i == m.cursor {
+			selectedLineStart = w.LineCount()
+		}
+		jj.RenderRow(&w, row, nodeRenderer)
+		if i == m.cursor {
+			selectedLineEnd = w.LineCount()
+		}
+	}
+
+	if selectedLineStart <= m.viewRange.start {
+		m.viewRange.start = selectedLineStart
+		m.viewRange.end = selectedLineStart + m.height
+	} else if selectedLineEnd > m.viewRange.end {
+		m.viewRange.end = selectedLineEnd
+		m.viewRange.start = selectedLineEnd - m.height
+	}
+	return w.String(m.viewRange.start, m.viewRange.end)
 }
 
 func New(dag *jj.Dag) Model {
 	v := viewRange{start: 0, end: 0}
 	var revisions []*jj.Commit
+	var rows []jj.TreeRow
 	if dag != nil {
 		revisions = dag.GetRevisions()
+		rows = dag.GetTreeRows()
 	}
 	return Model{
 		dag:        dag,
 		revisions:  revisions,
-		renderer:   jj.NewTreeRenderer(dag),
+		rows:       rows,
 		draggedRow: -1,
 		viewRange:  &v,
 		op:         common.None,
