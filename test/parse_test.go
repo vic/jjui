@@ -10,24 +10,35 @@ import (
 )
 
 func Test_Parse_Tree(t *testing.T) {
-	fileName := "testdata/many-levels.log"
-	file, err := os.Open(fileName)
-	if err != nil {
-		t.Fatalf("could not open file: %v", err)
+	testFiles := []string{
+		"testdata/many-levels.log",
+		"testdata/elided-revisions.log",
+		"testdata/conflicted.log",
 	}
-	defer file.Close()
 
-	dag := jj.Parse(file)
-	var buffer strings.Builder
-	rows := dag.GetTreeRows()
-	for _, row := range rows {
-		jj.RenderRow(&buffer, row, TestRenderer{})
+	for _, fileName := range testFiles {
+		fileName := fileName
+		t.Run(fileName, func(t *testing.T) {
+			file, err := os.Open(fileName)
+			if err != nil {
+				t.Fatalf("could not open file: %v", err)
+			}
+
+			dag := jj.Parse(file)
+			var buffer strings.Builder
+			rows := dag.GetTreeRows()
+			for _, row := range rows {
+				jj.RenderRow(&buffer, row, TestRenderer{})
+			}
+			renderedFileName := strings.Replace(fileName, ".log", ".rendered", 1)
+			content, err := os.ReadFile(renderedFileName)
+			if err != nil {
+				t.Fatalf("could not read file: %v", err)
+			}
+			_ = file.Close()
+			assert.Equal(t, string(content), buffer.String())
+		})
 	}
-	content, err := os.ReadFile("testdata/many-levels.rendered")
-	if err != nil {
-		t.Fatalf("could not read file: %v", err)
-	}
-	assert.Equal(t, string(content), buffer.String())
 }
 
 type TestRenderer struct{}
@@ -35,7 +46,7 @@ type TestRenderer struct{}
 func (t TestRenderer) Render(row *jj.TreeRow) {
 	commit := row.Commit
 	glyph := ""
-	if commit.Immutable {
+	if commit.Immutable || commit.IsRoot() {
 		glyph = "◆"
 	} else if commit.IsWorkingCopy {
 		glyph = "@"

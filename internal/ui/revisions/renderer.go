@@ -27,7 +27,7 @@ func (s SegmentedRenderer) Render(context *jj.TreeRow) {
 	if highlighted {
 		style = s.Palette.Selected
 	}
-	if commit.Immutable {
+	if commit.Immutable || commit.IsRoot() {
 		context.Glyph = style.Render("◆")
 	} else if commit.IsWorkingCopy {
 		context.Glyph = style.Render("@")
@@ -41,6 +41,13 @@ func (s SegmentedRenderer) Render(context *jj.TreeRow) {
 	w.WriteString(s.Palette.CommitShortStyle.Render(commit.ChangeIdShort))
 	w.WriteString(s.Palette.CommitIdRestStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):]))
 	w.WriteString(" ")
+
+	if commit.IsRoot() {
+		w.WriteString(s.Palette.Empty.Render("root()"))
+		w.Write([]byte{'\n'})
+		context.Content = w.String()
+		return
+	}
 
 	w.WriteString(s.Palette.AuthorStyle.Render(commit.Author))
 	w.WriteString(" ")
