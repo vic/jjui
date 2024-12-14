@@ -21,7 +21,6 @@ type viewRange struct {
 
 type Model struct {
 	dag        *jj.Dag
-	revisions  []*jj.Commit
 	rows       []jj.TreeRow
 	op         common.Operation
 	viewRange  *viewRange
@@ -34,7 +33,7 @@ type Model struct {
 }
 
 func (m Model) selectedRevision() *jj.Commit {
-	return m.revisions[m.cursor]
+	return &m.rows[m.cursor].Commit
 }
 
 func (m Model) Init() tea.Cmd {
@@ -54,7 +53,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.cursor--
 		}
 	case key.Matches(msg, m.Keymap.down):
-		if m.cursor < len(m.revisions)-1 {
+		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
 	case key.Matches(msg, layer.new):
@@ -99,7 +98,7 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.op = common.RebaseBranch
 		m.draggedRow = m.cursor
 	case key.Matches(msg, m.Keymap.down):
-		if m.cursor < len(m.revisions)-1 {
+		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
 	case key.Matches(msg, m.Keymap.up):
@@ -108,8 +107,8 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 	case key.Matches(msg, m.Keymap.apply):
 		rebaseOperation := m.op
-		fromRevision := m.revisions[m.draggedRow].ChangeIdShort
-		toRevision := m.revisions[m.cursor].ChangeIdShort
+		fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
+		toRevision := m.rows[m.cursor].Commit.ChangeIdShort
 		m.op = common.None
 		m.draggedRow = -1
 		m.Keymap.current = ' '
@@ -176,11 +175,11 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	case common.SelectRevisionMsg:
 		r := string(msg)
-		idx := slices.IndexFunc(m.revisions, func(commit *jj.Commit) bool {
+		idx := slices.IndexFunc(m.rows, func(row jj.TreeRow) bool {
 			if r == "@" {
-				return commit.IsWorkingCopy
+				return row.Commit.IsWorkingCopy
 			}
-			return commit.ChangeIdShort == r
+			return row.Commit.ChangeIdShort == r
 		})
 		if idx != -1 {
 			m.cursor = idx
@@ -189,7 +188,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		}
 	case common.UpdateRevisionsMsg:
 		if msg != nil {
-			m.revisions = (*msg).GetRevisions()
 			m.dag = msg
 			m.rows = (*msg).GetTreeRows()
 		}
@@ -204,14 +202,14 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if len(m.revisions) == 0 {
+	if len(m.rows) == 0 {
 		return "loading"
 	}
 
 	nodeRenderer := SegmentedRenderer{
 		Palette:             common.DefaultPalette,
 		op:                  m.op,
-		HighlightedRevision: m.revisions[m.cursor].ChangeIdShort,
+		HighlightedRevision: m.rows[m.cursor].Commit.ChangeIdShort,
 		Overlay:             m.overlay,
 	}
 
@@ -240,15 +238,12 @@ func (m Model) View() string {
 
 func New(dag *jj.Dag) Model {
 	v := viewRange{start: 0, end: 0}
-	var revisions []*jj.Commit
 	var rows []jj.TreeRow
 	if dag != nil {
-		revisions = dag.GetRevisions()
 		rows = dag.GetTreeRows()
 	}
 	return Model{
 		dag:        dag,
-		revisions:  revisions,
 		rows:       rows,
 		draggedRow: -1,
 		viewRange:  &v,
