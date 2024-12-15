@@ -72,8 +72,9 @@ func (m Model) View() string {
 
 	footer := b.String()
 	footerHeight := lipgloss.Height(footer)
-	result := lipgloss.Place(m.width, m.height-footerHeight, 0, 0, m.revisions.View())
-	return lipgloss.JoinVertical(0, result, footer)
+	m.revisions.Width = m.width
+	m.revisions.Height = m.height - footerHeight
+	return lipgloss.JoinVertical(0, m.revisions.View(), footer)
 }
 
 func New() tea.Model {

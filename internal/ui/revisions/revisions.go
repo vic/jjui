@@ -26,8 +26,8 @@ type Model struct {
 	viewRange  *viewRange
 	draggedRow int
 	cursor     int
-	width      int
-	height     int
+	Width      int
+	Height     int
 	overlay    tea.Model
 	Keymap     keymap
 }
@@ -68,7 +68,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.split):
 		return m, common.Split(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.description):
-		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.width)
+		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.Width)
 		m.op = common.EditDescription
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
@@ -192,11 +192,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.rows = (*msg).GetTreeRows()
 		}
 	case common.UpdateBookmarksMsg:
-		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.width)
+		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.Width)
 		return m, m.overlay.Init()
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height - 3
+		m.Width = msg.Width
 	}
 	return m, cmd
 }
@@ -204,6 +203,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 func (m Model) View() string {
 	if len(m.rows) == 0 {
 		return "loading"
+	}
+
+	if m.viewRange.end-m.viewRange.start > m.Height {
+		m.viewRange.end = m.viewRange.start + m.Height
 	}
 
 	nodeRenderer := SegmentedRenderer{
@@ -228,10 +231,10 @@ func (m Model) View() string {
 
 	if selectedLineStart <= m.viewRange.start {
 		m.viewRange.start = selectedLineStart
-		m.viewRange.end = selectedLineStart + m.height
+		m.viewRange.end = selectedLineStart + m.Height
 	} else if selectedLineEnd > m.viewRange.end {
 		m.viewRange.end = selectedLineEnd
-		m.viewRange.start = selectedLineEnd - m.height
+		m.viewRange.start = selectedLineEnd - m.Height
 	}
 	return w.String(m.viewRange.start, m.viewRange.end)
 }
@@ -249,7 +252,7 @@ func New(dag *jj.Dag) Model {
 		viewRange:  &v,
 		op:         common.None,
 		cursor:     0,
-		width:      20,
+		Width:      20,
 		Keymap:     newKeyMap(),
 	}
 }

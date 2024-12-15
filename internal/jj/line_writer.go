@@ -11,7 +11,6 @@ type LineTrackingWriter struct {
 	lineCount int
 }
 
-// Write implements the io.Writer interface
 func (w *LineTrackingWriter) Write(p []byte) (n int, err error) {
 	// Write to the buffer
 	n, err = w.buffer.Write(p)
@@ -34,23 +33,22 @@ func (w *LineTrackingWriter) Write(p []byte) (n int, err error) {
 	return n, nil
 }
 
-// LineCount returns the number of lines written
 func (w *LineTrackingWriter) LineCount() int {
 	return w.lineCount
 }
 
 func (w *LineTrackingWriter) String(start, end int) string {
 	lines := strings.Split(w.buffer.String(), "\n")
-	if end > len(lines) {
-		end = len(lines)
-	}
 	if start < 0 {
 		start = 0
+	}
+	h := end - start
+	for h > len(lines) {
+		lines = append(lines, "")
 	}
 	return strings.Join(lines[start:end], "\n")
 }
 
-// Reset clears the buffer and line tracking
 func (w *LineTrackingWriter) Reset() {
 	w.buffer.Reset()
 	w.lineCount = 0
