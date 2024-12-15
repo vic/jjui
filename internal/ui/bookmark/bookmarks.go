@@ -27,8 +27,8 @@ func (b item) FilterValue() string { return string(b) }
 type itemDelegate struct{}
 
 var (
-	itemSyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemSyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 )
 
 func (d itemDelegate) Height() int                             { return 1 }
@@ -40,10 +40,10 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 	str := fmt.Sprintf("%d %s", index+1, i)
-	fn := itemSyle.Render
+	fn := itemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return selectedItemSyle.Render("> " + strings.Join(s, " "))
+			return selectedItemStyle.Render("> " + strings.Join(s, " "))
 		}
 	}
 	fmt.Fprint(w, fn(str))
