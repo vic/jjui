@@ -19,7 +19,7 @@ type SegmentedRenderer struct {
 func (s SegmentedRenderer) Render(context *jj.TreeRow) {
 	commit := context.Commit
 	highlighted := commit.ChangeIdShort == s.HighlightedRevision
-	if (s.op == common.RebaseBranch || s.op == common.RebaseRevision) && highlighted {
+	if (s.op == common.RebaseBranchOperation || s.op == common.RebaseRevisionOperation) && highlighted {
 		context.Before = common.DropStyle.Render("<< here >>")
 	}
 
@@ -57,12 +57,17 @@ func (s SegmentedRenderer) Render(context *jj.TreeRow) {
 
 	w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
 
+	if s.op == common.SetBookmarkOperation && highlighted {
+		w.Write([]byte{' '})
+		w.WriteString(s.Overlay.View())
+	}
+
 	if commit.Conflict {
 		w.WriteString(" ")
 		w.WriteString(s.Palette.ConflictStyle.Render("conflict"))
 	}
 	w.Write([]byte{'\n'})
-	if s.op == common.EditDescription && highlighted {
+	if s.op == common.EditDescriptionOperation && highlighted {
 		w.WriteString(s.Overlay.View())
 		w.Write([]byte{'\n'})
 		context.Content = w.String()
@@ -82,7 +87,7 @@ func (s SegmentedRenderer) Render(context *jj.TreeRow) {
 		w.WriteString(s.Palette.Normal.Render(commit.Description))
 	}
 	w.Write([]byte{'\n'})
-	if s.Overlay != nil && highlighted {
+	if s.Overlay != nil && highlighted && s.op != common.EditDescriptionOperation && s.op != common.SetBookmarkOperation {
 		w.WriteString(s.Overlay.View())
 		w.Write([]byte{'\n'})
 	}

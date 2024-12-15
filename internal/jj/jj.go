@@ -48,6 +48,12 @@ func ListBookmark(revision string) ([]Bookmark, error) {
 	return bookmarks, nil
 }
 
+func SetBookmark(revision string, name string) ([]byte, error) {
+	cmd := exec.Command("jj", "bookmark", "set", "-r", revision, name)
+	output, err := cmd.CombinedOutput()
+	return output, err
+}
+
 func MoveBookmark(revision string, bookmark string) ([]byte, error) {
 	cmd := exec.Command("jj", "bookmark", "move", bookmark, "--to", revision)
 	output, err := cmd.CombinedOutput()

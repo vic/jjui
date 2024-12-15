@@ -26,9 +26,10 @@ type Operation int
 
 const (
 	None Operation = iota
-	RebaseRevision
-	RebaseBranch
-	EditDescription
+	RebaseRevisionOperation
+	RebaseBranchOperation
+	EditDescriptionOperation
+	SetBookmarkOperation
 )
 
 func Close() tea.Msg {
@@ -78,7 +79,7 @@ func GitPush() tea.Cmd {
 
 func Rebase(from, to string, operation Operation) tea.Cmd {
 	rebase := jj.RebaseCommand
-	if operation == RebaseBranch {
+	if operation == RebaseBranchOperation {
 		rebase = jj.RebaseBranchCommand
 	}
 	output, err := rebase(from, to)
@@ -107,6 +108,11 @@ func FetchBookmarks(revision string) tea.Cmd {
 		bookmarks, _ := jj.ListBookmark(revision)
 		return UpdateBookmarksMsg(bookmarks)
 	}
+}
+
+func SetBookmark(revision string, name string) tea.Cmd {
+	output, err := jj.SetBookmark(revision, name)
+	return ShowOutput(string(output), err)
 }
 
 func GetDiff(revision string) tea.Cmd {

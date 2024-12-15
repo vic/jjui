@@ -80,7 +80,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		)
 	case key.Matches(msg, layer.description):
 		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.Width)
-		m.op = common.EditDescription
+		m.op = common.EditDescriptionOperation
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
 		return m, common.GetDiff(m.selectedRevision().ChangeId)
@@ -103,10 +103,10 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	layer := m.Keymap.bindings[m.Keymap.current].(rebaseLayer)
 	switch {
 	case key.Matches(msg, layer.revision):
-		m.op = common.RebaseRevision
+		m.op = common.RebaseRevisionOperation
 		m.draggedRow = m.cursor
 	case key.Matches(msg, layer.branch):
-		m.op = common.RebaseBranch
+		m.op = common.RebaseBranchOperation
 		m.draggedRow = m.cursor
 	case key.Matches(msg, m.Keymap.down):
 		if m.cursor < len(m.rows)-1 {
@@ -140,6 +140,10 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.move):
 		m.Keymap.resetMode()
 		return m, common.FetchBookmarks(m.selectedRevision().ChangeId)
+	case key.Matches(msg, layer.set):
+		m.overlay = bookmark.NewSetBookmark(m.selectedRevision().ChangeId, m.Width)
+		m.op = common.SetBookmarkOperation
+		return m, m.overlay.Init()
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
 	}
@@ -169,6 +173,7 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	if _, ok := msg.(common.CloseViewMsg); ok {
+		m.Keymap.resetMode()
 		m.overlay = nil
 		m.op = common.None
 		return m, nil
