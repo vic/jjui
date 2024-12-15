@@ -28,8 +28,13 @@ func (c Commit) IsRoot() bool {
 	return c.ChangeId == RootChangeId
 }
 
-func GetCommits(location string) *Dag {
-	cmd := exec.Command("jj", "log", "--reversed", "--template", TEMPLATE)
+func GetCommits(location string, revset string) *Dag {
+	var args []string
+	args = append(args, "log", "--reversed", "--template", TEMPLATE)
+	if revset != "" {
+		args = append(args, "-r", revset)
+	}
+	cmd := exec.Command("jj", args...)
 	cmd.Dir = location
 	output, err := cmd.Output()
 	if err != nil {

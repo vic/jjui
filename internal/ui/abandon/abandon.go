@@ -39,7 +39,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			switch m.options[m.selected] {
 			case "Yes":
-				return m, tea.Sequence(common.Close, common.Abandon(m.revision))
+				return m, tea.Sequence(
+					tea.Sequence(
+						common.Close,
+						common.Abandon(m.revision),
+					),
+					common.Refresh,
+				)
 			case "No":
 				return m, common.Close
 			}

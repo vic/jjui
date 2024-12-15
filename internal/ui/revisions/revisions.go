@@ -42,7 +42,7 @@ func (m Model) Init() tea.Cmd {
 		fmt.Printf("error: %v\n", err)
 		return nil
 	}
-	return tea.Sequence(tea.SetWindowTitle("jjui"), common.FetchRevisions(dir), common.SelectRevision("@"))
+	return tea.Sequence(tea.SetWindowTitle("jjui"), common.FetchRevisions(dir, ""), common.SelectRevision("@"))
 }
 
 func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
@@ -57,16 +57,27 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.cursor++
 		}
 	case key.Matches(msg, layer.new):
-		return m, common.NewRevision(m.selectedRevision().ChangeId)
+		return m, tea.Sequence(
+			common.NewRevision(m.selectedRevision().ChangeId),
+			common.FetchRevisions(os.Getenv("PWD"), ""),
+			common.SelectRevision("@"),
+		)
 	case key.Matches(msg, layer.edit):
-		return m, common.Edit(m.selectedRevision().ChangeId)
+		return m, tea.Sequence(
+			common.Edit(m.selectedRevision().ChangeId),
+			common.FetchRevisions(os.Getenv("PWD"), ""),
+			common.SelectRevision("@"),
+		)
 	case key.Matches(msg, layer.diffedit):
 		return m, common.DiffEdit(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.abandon):
 		m.overlay = abandon.New(m.selectedRevision().ChangeId)
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.split):
-		return m, common.Split(m.selectedRevision().ChangeId)
+		return m, tea.Sequence(
+			common.Split(m.selectedRevision().ChangeId),
+			common.FetchRevisions(os.Getenv("PWD"), ""),
+		)
 	case key.Matches(msg, layer.description):
 		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.Width)
 		m.op = common.EditDescription
@@ -112,7 +123,10 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.op = common.None
 		m.draggedRow = -1
 		m.Keymap.current = ' '
-		return m, common.Rebase(fromRevision, toRevision, rebaseOperation)
+		return m, tea.Sequence(
+			common.Rebase(fromRevision, toRevision, rebaseOperation),
+			common.FetchRevisions(os.Getenv("PWD"), ""),
+			common.SelectRevision(fromRevision))
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
 		m.op = common.None
@@ -137,10 +151,16 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, layer.fetch):
 		m.Keymap.resetMode()
-		return m, common.GitFetch()
+		return m, tea.Sequence(
+			common.GitFetch(),
+			common.FetchRevisions(os.Getenv("PWD"), ""),
+		)
 	case key.Matches(msg, layer.push):
 		m.Keymap.resetMode()
-		return m, common.GitPush()
+		return m, tea.Sequence(
+			common.GitPush(),
+			common.FetchRevisions(os.Getenv("PWD"), ""),
+		)
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
 	}
@@ -152,6 +172,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.overlay = nil
 		m.op = common.None
 		return m, nil
+	}
+
+	if _, ok := msg.(common.RefreshMsg); ok {
+		return m, common.FetchRevisions(os.Getenv("PWD"), "")
 	}
 
 	var cmd tea.Cmd

@@ -1,10 +1,9 @@
 package describe
 
 import (
-	"jjui/internal/ui/common"
-
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"jjui/internal/ui/common"
 )
 
 type Model struct {
@@ -23,7 +22,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			return m, common.Close
 		case "enter":
-			return m, tea.Batch(common.Close, common.SetDescription(m.revision, m.description.Value()))
+			return m, tea.Sequence(
+				tea.Batch(
+					common.Close,
+					common.SetDescription(m.revision, m.description.Value()),
+				),
+				common.Refresh,
+			)
 		}
 	case tea.WindowSizeMsg:
 		m.description.SetWidth(msg.Width)

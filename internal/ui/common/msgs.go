@@ -1,7 +1,6 @@
 package common
 
 import (
-	"os"
 	"os/exec"
 
 	"jjui/internal/jj"
@@ -11,6 +10,7 @@ import (
 
 type (
 	CloseViewMsg        struct{}
+	RefreshMsg          struct{}
 	SelectRevisionMsg   string
 	ShowDiffMsg         string
 	UpdateRevisionsMsg  *jj.Dag
@@ -33,6 +33,10 @@ const (
 
 func Close() tea.Msg {
 	return CloseViewMsg{}
+}
+
+func Refresh() tea.Msg {
+	return RefreshMsg{}
 }
 
 func SelectRevision(revision string) tea.Cmd {
@@ -61,7 +65,7 @@ func GitFetch() tea.Cmd {
 		output, err := jj.GitFetch()
 		return CommandCompletedMsg{Output: string(output), Err: err}
 	}
-	return tea.Sequence(CommandRunning("jj git fetch"), f, FetchRevisions(os.Getenv("PWD")))
+	return tea.Sequence(CommandRunning("jj git fetch"), f)
 }
 
 func GitPush() tea.Cmd {
@@ -69,7 +73,7 @@ func GitPush() tea.Cmd {
 		output, err := jj.GitPush()
 		return CommandCompletedMsg{Output: string(output), Err: err}
 	}
-	return tea.Sequence(CommandRunning("jj git push"), f, FetchRevisions(os.Getenv("PWD")))
+	return tea.Sequence(CommandRunning("jj git push"), f)
 }
 
 func Rebase(from, to string, operation Operation) tea.Cmd {
@@ -78,22 +82,22 @@ func Rebase(from, to string, operation Operation) tea.Cmd {
 		rebase = jj.RebaseBranchCommand
 	}
 	output, err := rebase(from, to)
-	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")), SelectRevision(from))
+	return ShowOutput(string(output), err)
 }
 
 func SetDescription(revision string, description string) tea.Cmd {
 	output, err := jj.SetDescription(revision, description)
-	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
+	return ShowOutput(string(output), err)
 }
 
 func MoveBookmark(revision string, bookmark string) tea.Cmd {
 	output, err := jj.MoveBookmark(revision, bookmark)
-	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")))
+	return ShowOutput(string(output), err)
 }
 
-func FetchRevisions(location string) tea.Cmd {
+func FetchRevisions(location string, revset string) tea.Cmd {
 	return func() tea.Msg {
-		dag := jj.GetCommits(location)
+		dag := jj.GetCommits(location, revset)
 		return UpdateRevisionsMsg(dag)
 	}
 }
@@ -113,11 +117,10 @@ func GetDiff(revision string) tea.Cmd {
 }
 
 func Edit(revision string) tea.Cmd {
-	f := func() tea.Msg {
+	return func() tea.Msg {
 		output, err := jj.Edit(revision)
 		return CommandCompletedMsg{Output: string(output), Err: err}
 	}
-	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")), SelectRevision("@"))
 }
 
 func DiffEdit(revision string) tea.Cmd {
@@ -125,18 +128,17 @@ func DiffEdit(revision string) tea.Cmd {
 }
 
 func Split(revision string) tea.Cmd {
-	return tea.Sequence(tea.ExecProcess(exec.Command("jj", "split", "-r", revision), nil), tea.ClearScreen, FetchRevisions(os.Getenv("PWD")))
+	return tea.Sequence(tea.ExecProcess(exec.Command("jj", "split", "-r", revision), nil), tea.ClearScreen)
 }
 
 func Abandon(revision string) tea.Cmd {
-	f := func() tea.Msg {
+	return func() tea.Msg {
 		output, err := jj.Abandon(revision)
 		return CommandCompletedMsg{Output: string(output), Err: err}
 	}
-	return tea.Sequence(f, FetchRevisions(os.Getenv("PWD")))
 }
 
 func NewRevision(from string) tea.Cmd {
 	output, err := jj.New(from)
-	return tea.Sequence(ShowOutput(string(output), err), FetchRevisions(os.Getenv("PWD")), SelectRevision("@"))
+	return ShowOutput(string(output), err)
 }
