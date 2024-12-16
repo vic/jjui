@@ -8,6 +8,7 @@ import (
 	"jjui/internal/ui/bookmark"
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
+	"jjui/internal/ui/revisions/revset"
 	"os"
 	"slices"
 
@@ -32,7 +33,7 @@ type Model struct {
 	Width       int
 	Height      int
 	overlay     tea.Model
-	revsetModel RevSetModel
+	revsetModel revset.Model
 	Keymap      keymap
 }
 
