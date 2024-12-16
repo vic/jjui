@@ -1,6 +1,7 @@
 package jj
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -11,6 +12,13 @@ const (
 )
 
 type Bookmark string
+
+func GetConfig(key string) ([]byte, error) {
+	cmd := exec.Command("jj", "config", "get", key)
+	output, err := cmd.CombinedOutput()
+	output = bytes.Trim(output, "\n")
+	return output, err
+}
 
 func RebaseCommand(from string, to string) ([]byte, error) {
 	cmd := exec.Command("jj", "rebase", "-r", from, "-d", to)

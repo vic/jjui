@@ -32,7 +32,6 @@ type Model struct {
 	Width       int
 	Height      int
 	overlay     tea.Model
-	revset      string
 	revsetModel RevSetModel
 	Keymap      keymap
 }
@@ -42,12 +41,7 @@ func (m Model) selectedRevision() *jj.Commit {
 }
 
 func (m Model) Init() tea.Cmd {
-	dir, err := os.Getwd()
-	if err != nil {
-		fmt.Printf("error: %v\n", err)
-		return nil
-	}
-	return tea.Sequence(tea.SetWindowTitle("jjui"), common.FetchRevisions(dir, ""), common.SelectRevision("@"))
+	return tea.Sequence(common.Refresh, common.SelectRevision("@"))
 }
 
 func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
@@ -62,7 +56,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.cursor++
 		}
 	case key.Matches(msg, layer.revset):
-		m.revsetModel, _ = m.revsetModel.Update(EditRevSetMsg{})
+		m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
 		return m, nil
 
 	case key.Matches(msg, layer.new):
@@ -134,7 +128,7 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.current = ' '
 		return m, tea.Sequence(
 			common.Rebase(fromRevision, toRevision, rebaseOperation),
-			common.FetchRevisions(os.Getenv("PWD"), m.revset),
+			common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value),
 			common.SelectRevision(fromRevision))
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
@@ -166,13 +160,13 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
 			common.GitFetch(),
-			common.FetchRevisions(os.Getenv("PWD"), m.revset),
+			common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value),
 		)
 	case key.Matches(msg, layer.push):
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
 			common.GitPush(),
-			common.FetchRevisions(os.Getenv("PWD"), m.revset),
+			common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value),
 		)
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
@@ -189,12 +183,12 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	}
 
 	if value, ok := msg.(common.UpdateRevSetMsg); ok {
-		m.revset = string(value)
+		m.revsetModel.Value = string(value)
 		return m, common.Refresh
 	}
 
 	if _, ok := msg.(common.RefreshMsg); ok {
-		return m, common.FetchRevisions(os.Getenv("PWD"), m.revset)
+		return m, common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value)
 	}
 
 	var cmd tea.Cmd
@@ -321,6 +315,7 @@ func New(dag *jj.Dag) Model {
 	if dag != nil {
 		rows = dag.GetTreeRows()
 	}
+	defaultRevSet, _ := jj.GetConfig("revsets.log")
 	return Model{
 		status:      common.Loading,
 		dag:         dag,
@@ -330,8 +325,7 @@ func New(dag *jj.Dag) Model {
 		op:          common.None,
 		cursor:      0,
 		Width:       20,
-		revset:      "",
-		revsetModel: NewRevSet(),
+		revsetModel: revset.New(string(defaultRevSet)),
 		Keymap:      newKeyMap(),
 	}
 }
