@@ -9,14 +9,16 @@ import (
 )
 
 type (
-	CloseViewMsg        struct{}
-	RefreshMsg          struct{}
-	SelectRevisionMsg   string
-	ShowDiffMsg         string
-	UpdateRevisionsMsg  *jj.Dag
-	UpdateBookmarksMsg  []jj.Bookmark
-	CommandRunningMsg   string
-	CommandCompletedMsg struct {
+	CloseViewMsg             struct{}
+	RefreshMsg               struct{}
+	SelectRevisionMsg        string
+	ShowDiffMsg              string
+	UpdateRevSetMsg          string
+	UpdateRevisionsMsg       *jj.Dag
+	UpdateRevisionsFailedMsg error
+	UpdateBookmarksMsg       []jj.Bookmark
+	CommandRunningMsg        string
+	CommandCompletedMsg      struct {
 		Output string
 		Err    error
 	}
@@ -32,12 +34,26 @@ const (
 	SetBookmarkOperation
 )
 
+type Status int
+
+const (
+	Loading Status = iota
+	Ready
+	Error
+)
+
 func Close() tea.Msg {
 	return CloseViewMsg{}
 }
 
 func Refresh() tea.Msg {
 	return RefreshMsg{}
+}
+
+func UpdateRevSet(revset string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateRevSetMsg(revset)
+	}
 }
 
 func SelectRevision(revision string) tea.Cmd {
@@ -98,7 +114,10 @@ func MoveBookmark(revision string, bookmark string) tea.Cmd {
 
 func FetchRevisions(location string, revset string) tea.Cmd {
 	return func() tea.Msg {
-		dag := jj.GetCommits(location, revset)
+		dag, err := jj.GetCommits(location, revset)
+		if err != nil {
+			return UpdateRevisionsFailedMsg(err)
+		}
 		return UpdateRevisionsMsg(dag)
 	}
 }

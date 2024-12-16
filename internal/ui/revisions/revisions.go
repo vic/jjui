@@ -2,6 +2,7 @@ package revisions
 
 import (
 	"fmt"
+	"github.com/charmbracelet/lipgloss"
 	"jjui/internal/jj"
 	"jjui/internal/ui/abandon"
 	"jjui/internal/ui/bookmark"
@@ -20,16 +21,20 @@ type viewRange struct {
 }
 
 type Model struct {
-	dag        *jj.Dag
-	rows       []jj.TreeRow
-	op         common.Operation
-	viewRange  *viewRange
-	draggedRow int
-	cursor     int
-	Width      int
-	Height     int
-	overlay    tea.Model
-	Keymap     keymap
+	dag         *jj.Dag
+	rows        []jj.TreeRow
+	status      common.Status
+	error       error
+	op          common.Operation
+	viewRange   *viewRange
+	draggedRow  int
+	cursor      int
+	Width       int
+	Height      int
+	overlay     tea.Model
+	revset      string
+	revsetModel RevSetModel
+	Keymap      keymap
 }
 
 func (m Model) selectedRevision() *jj.Commit {
@@ -56,6 +61,10 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
+	case key.Matches(msg, layer.revset):
+		m.revsetModel, _ = m.revsetModel.Update(EditRevSetMsg{})
+		return m, nil
+
 	case key.Matches(msg, layer.new):
 		return m, tea.Sequence(
 			common.NewRevision(m.selectedRevision().ChangeId),
@@ -125,7 +134,7 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.current = ' '
 		return m, tea.Sequence(
 			common.Rebase(fromRevision, toRevision, rebaseOperation),
-			common.FetchRevisions(os.Getenv("PWD"), ""),
+			common.FetchRevisions(os.Getenv("PWD"), m.revset),
 			common.SelectRevision(fromRevision))
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
@@ -157,13 +166,13 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
 			common.GitFetch(),
-			common.FetchRevisions(os.Getenv("PWD"), ""),
+			common.FetchRevisions(os.Getenv("PWD"), m.revset),
 		)
 	case key.Matches(msg, layer.push):
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
 			common.GitPush(),
-			common.FetchRevisions(os.Getenv("PWD"), ""),
+			common.FetchRevisions(os.Getenv("PWD"), m.revset),
 		)
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
@@ -179,13 +188,23 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, nil
 	}
 
+	if value, ok := msg.(common.UpdateRevSetMsg); ok {
+		m.revset = string(value)
+		return m, common.Refresh
+	}
+
 	if _, ok := msg.(common.RefreshMsg); ok {
-		return m, common.FetchRevisions(os.Getenv("PWD"), "")
+		return m, common.FetchRevisions(os.Getenv("PWD"), m.revset)
 	}
 
 	var cmd tea.Cmd
 	if m.overlay != nil {
 		m.overlay, cmd = m.overlay.Update(msg)
+		return m, cmd
+	}
+
+	if m.revsetModel.Editing {
+		m.revsetModel, cmd = m.revsetModel.Update(msg)
 		return m, cmd
 	}
 
@@ -218,7 +237,16 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.UpdateRevisionsMsg:
 		if msg != nil {
 			m.dag = msg
+			m.status = common.Ready
+			m.cursor = 0
 			m.rows = (*msg).GetTreeRows()
+		}
+	case common.UpdateRevisionsFailedMsg:
+		if msg != nil {
+			m.dag = nil
+			m.rows = nil
+			m.status = common.Error
+			m.error = msg
 		}
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.Width)
@@ -230,42 +258,61 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if len(m.rows) == 0 {
-		return "loading"
+	revset := m.revsetModel.View()
+	content := ""
+
+	if m.status == common.Loading {
+		content = "loading"
 	}
 
-	if m.viewRange.end-m.viewRange.start > m.Height {
-		m.viewRange.end = m.viewRange.start + m.Height
+	if m.status == common.Error {
+		content = fmt.Sprintf("error: %v", m.error)
 	}
 
-	nodeRenderer := SegmentedRenderer{
-		Palette:             common.DefaultPalette,
-		op:                  m.op,
-		HighlightedRevision: m.rows[m.cursor].Commit.ChangeIdShort,
-		Overlay:             m.overlay,
-	}
+	if m.status == common.Ready {
+		h := m.Height - lipgloss.Height(revset)
 
-	var w jj.LineTrackingWriter
-	selectedLineStart := -1
-	selectedLineEnd := -1
-	for i, row := range m.rows {
-		if i == m.cursor {
-			selectedLineStart = w.LineCount()
+		if m.viewRange.end-m.viewRange.start > h {
+			m.viewRange.end = m.viewRange.start + h
 		}
-		jj.RenderRow(&w, row, nodeRenderer)
-		if i == m.cursor {
-			selectedLineEnd = w.LineCount()
+
+		highlightedRevision := ""
+		if m.cursor < len(m.rows) {
+			highlightedRevision = m.rows[m.cursor].Commit.ChangeIdShort
 		}
+
+		nodeRenderer := SegmentedRenderer{
+			Palette:             common.DefaultPalette,
+			op:                  m.op,
+			HighlightedRevision: highlightedRevision,
+			Overlay:             m.overlay,
+		}
+
+		var w jj.LineTrackingWriter
+		selectedLineStart := -1
+		selectedLineEnd := -1
+		for i, row := range m.rows {
+			if i == m.cursor {
+				selectedLineStart = w.LineCount()
+			}
+			jj.RenderRow(&w, row, nodeRenderer)
+			if i == m.cursor {
+				selectedLineEnd = w.LineCount()
+			}
+		}
+
+		if selectedLineStart <= m.viewRange.start {
+			m.viewRange.start = selectedLineStart
+			m.viewRange.end = selectedLineStart + h
+		} else if selectedLineEnd > m.viewRange.end {
+			m.viewRange.end = selectedLineEnd
+			m.viewRange.start = selectedLineEnd - h
+		}
+
+		content = w.String(m.viewRange.start, m.viewRange.end)
 	}
 
-	if selectedLineStart <= m.viewRange.start {
-		m.viewRange.start = selectedLineStart
-		m.viewRange.end = selectedLineStart + m.Height
-	} else if selectedLineEnd > m.viewRange.end {
-		m.viewRange.end = selectedLineEnd
-		m.viewRange.start = selectedLineEnd - m.Height
-	}
-	return w.String(m.viewRange.start, m.viewRange.end)
+	return lipgloss.JoinVertical(0, revset, content)
 }
 
 func New(dag *jj.Dag) Model {
@@ -275,13 +322,16 @@ func New(dag *jj.Dag) Model {
 		rows = dag.GetTreeRows()
 	}
 	return Model{
-		dag:        dag,
-		rows:       rows,
-		draggedRow: -1,
-		viewRange:  &v,
-		op:         common.None,
-		cursor:     0,
-		Width:      20,
-		Keymap:     newKeyMap(),
+		status:      common.Loading,
+		dag:         dag,
+		rows:        rows,
+		draggedRow:  -1,
+		viewRange:   &v,
+		op:          common.None,
+		cursor:      0,
+		Width:       20,
+		revset:      "",
+		revsetModel: NewRevSet(),
+		Keymap:      newKeyMap(),
 	}
 }

@@ -22,6 +22,7 @@ type baseLayer struct {
 	description  key.Binding
 	diff         key.Binding
 	new          key.Binding
+	revset       key.Binding
 	quit         key.Binding
 }
 
@@ -54,6 +55,7 @@ func newKeyMap() keymap {
 		description:  key.NewBinding(key.WithKeys("D"), key.WithHelp("D", "description")),
 		diff:         key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
 		new:          key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new")),
+		revset:       key.NewBinding(key.WithKeys("L"), key.WithHelp("L", "revset")),
 		quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 
@@ -102,7 +104,7 @@ func (k *keymap) resetMode() {
 func (k *keymap) ShortHelp() []key.Binding {
 	switch b := k.bindings[k.current].(type) {
 	case baseLayer:
-		return []key.Binding{k.up, k.down, b.new, b.edit, b.diffedit, b.diff, b.description, b.split, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
+		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.diffedit, b.diff, b.description, b.split, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
 		return []key.Binding{b.revision, b.branch}
 	case gitLayer:
