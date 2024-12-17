@@ -72,7 +72,10 @@ func Parse(reader io.Reader) Dag {
 		_, after, _ := strings.Cut(line[index:], " ")
 		parts := strings.Split(after, ";")
 		commit := Commit{
-			ChangeIdShort: strings.TrimSpace(parts[0]),
+			//TODO: change id can contain graph characters if there is a merge commit
+			//this is a dirty hack to prevent panicking while trying to parse the graph.
+			//parsed graph will be wrong but at least it won't panic until fixed.
+			ChangeIdShort: strings.Trim(parts[0], " │"),
 		}
 		seen[commit.ChangeIdShort] = true
 		if len(parts) > 1 {
