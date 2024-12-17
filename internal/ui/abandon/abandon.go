@@ -44,7 +44,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						common.Close,
 						common.Abandon(m.revision),
 					),
-					common.Refresh,
+					common.Refresh("@"),
 				)
 			case "No":
 				return m, common.Close

@@ -27,7 +27,7 @@ func (m SetBookmarkModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					common.Close,
 					common.SetBookmark(m.revision, m.name.Value()),
 				),
-				common.Refresh,
+				common.Refresh(m.revision),
 			)
 		}
 	case tea.WindowSizeMsg:

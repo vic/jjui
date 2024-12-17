@@ -27,7 +27,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					common.Close,
 					common.SetDescription(m.revision, m.description.Value()),
 				),
-				common.Refresh,
+				common.Refresh(m.revision),
 			)
 		}
 	case tea.WindowSizeMsg:

@@ -42,7 +42,7 @@ func (m Model) selectedRevision() *jj.Commit {
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Sequence(common.Refresh, common.SelectRevision("@"))
+	return common.Refresh("@")
 }
 
 func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
@@ -63,14 +63,12 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.new):
 		return m, tea.Sequence(
 			common.NewRevision(m.selectedRevision().ChangeId),
-			common.FetchRevisions(os.Getenv("PWD"), ""),
-			common.SelectRevision("@"),
+			common.Refresh("@"),
 		)
 	case key.Matches(msg, layer.edit):
 		return m, tea.Sequence(
 			common.Edit(m.selectedRevision().ChangeId),
-			common.FetchRevisions(os.Getenv("PWD"), ""),
-			common.SelectRevision("@"),
+			common.Refresh("@"),
 		)
 	case key.Matches(msg, layer.diffedit):
 		return m, common.DiffEdit(m.selectedRevision().ChangeId)
@@ -80,7 +78,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.split):
 		return m, tea.Sequence(
 			common.Split(m.selectedRevision().ChangeId),
-			common.FetchRevisions(os.Getenv("PWD"), ""),
+			common.Refresh(m.selectedRevision().ChangeId),
 		)
 	case key.Matches(msg, layer.description):
 		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.Width)
@@ -129,8 +127,8 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.current = ' '
 		return m, tea.Sequence(
 			common.Rebase(fromRevision, toRevision, rebaseOperation),
-			common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value),
-			common.SelectRevision(fromRevision))
+			common.Refresh(fromRevision),
+		)
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
 		m.op = common.None
@@ -161,13 +159,13 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
 			common.GitFetch(),
-			common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value),
+			common.Refresh(m.selectedRevision().ChangeId),
 		)
 	case key.Matches(msg, layer.push):
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
 			common.GitPush(),
-			common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value),
+			common.Refresh(m.selectedRevision().ChangeId),
 		)
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
@@ -185,11 +183,14 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	if value, ok := msg.(common.UpdateRevSetMsg); ok {
 		m.revsetModel.Value = string(value)
-		return m, common.Refresh
+		return m, common.Refresh(m.selectedRevision().ChangeId)
 	}
 
-	if _, ok := msg.(common.RefreshMsg); ok {
-		return m, common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value)
+	if value, ok := msg.(common.RefreshMsg); ok {
+		return m, tea.Sequence(
+			common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value),
+			common.SelectRevision(value.SelectedRevision),
+		)
 	}
 
 	var cmd tea.Cmd

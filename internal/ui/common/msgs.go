@@ -10,7 +10,7 @@ import (
 
 type (
 	CloseViewMsg             struct{}
-	RefreshMsg               struct{}
+	RefreshMsg               struct{ SelectedRevision string }
 	SelectRevisionMsg        string
 	ShowDiffMsg              string
 	UpdateRevSetMsg          string
@@ -46,8 +46,10 @@ func Close() tea.Msg {
 	return CloseViewMsg{}
 }
 
-func Refresh() tea.Msg {
-	return RefreshMsg{}
+func Refresh(selectedRevision string) tea.Cmd {
+	return func() tea.Msg {
+		return RefreshMsg{SelectedRevision: selectedRevision}
+	}
 }
 
 func UpdateRevSet(revset string) tea.Cmd {

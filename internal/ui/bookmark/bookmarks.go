@@ -63,7 +63,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			bookmark := m.list.SelectedItem().(item)
 			return m, tea.Sequence(
 				tea.Batch(common.Close, common.MoveBookmark(m.revision, string(bookmark))),
-				common.Refresh,
+				common.Refresh(m.revision),
 			)
 		}
 	}
