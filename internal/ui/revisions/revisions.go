@@ -76,10 +76,8 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.overlay = abandon.New(m.selectedRevision().ChangeId)
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.split):
-		return m, tea.Sequence(
-			common.Split(m.selectedRevision().ChangeId),
-			common.Refresh(m.selectedRevision().ChangeId),
-		)
+		currentRevision := m.selectedRevision().ChangeId
+		return m, common.Split(currentRevision)
 	case key.Matches(msg, layer.description):
 		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.Width)
 		m.op = common.EditDescriptionOperation
@@ -227,7 +225,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			if r == "@" {
 				return row.Commit.IsWorkingCopy
 			}
-			return row.Commit.ChangeIdShort == r
+			return row.Commit.ChangeId == r
 		})
 		if idx != -1 {
 			m.cursor = idx

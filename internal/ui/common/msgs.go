@@ -151,11 +151,15 @@ func Edit(revision string) tea.Cmd {
 }
 
 func DiffEdit(revision string) tea.Cmd {
-	return tea.Sequence(tea.ExecProcess(exec.Command("jj", "diffedit", "-r", revision), nil), tea.ClearScreen)
+	return tea.ExecProcess(exec.Command("jj", "diffedit", "-r", revision), func(err error) tea.Msg {
+		return Refresh(revision)
+	})
 }
 
 func Split(revision string) tea.Cmd {
-	return tea.Sequence(tea.ExecProcess(exec.Command("jj", "split", "-r", revision), nil), tea.ClearScreen)
+	return tea.ExecProcess(exec.Command("jj", "split", "-r", revision), func(err error) tea.Msg {
+		return Refresh(revision)
+	})
 }
 
 func Abandon(revision string) tea.Cmd {

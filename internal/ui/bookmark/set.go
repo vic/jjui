@@ -23,10 +23,8 @@ func (m SetBookmarkModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, common.Close
 		case "enter":
 			return m, tea.Sequence(
-				tea.Batch(
-					common.Close,
-					common.SetBookmark(m.revision, m.name.Value()),
-				),
+				common.SetBookmark(m.revision, m.name.Value()),
+				common.Close,
 				common.Refresh(m.revision),
 			)
 		}
