@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	TEMPLATE     = `separate(";", change_id.shortest(1), change_id.shortest(8), separate(",", parents.map(|x| x.change_id().shortest(1))), separate(",", coalesce(bookmarks, ".")), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), description.first_line())`
+	TEMPLATE     = `separate(";", change_id.shortest(1), change_id.shortest(8), separate(",", coalesce(bookmarks, ".")), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), description.first_line())`
 	RootChangeId = "zzzzzzzz"
 )
 
@@ -33,7 +33,7 @@ func (c Commit) IsRoot() bool {
 
 func GetCommits(location string, revset string) (*Dag, error) {
 	var args []string
-	args = append(args, "log", "--reversed", "--template", TEMPLATE)
+	args = append(args, "log", "--template", TEMPLATE)
 	if revset != "" {
 		args = append(args, "-r", revset)
 	}
@@ -58,7 +58,7 @@ func Parse(reader io.Reader) Dag {
 	stack = append(stack, nil)
 	levels := make([]int, 0)
 	levels = append(levels, -1)
-	seen := make(map[string]bool)
+	seen := make(map[string]*Node)
 
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
@@ -77,15 +77,18 @@ func Parse(reader io.Reader) Dag {
 			//parsed graph will be wrong but at least it won't panic until fixed.
 			ChangeIdShort: strings.Trim(parts[0], " │"),
 		}
-		seen[commit.ChangeIdShort] = true
+		node := d.AddNode(&commit)
+		seen[commit.ChangeIdShort] = node
 		if len(parts) > 1 {
 			commit.ChangeId = parts[1]
 		}
 		edgeType := DirectEdge
 		if len(parts) > 2 {
-			commit.Parents = strings.Split(parts[2], ",")
+			commit.Parents = strings.Split(parts[2], " ")
 			for _, parent := range commit.Parents {
-				if _, ok := seen[parent]; !ok {
+				if _, ok := seen[parent]; ok {
+					//node.AddEdge(p, DirectEdge)
+				} else {
 					edgeType = IndirectEdge
 				}
 			}
@@ -114,7 +117,6 @@ func Parse(reader io.Reader) Dag {
 		if len(parts) > 10 {
 			commit.Description = parts[10]
 		}
-		node := d.AddNode(&commit)
 		if index < levels[len(levels)-1] {
 			levels = levels[:len(levels)-1]
 			stack = stack[:len(stack)-1]
