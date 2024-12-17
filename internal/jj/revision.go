@@ -8,7 +8,10 @@ import (
 	"strings"
 )
 
-const RootChangeId = "zzzzzzzz"
+const (
+	TEMPLATE     = `separate(";", change_id.shortest(1), change_id.shortest(8), separate(",", parents.map(|x| x.change_id().shortest(1))), separate(",", coalesce(bookmarks, ".")), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), description.first_line())`
+	RootChangeId = "zzzzzzzz"
+)
 
 type Commit struct {
 	ChangeIdShort string
