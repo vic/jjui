@@ -52,7 +52,7 @@ var allowedFunctions = []string{
 	"latest(",
 }
 
-var functionHelpTexts = map[string]string{
+var functionSignatureHelp = map[string]string{
 	"parents":          "parents(x)",
 	"children":         "children(x)",
 	"ancestors":        "ancestors(x, [, depth]): returns the ancestors of x limited to the given depth",
@@ -75,7 +75,7 @@ type Model struct {
 	Editing       bool
 	Value         string
 	defaultRevSet string
-	functionHelp  string
+	signatureHelp string
 	textInput     textinput.Model
 	help          help.Model
 	keymap        keymap
@@ -107,6 +107,7 @@ func New(defaultRevSet string) Model {
 	ti.Cursor.Style = cursorStyle
 	ti.Focus()
 	ti.ShowSuggestions = true
+	ti.SetValue(defaultRevSet)
 
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
@@ -142,7 +143,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		}
 	case EditRevSetMsg:
 		m.Editing = true
-		m.functionHelp = ""
+		m.signatureHelp = ""
 		m.textInput.Focus()
 		m.textInput.SetValue("")
 		return m, textinput.Blink
@@ -150,18 +151,18 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	value := m.textInput.Value()
 	var suggestions []string
-	lastIndex := strings.LastIndexFunc(value, func(r rune) bool {
-		return unicode.IsSpace(r) || r == ',' || r == '|' || r == '&' || r == '~'
+	lastIndex := strings.LastIndexFunc(strings.Trim(value, "() "), func(r rune) bool {
+		return unicode.IsSpace(r) || r == ',' || r == '|' || r == '&' || r == '~' || r == '('
 	})
 
 	if lastIndex == -1 && value == "" {
 		suggestions = []string{"@ | mine()"}
 	} else {
 		lastFunctionName := value[lastIndex+1:]
-		m.functionHelp = ""
+		m.signatureHelp = ""
 		helpFunction := strings.Trim(lastFunctionName, "() ")
-		if _, ok := functionHelpTexts[helpFunction]; ok {
-			m.functionHelp = functionHelpTexts[helpFunction]
+		if _, ok := functionSignatureHelp[helpFunction]; ok {
+			m.signatureHelp = functionSignatureHelp[helpFunction]
 		}
 		if !strings.HasSuffix(value, ")") && lastFunctionName != "" {
 			for _, f := range allowedFunctions {
@@ -181,8 +182,8 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 func (m Model) View() string {
 	if m.Editing {
-		if m.functionHelp != "" {
-			return lipgloss.JoinVertical(0, m.textInput.View(), m.functionHelp)
+		if m.signatureHelp != "" {
+			return lipgloss.JoinVertical(0, m.textInput.View(), m.signatureHelp)
 		}
 		return lipgloss.JoinVertical(0, m.textInput.View(), m.help.View(m.keymap))
 	}
