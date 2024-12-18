@@ -1,14 +1,14 @@
-@      yz;yzrmnvpl;l p yr;.;true;false;true;true
+@      yz;yzrmnvpl;.;true;false;true;true;some@email.com;19 hours ago
 ├─┬─╮
-│ │ ○  yr;yrxzkkxk;z;.;false;false;false;false;second
-│ ◆ │  p;pvsukzur;qw;main;false;true;false;false;add hello file
+│ │ ○  yr;yrxzkkxk;.;false;false;false;false;some@email.com;20 hours ago;second
+│ ◆ │  p;pvsukzur;main;false;true;false;false;some@email.com;20 hours ago;add hello file
 │ ~ │  (elided revisions)
 │ ├─╯
-○ │  l;lkwqqytz;o;.;false;false;false;false;add `why` file
-○ │  o;oqwrqwrm;x;feat;false;false;false;false;add more file
-○ │  x;xplxzxmu;s;.;false;false;false;false;add another file
-○ │  s;suumnpyy;w;.;false;false;false;false;add one more file
-○ │  w;wrulxpqu;m;.;false;false;false;false;change 1
-○ │  m;mnvkkxpp;z;.;false;false;false;false;third
+○ │  l;lkwqqytz;.;false;false;false;false;some@email.com;19 hours ago;add `why` file
+○ │  o;oqwrqwrm;feat;false;false;false;false;some@email.com;20 hours ago;add more file
+○ │  x;xplxzxmu;.;false;false;false;false;some@email.com;20 hours ago;add another file
+○ │  s;suumnpyy;.;false;false;false;false;some@email.com;20 hours ago;add one more file
+○ │  w;wrulxpqu;.;false;false;false;false;some@email.com;20 hours ago;change 1
+○ │  m;mnvkkxpp;.;false;false;false;false;some@email.com;20 hours ago;third
 ├─╯
-◆  z;zzzzzzzz;.;false;true;false;true
+◆  z;zzzzzzzz;.;false;true;false;true;55 years ago

@@ -27,6 +27,7 @@ const (
 	TERMINATION        = "~ "
 	GLYPH              = "○ "
 	GLYPH_IMMUTABLE    = "◆ "
+	GLYPH_CONFLICT     = "× "
 	GLYPH_WORKING_COPY = "@ "
 )
 
@@ -38,8 +39,7 @@ type Parser struct {
 
 type GraphLine struct {
 	Connections [][]ConnectionType
-	Content     string
-	commit      *Commit
+	Commit      *Commit
 }
 
 func NewParser(reader io.Reader) *Parser {
@@ -75,10 +75,10 @@ func (p *Parser) Parse() []GraphLine {
 		content := p.parseText()
 		var commit Commit
 		if slices.ContainsFunc(connections, func(c ConnectionType) bool {
-			return c == GLYPH_IMMUTABLE || c == GLYPH_WORKING_COPY || c == GLYPH
+			return c == GLYPH_IMMUTABLE || c == GLYPH_WORKING_COPY || c == GLYPH_CONFLICT || c == GLYPH
 		}) {
 			commit = p.parseCommit(content)
-			r := GraphLine{Connections: [][]ConnectionType{connections}, Content: content, commit: &commit}
+			r := GraphLine{Connections: [][]ConnectionType{connections}, Commit: &commit}
 			ret = append(ret, r)
 		} else {
 			previousLine := &ret[len(ret)-1]
@@ -174,6 +174,8 @@ func (p *Parser) isConnectionType() ConnectionType {
 		return GLYPH
 	case GLYPH_IMMUTABLE:
 		return GLYPH_IMMUTABLE
+	case GLYPH_CONFLICT:
+		return GLYPH_CONFLICT
 	case GLYPH_WORKING_COPY:
 		return GLYPH_WORKING_COPY
 	case TERMINATION:

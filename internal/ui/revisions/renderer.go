@@ -1,6 +1,7 @@
 package revisions
 
 import (
+	"fmt"
 	"jjui/internal/jj"
 	"strings"
 
@@ -16,62 +17,58 @@ type SegmentedRenderer struct {
 	op                  common.Operation
 }
 
-func (s SegmentedRenderer) Render(context *jj.TreeRow) {
-	commit := context.Commit
-	highlighted := commit.ChangeIdShort == s.HighlightedRevision
-	if (s.op == common.RebaseBranchOperation || s.op == common.RebaseRevisionOperation) && highlighted {
-		context.Before = common.DropStyle.Render("<< here >>")
-	}
+func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
+	return ""
+}
 
+func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
+	return ""
+}
+
+func (s SegmentedRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
+	highlighted := commit.ChangeIdShort == s.HighlightedRevision
 	style := s.Palette.Normal
 	if highlighted {
 		style = s.Palette.Selected
 	}
-	if commit.Immutable || commit.IsRoot() {
-		context.Glyph = style.Render("◆")
-	} else if commit.IsWorkingCopy {
-		context.Glyph = style.Render("@")
-	} else if commit.Conflict {
-		context.Glyph = style.Render("×")
-	} else {
-		context.Glyph = style.Render("○")
-	}
+	return style.Render(string(connection))
+}
 
-	var w strings.Builder
-	w.WriteString(s.Palette.CommitShortStyle.Render(commit.ChangeIdShort))
-	w.WriteString(s.Palette.CommitIdRestStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):]))
-	w.WriteString(" ")
+func (s SegmentedRenderer) RenderTermination(connection jj.ConnectionType) string {
+	return s.Palette.CommitIdRestStyle.Render(string(connection))
+}
 
+func (s SegmentedRenderer) RenderChangeId(commit *jj.Commit) string {
+	return fmt.Sprintf("%s%s", s.Palette.CommitShortStyle.Render(commit.ChangeIdShort), s.Palette.CommitIdRestStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):]))
+}
+
+func (s SegmentedRenderer) RenderAuthor(commit *jj.Commit) string {
 	if commit.IsRoot() {
-		w.WriteString(s.Palette.Empty.Render("root()"))
-		w.Write([]byte{'\n'})
-		context.Content = w.String()
-		return
+		return s.Palette.Empty.Render("root()")
 	}
+	return s.Palette.AuthorStyle.Render(commit.Author)
+}
 
-	w.WriteString(s.Palette.AuthorStyle.Render(commit.Author))
-	w.WriteString(" ")
+func (s SegmentedRenderer) RenderDate(commit *jj.Commit) string {
+	return s.Palette.TimestampStyle.Render(commit.Timestamp)
+}
 
-	w.WriteString(s.Palette.TimestampStyle.Render(commit.Timestamp))
-	w.WriteString(" ")
-
-	w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
-
+func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
+	highlighted := commit.ChangeIdShort == s.HighlightedRevision
+	var w strings.Builder
 	if s.op == common.SetBookmarkOperation && highlighted {
-		w.Write([]byte{' '})
 		w.WriteString(s.Overlay.View())
 	}
+	w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
+	return w.String()
+}
 
-	if commit.Conflict {
-		w.WriteString(" ")
-		w.WriteString(s.Palette.ConflictStyle.Render("conflict"))
-	}
-	w.Write([]byte{'\n'})
+func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
+	highlighted := commit.ChangeIdShort == s.HighlightedRevision
+	var w strings.Builder
 	if s.op == common.EditDescriptionOperation && highlighted {
 		w.WriteString(s.Overlay.View())
-		w.Write([]byte{'\n'})
-		context.Content = w.String()
-		return
+		return w.String()
 	}
 	if commit.Empty {
 		w.WriteString(s.Palette.Empty.Render("(empty)"))
@@ -86,14 +83,5 @@ func (s SegmentedRenderer) Render(context *jj.TreeRow) {
 	} else {
 		w.WriteString(s.Palette.Normal.Render(commit.Description))
 	}
-	w.Write([]byte{'\n'})
-	if s.Overlay != nil && highlighted && s.op != common.EditDescriptionOperation && s.op != common.SetBookmarkOperation {
-		w.WriteString(s.Overlay.View())
-		w.Write([]byte{'\n'})
-	}
-	context.Content = w.String()
-
-	if context.EdgeType == jj.IndirectEdge {
-		context.ElidedRevision = s.Palette.CommitIdRestStyle.Render("~  (elided revisions)")
-	}
+	return w.String()
 }

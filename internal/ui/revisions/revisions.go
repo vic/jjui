@@ -22,8 +22,7 @@ type viewRange struct {
 }
 
 type Model struct {
-	dag         *jj.Dag
-	rows        []jj.TreeRow
+	rows        []jj.GraphLine
 	status      common.Status
 	error       error
 	op          common.Operation
@@ -38,7 +37,7 @@ type Model struct {
 }
 
 func (m Model) selectedRevision() *jj.Commit {
-	return &m.rows[m.cursor].Commit
+	return m.rows[m.cursor].Commit
 }
 
 func (m Model) Init() tea.Cmd {
@@ -221,7 +220,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	case common.SelectRevisionMsg:
 		r := string(msg)
-		idx := slices.IndexFunc(m.rows, func(row jj.TreeRow) bool {
+		idx := slices.IndexFunc(m.rows, func(row jj.GraphLine) bool {
 			if r == "@" {
 				return row.Commit.IsWorkingCopy
 			}
@@ -234,14 +233,12 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		}
 	case common.UpdateRevisionsMsg:
 		if msg != nil {
-			m.dag = msg
+			m.rows = msg
 			m.status = common.Ready
 			m.cursor = 0
-			m.rows = (*msg).GetTreeRows()
 		}
 	case common.UpdateRevisionsFailedMsg:
 		if msg != nil {
-			m.dag = nil
 			m.rows = nil
 			m.status = common.Error
 			m.error = msg
@@ -313,17 +310,12 @@ func (m Model) View() string {
 	return lipgloss.JoinVertical(0, revset, content)
 }
 
-func New(dag *jj.Dag) Model {
+func New() Model {
 	v := viewRange{start: 0, end: 0}
-	var rows []jj.TreeRow
-	if dag != nil {
-		rows = dag.GetTreeRows()
-	}
 	defaultRevSet, _ := jj.GetConfig("revsets.log")
 	return Model{
 		status:      common.Loading,
-		dag:         dag,
-		rows:        rows,
+		rows:        nil,
 		draggedRow:  -1,
 		viewRange:   &v,
 		op:          common.None,

@@ -14,7 +14,7 @@ type (
 	SelectRevisionMsg        string
 	ShowDiffMsg              string
 	UpdateRevSetMsg          string
-	UpdateRevisionsMsg       *jj.Dag
+	UpdateRevisionsMsg       []jj.GraphLine
 	UpdateRevisionsFailedMsg error
 	UpdateBookmarksMsg       []jj.Bookmark
 	CommandRunningMsg        string
@@ -116,11 +116,11 @@ func MoveBookmark(revision string, bookmark string) tea.Cmd {
 
 func FetchRevisions(location string, revset string) tea.Cmd {
 	return func() tea.Msg {
-		dag, err := jj.GetCommits(location, revset)
+		graphLines, err := jj.GetCommits(location, revset)
 		if err != nil {
 			return UpdateRevisionsFailedMsg(err)
 		}
-		return UpdateRevisionsMsg(dag)
+		return UpdateRevisionsMsg(graphLines)
 	}
 }
 

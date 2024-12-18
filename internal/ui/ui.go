@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"jjui/internal/jj"
 	"strings"
 
 	"jjui/internal/ui/common"
@@ -81,9 +80,8 @@ func New() tea.Model {
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
-	d := jj.NewDag()
 	return Model{
-		revisions: revisions.New(&d),
+		revisions: revisions.New(),
 		help:      h,
 		status:    status.New(),
 	}
