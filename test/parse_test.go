@@ -8,63 +8,57 @@ import (
 	"testing"
 )
 
-func Test_Parse_MergeTrees(t *testing.T) {
-	testFiles := []string{
-		//"testdata/merges.log",
-		"testdata/merges-with-elided-revisions.rendered",
+func Test_Parse(t *testing.T) {
+	tests := []struct {
+		logFile     string
+		highlighted string
+	}{
+		{"testdata/many-levels.log", ""},
+		{"testdata/conflicted.log", ""},
+		{"testdata/merges-with-elided-revisions.log", ""},
+		{"testdata/before-rendering.log", "up"},
 	}
-
-	for _, fileName := range testFiles {
-		fileName := fileName
-		t.Run(fileName, func(t *testing.T) {
-			file, err := os.Open(fileName)
+	for _, test := range tests {
+		t.Run(test.logFile, func(t *testing.T) {
+			file, err := os.Open(test.logFile)
 			if err != nil {
 				t.Fatalf("could not open file: %v", err)
 			}
 
 			p := jj.NewParser(file)
-			lines := p.Parse()
-			assert.NotEmpty(t, lines)
-			assert.Len(t, lines, 10)
-		})
-	}
-}
-
-func Test_Parse_Tree(t *testing.T) {
-	testFiles := []string{
-		//"testdata/many-levels.log",
-		//"testdata/elided-revisions.log",
-		//"testdata/conflicted.log",
-		//"testdata/merges.log",
-		"testdata/merges-with-elided-revisions.log",
-	}
-
-	for _, fileName := range testFiles {
-		fileName := fileName
-		t.Run(fileName, func(t *testing.T) {
-			file, err := os.Open(fileName)
-			if err != nil {
-				t.Fatalf("could not open file: %v", err)
-			}
-
-			p := jj.NewParser(file)
-			var buffer strings.Builder
 			rows := p.Parse()
+			var w jj.GraphWriter
 			for _, row := range rows {
-				jj.RenderRow(&buffer, row, TestRenderer{})
+				w.RenderRow(row, TestRenderer{highlighted: row.Commit.ChangeIdShort == test.highlighted})
 			}
-			renderedFileName := strings.Replace(fileName, ".log", ".expected", 1)
+			actual := w.String(0, w.LineCount())
+			renderedFileName := strings.Replace(test.logFile, ".log", ".expected", 1)
 			content, err := os.ReadFile(renderedFileName)
 			if err != nil {
 				t.Fatalf("could not read file: %v", err)
 			}
+
 			_ = file.Close()
-			assert.Equal(t, string(content), buffer.String())
+			assert.Equal(t, string(content), actual)
+
 		})
 	}
 }
 
-type TestRenderer struct{}
+type TestRenderer struct {
+	highlighted bool
+}
+
+func (t TestRenderer) RenderBefore(commit *jj.Commit) string {
+	if t.highlighted {
+		return "<here>"
+	}
+	return ""
+}
+
+func (t TestRenderer) RenderAfter(commit *jj.Commit) string {
+	return ""
+}
 
 func (t TestRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
 	return string(connection)

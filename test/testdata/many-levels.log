@@ -1,10 +1,12 @@
-○  zr
-○      wl
-├─┬─╮
-│ │ ○      q
-│ │ ├─┬─╮
-│ │ │ │ ○  wr
-│ │ │ ○  r
-│ │ ○  v
-│ ○  t
-○  zo
+@  zo;zorupswq;.;true;false;false;true;some@email.com;2 weeks ago;main branch - single line
+│ ○  t;topmxuzq;.;false;false;false;true;some@email.com;2 weeks ago;branch 2
+├─╯
+│ ○  v;vmylrovy;.;false;false;false;true;some@email.com;2 weeks ago;branch 13 - multiline description
+│ │ ○  r;rqxpwkmr;.;false;false;false;true;some@email.com;2 weeks ago;branch 12
+│ ├─╯
+│ │ ○  wr;wrvqymln;.;false;false;false;true;some@email.com;2 weeks ago;branch 11
+│ ├─╯
+│ ○  q;qzlpqvqu;.;false;false;false;true;some@email.com;2 weeks ago;branch 1
+├─╯
+○  wl;wlqtxrzo;.;false;false;false;true;some@email.com;2 weeks ago;initial commit
+◆  zz;zzzzzzzz;.;false;true;false;true;55 years ago

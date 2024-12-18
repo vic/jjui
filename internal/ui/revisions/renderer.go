@@ -18,10 +18,20 @@ type SegmentedRenderer struct {
 }
 
 func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
+	highlighted := commit.ChangeIdShort == s.HighlightedRevision
+	if s.op == common.RebaseRevisionOperation || s.op == common.RebaseBranchOperation {
+		if highlighted {
+			return common.DropStyle.Render("<< here >>")
+		}
+	}
 	return ""
 }
 
 func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
+	highlighted := commit.ChangeIdShort == s.HighlightedRevision
+	if highlighted && s.Overlay != nil && s.op != common.EditDescriptionOperation && s.op != common.SetBookmarkOperation {
+		return s.Overlay.View()
+	}
 	return ""
 }
 

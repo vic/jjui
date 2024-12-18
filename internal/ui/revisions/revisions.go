@@ -283,14 +283,14 @@ func (m Model) View() string {
 			Overlay:             m.overlay,
 		}
 
-		var w jj.LineTrackingWriter
+		var w jj.GraphWriter
 		selectedLineStart := -1
 		selectedLineEnd := -1
 		for i, row := range m.rows {
 			if i == m.cursor {
 				selectedLineStart = w.LineCount()
 			}
-			jj.RenderRow(&w, row, nodeRenderer)
+			w.RenderRow(row, nodeRenderer)
 			if i == m.cursor {
 				selectedLineEnd = w.LineCount()
 			}
