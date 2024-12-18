@@ -37,6 +37,9 @@ type Model struct {
 }
 
 func (m Model) selectedRevision() *jj.Commit {
+	if m.cursor >= len(m.rows) {
+		return nil
+	}
 	return m.rows[m.cursor].Commit
 }
 
@@ -184,7 +187,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	if value, ok := msg.(common.UpdateRevSetMsg); ok {
 		m.revsetModel.Value = string(value)
-		return m, common.Refresh(m.selectedRevision().ChangeId)
+		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
+			return m, common.Refresh(selectedRevision.ChangeId)
+		}
+		return m, common.Refresh("@")
 	}
 
 	if value, ok := msg.(common.RefreshMsg); ok {
