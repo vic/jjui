@@ -7,7 +7,7 @@ import (
 )
 
 type Commands struct {
-	jj jj.JJCommands
+	jj jj.Commands
 }
 
 func (c Commands) GitFetch() tea.Cmd {
@@ -105,6 +105,6 @@ func (c Commands) NewRevision(from string) tea.Cmd {
 	return ShowOutput(string(output), err)
 }
 
-func NewCommands(jj jj.JJCommands) Commands {
+func NewCommands(jj jj.Commands) Commands {
 	return Commands{jj}
 }

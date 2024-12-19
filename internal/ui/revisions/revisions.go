@@ -341,7 +341,7 @@ func (m Model) View() string {
 	return lipgloss.JoinVertical(0, revset, content)
 }
 
-func New(jj jj.JJCommands) Model {
+func New(jj jj.Commands) Model {
 	v := viewRange{start: 0, end: 0}
 	defaultRevSet, _ := jj.GetConfig("revsets.log")
 	return Model{
