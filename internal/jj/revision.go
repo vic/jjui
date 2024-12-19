@@ -28,14 +28,14 @@ func (c Commit) IsRoot() bool {
 	return c.ChangeId == RootChangeId
 }
 
-func GetCommits(location string, revset string) ([]GraphLine, error) {
+func (jj JJ) GetCommits(revset string) ([]GraphLine, error) {
 	var args []string
 	args = append(args, "log", "--template", TEMPLATE)
 	if revset != "" {
 		args = append(args, "-r", revset)
 	}
 	cmd := exec.Command("jj", args...)
-	cmd.Dir = location
+	cmd.Dir = jj.Location
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("%s\n", output)

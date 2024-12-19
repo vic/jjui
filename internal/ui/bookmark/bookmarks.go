@@ -61,10 +61,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, common.Close
 		case "enter":
 			bookmark := m.list.SelectedItem().(item)
-			return m, tea.Sequence(
-				tea.Batch(common.Close, common.MoveBookmark(m.revision, string(bookmark))),
-				common.Refresh(m.revision),
-			)
+			return m, func() tea.Msg {
+				return common.MoveBookmarkMsg{
+					Revision: m.revision,
+					Bookmark: string(bookmark),
+				}
+			}
 		}
 	}
 	var cmd tea.Cmd

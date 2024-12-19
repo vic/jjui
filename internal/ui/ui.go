@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"jjui/internal/jj"
 	"strings"
 
 	"jjui/internal/ui/common"
@@ -76,12 +77,12 @@ func (m Model) View() string {
 	return lipgloss.JoinVertical(0, m.revisions.View(), footer)
 }
 
-func New() tea.Model {
+func New(jj jj.JJ) tea.Model {
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
 	return Model{
-		revisions: revisions.New(),
+		revisions: revisions.New(jj),
 		help:      h,
 		status:    status.New(),
 	}

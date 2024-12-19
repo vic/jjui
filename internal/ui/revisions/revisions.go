@@ -9,7 +9,6 @@ import (
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
 	"jjui/internal/ui/revisions/revset"
-	"os"
 	"slices"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -34,6 +33,7 @@ type Model struct {
 	overlay     tea.Model
 	revsetModel revset.Model
 	Keymap      keymap
+	common.Commands
 }
 
 func (m Model) selectedRevision() *jj.Commit {
@@ -64,28 +64,28 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	case key.Matches(msg, layer.new):
 		return m, tea.Sequence(
-			common.NewRevision(m.selectedRevision().ChangeId),
+			m.NewRevision(m.selectedRevision().ChangeId),
 			common.Refresh("@"),
 		)
 	case key.Matches(msg, layer.edit):
 		return m, tea.Sequence(
-			common.Edit(m.selectedRevision().ChangeId),
+			m.Edit(m.selectedRevision().ChangeId),
 			common.Refresh("@"),
 		)
 	case key.Matches(msg, layer.diffedit):
-		return m, common.DiffEdit(m.selectedRevision().ChangeId)
+		return m, m.DiffEdit(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.abandon):
 		m.overlay = abandon.New(m.selectedRevision().ChangeId)
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.split):
 		currentRevision := m.selectedRevision().ChangeId
-		return m, common.Split(currentRevision)
+		return m, m.Split(currentRevision)
 	case key.Matches(msg, layer.description):
 		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.Width)
 		m.op = common.EditDescriptionOperation
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
-		return m, common.GetDiff(m.selectedRevision().ChangeId)
+		return m, m.GetDiff(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.gitMode):
 		m.Keymap.gitMode()
 		return m, nil
@@ -130,7 +130,7 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.op = common.None
 		m.draggedRow = -1
 		return m, tea.Sequence(
-			common.Rebase(fromRevision, toRevision, rebaseOperation),
+			m.Rebase(fromRevision, toRevision, rebaseOperation),
 			common.Refresh(fromRevision),
 		)
 	case key.Matches(msg, m.Keymap.cancel):
@@ -145,7 +145,7 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, layer.move):
 		m.Keymap.resetMode()
-		return m, common.FetchBookmarks(m.selectedRevision().ChangeId)
+		return m, m.FetchBookmarks(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.set):
 		m.overlay = bookmark.NewSetBookmark(m.selectedRevision().ChangeId, m.Width)
 		m.op = common.SetBookmarkOperation
@@ -162,13 +162,13 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.fetch):
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
-			common.GitFetch(),
+			m.GitFetch(),
 			common.Refresh(m.selectedRevision().ChangeId),
 		)
 	case key.Matches(msg, layer.push):
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
-			common.GitPush(),
+			m.GitPush(),
 			common.Refresh(m.selectedRevision().ChangeId),
 		)
 	case key.Matches(msg, m.Keymap.cancel):
@@ -178,25 +178,47 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	if _, ok := msg.(common.CloseViewMsg); ok {
+
+	switch msg := msg.(type) {
+	case common.CloseViewMsg:
 		m.Keymap.resetMode()
 		m.overlay = nil
 		m.op = common.None
 		return m, nil
-	}
-
-	if value, ok := msg.(common.UpdateRevSetMsg); ok {
-		m.revsetModel.Value = string(value)
+	case common.UpdateRevSetMsg:
+		m.revsetModel.Value = string(msg)
 		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
 			return m, common.Refresh(selectedRevision.ChangeId)
 		}
 		return m, common.Refresh("@")
-	}
-
-	if value, ok := msg.(common.RefreshMsg); ok {
+	case common.RefreshMsg:
 		return m, tea.Sequence(
-			common.FetchRevisions(os.Getenv("PWD"), m.revsetModel.Value),
-			common.SelectRevision(value.SelectedRevision),
+			m.FetchRevisions(m.revsetModel.Value),
+			common.SelectRevision(msg.SelectedRevision),
+		)
+	case common.AbandonMsg:
+		return m, tea.Sequence(
+			m.Abandon(string(msg)),
+			common.Refresh("@"),
+			common.Close,
+		)
+	case common.MoveBookmarkMsg:
+		return m, tea.Sequence(
+			m.MoveBookmark(msg.Revision, msg.Bookmark),
+			common.Refresh(msg.Revision),
+			common.Close,
+		)
+	case common.SetBookmarkMsg:
+		return m, tea.Sequence(
+			m.SetBookmark(msg.Revision, msg.Bookmark),
+			common.Refresh(msg.Revision),
+			common.Close,
+		)
+	case common.SetDescriptionMsg:
+		return m, tea.Sequence(
+			m.SetDescription(msg.Revision, msg.Description),
+			common.Refresh(msg.Revision),
+			common.Close,
 		)
 	}
 
@@ -319,11 +341,12 @@ func (m Model) View() string {
 	return lipgloss.JoinVertical(0, revset, content)
 }
 
-func New() Model {
+func New(jj jj.JJCommands) Model {
 	v := viewRange{start: 0, end: 0}
 	defaultRevSet, _ := jj.GetConfig("revsets.log")
 	return Model{
 		status:      common.Loading,
+		Commands:    common.NewCommands(jj),
 		rows:        nil,
 		draggedRow:  -1,
 		viewRange:   &v,

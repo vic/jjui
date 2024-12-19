@@ -22,11 +22,9 @@ func (m SetBookmarkModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			return m, common.Close
 		case "enter":
-			return m, tea.Sequence(
-				common.SetBookmark(m.revision, m.name.Value()),
-				common.Close,
-				common.Refresh(m.revision),
-			)
+			return m, func() tea.Msg {
+				return common.SetBookmarkMsg{Revision: m.revision, Bookmark: m.name.Value()}
+			}
 		}
 	case tea.WindowSizeMsg:
 		m.name.SetWidth(msg.Width)
