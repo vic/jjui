@@ -148,6 +148,8 @@ func (p *Parser) isConnectionType() ConnectionType {
 	twoRune := string([]rune{p.firstRune, p.secondRune})
 
 	switch twoRune {
+	case SPACE:
+		return SPACE
 	case HORIZONTAL:
 		return HORIZONTAL
 	case VERTICAL:

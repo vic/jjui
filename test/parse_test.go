@@ -8,7 +8,24 @@ import (
 	"testing"
 )
 
-func Test_Parse(t *testing.T) {
+func Test_Parse_Line(t *testing.T) {
+	tests := []struct {
+		line     string
+		changeId string
+	}{
+		{"│ │ │ ○ │ │ │ │ │   │ │ │  yskmz;yskmzrpp", "yskmz"},
+	}
+	for _, test := range tests {
+		t.Run(test.line, func(t *testing.T) {
+			p := jj.NewParser(strings.NewReader(test.line))
+			rows := p.Parse()
+			assert.Equal(t, 1, len(rows))
+			assert.Equal(t, test.changeId, rows[0].Commit.ChangeIdShort)
+		})
+	}
+}
+
+func Test_Parse_File(t *testing.T) {
 	tests := []struct {
 		logFile     string
 		highlighted string
@@ -40,7 +57,6 @@ func Test_Parse(t *testing.T) {
 
 			_ = file.Close()
 			assert.Equal(t, string(content), actual)
-
 		})
 	}
 }

@@ -3,9 +3,9 @@ package revisions
 import (
 	"fmt"
 	"jjui/internal/jj"
-	"strings"
-
 	"jjui/internal/ui/common"
+	"os"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -49,6 +49,10 @@ func (s SegmentedRenderer) RenderTermination(connection jj.ConnectionType) strin
 }
 
 func (s SegmentedRenderer) RenderChangeId(commit *jj.Commit) string {
+	if len(commit.ChangeIdShort) > len(commit.ChangeId) {
+		fmt.Fprintln(os.Stderr, commit.ChangeIdShort, "is longer than", commit.ChangeId)
+		os.Exit(1)
+	}
 	return fmt.Sprintf("%s%s", s.Palette.CommitShortStyle.Render(commit.ChangeIdShort), s.Palette.CommitIdRestStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):]))
 }
 
