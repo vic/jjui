@@ -1,3 +1,5 @@
+[![Build & Test](https://github.com/idursun/jjui/actions/workflows/go.yml/badge.svg)](https://github.com/idursun/jjui/actions/workflows/go.yml)
+
 # Jujutsu UI
 
 A TUI for working with [Jujutsu version control system](https://github.com/martinvonz/jj).
