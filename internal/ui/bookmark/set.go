@@ -26,8 +26,6 @@ func (m SetBookmarkModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return common.SetBookmarkMsg{Revision: m.revision, Bookmark: m.name.Value()}
 			}
 		}
-	case tea.WindowSizeMsg:
-		m.name.SetWidth(msg.Width)
 	}
 	var cmd tea.Cmd
 	m.name, cmd = m.name.Update(msg)
@@ -38,7 +36,7 @@ func (m SetBookmarkModel) View() string {
 	return m.name.View()
 }
 
-func NewSetBookmark(revision string, width int) tea.Model {
+func NewSetBookmark(revision string) tea.Model {
 	t := textarea.New()
 	t.SetValue("")
 	t.Focus()

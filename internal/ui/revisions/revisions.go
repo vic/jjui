@@ -147,7 +147,7 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.resetMode()
 		return m, m.FetchBookmarks(m.selectedRevision().ChangeId)
 	case key.Matches(msg, layer.set):
-		m.overlay = bookmark.NewSetBookmark(m.selectedRevision().ChangeId, m.Width)
+		m.overlay = bookmark.NewSetBookmark(m.selectedRevision().ChangeId)
 		m.op = common.SetBookmarkOperation
 		return m, m.overlay.Init()
 	case key.Matches(msg, m.Keymap.cancel):
