@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"os"
-
-	"jjui/internal/ui"
-
 	tea "github.com/charmbracelet/bubbletea"
+	"jjui/internal/ui"
+	"os"
 )
+
+var Version = "unknown"
 
 func main() {
 	p := tea.NewProgram(ui.New(), tea.WithAltScreen())
