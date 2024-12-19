@@ -37,7 +37,7 @@ type Parser struct {
 	secondRune rune
 }
 
-type GraphLine struct {
+type GraphRow struct {
 	Connections [][]ConnectionType
 	Commit      *Commit
 }
@@ -49,8 +49,8 @@ func NewParser(reader io.Reader) *Parser {
 	return p
 }
 
-func (p *Parser) Parse() []GraphLine {
-	ret := make([]GraphLine, 0)
+func (p *Parser) Parse() []GraphRow {
+	ret := make([]GraphRow, 0)
 	for p.advance() {
 		if p.firstRune == '\n' {
 			break
@@ -78,7 +78,7 @@ func (p *Parser) Parse() []GraphLine {
 			return c == GLYPH_IMMUTABLE || c == GLYPH_WORKING_COPY || c == GLYPH_CONFLICT || c == GLYPH
 		}) {
 			commit = p.parseCommit(content)
-			r := GraphLine{Connections: [][]ConnectionType{connections}, Commit: &commit}
+			r := GraphRow{Connections: [][]ConnectionType{connections}, Commit: &commit}
 			ret = append(ret, r)
 		} else {
 			previousLine := &ret[len(ret)-1]

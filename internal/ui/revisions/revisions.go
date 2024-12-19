@@ -21,7 +21,7 @@ type viewRange struct {
 }
 
 type Model struct {
-	rows        []jj.GraphLine
+	rows        []jj.GraphRow
 	status      common.Status
 	error       error
 	op          common.Operation
@@ -248,7 +248,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	case common.SelectRevisionMsg:
 		r := string(msg)
-		idx := slices.IndexFunc(m.rows, func(row jj.GraphLine) bool {
+		idx := slices.IndexFunc(m.rows, func(row jj.GraphRow) bool {
 			if r == "@" {
 				return row.Commit.IsWorkingCopy
 			}

@@ -11,7 +11,7 @@ type (
 	SelectRevisionMsg        string
 	ShowDiffMsg              string
 	UpdateRevSetMsg          string
-	UpdateRevisionsMsg       []jj.GraphLine
+	UpdateRevisionsMsg       []jj.GraphRow
 	UpdateRevisionsFailedMsg error
 	UpdateBookmarksMsg       []jj.Bookmark
 	CommandRunningMsg        string

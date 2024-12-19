@@ -28,7 +28,7 @@ func (c Commit) IsRoot() bool {
 	return c.ChangeId == RootChangeId
 }
 
-func (jj JJ) GetCommits(revset string) ([]GraphLine, error) {
+func (jj JJ) GetCommits(revset string) ([]GraphRow, error) {
 	var args []string
 	args = append(args, "log", "--template", TEMPLATE)
 	if revset != "" {

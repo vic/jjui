@@ -139,5 +139,5 @@ type JJCommands interface {
 	DiffEdit(revision string) ([]byte, error)
 	Abandon(revision string) ([]byte, error)
 	New(from string) ([]byte, error)
-	GetCommits(revset string) ([]GraphLine, error)
+	GetCommits(revset string) ([]GraphRow, error)
 }

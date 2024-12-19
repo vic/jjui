@@ -15,7 +15,7 @@ type GraphWriter struct {
 	connections        []ConnectionType
 	connectionsWritten bool
 	renderer           RowRenderer
-	row                GraphLine
+	row                GraphRow
 }
 
 func (w *GraphWriter) Write(p []byte) (n int, err error) {
@@ -70,7 +70,7 @@ func (w *GraphWriter) Reset() {
 	w.lineCount = 0
 }
 
-func (w *GraphWriter) RenderRow(row GraphLine, renderer RowRenderer) {
+func (w *GraphWriter) RenderRow(row GraphRow, renderer RowRenderer) {
 	w.connectionPos = 0
 	w.connectionsWritten = false
 	w.row = row
