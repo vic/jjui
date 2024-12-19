@@ -5,7 +5,6 @@ import (
 	"io"
 	"strings"
 
-	"jjui/internal/jj"
 	"jjui/internal/ui/common"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -16,6 +15,7 @@ import (
 type Model struct {
 	revision string
 	list     list.Model
+	op       common.Operation
 }
 
 type item string
@@ -61,11 +61,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, common.Close
 		case "enter":
 			bookmark := m.list.SelectedItem().(item)
-			return m, func() tea.Msg {
-				return common.MoveBookmarkMsg{
-					Revision: m.revision,
-					Bookmark: string(bookmark),
-				}
+			switch m.op {
+			case common.MoveBookmarkOperation:
+				return m, moveBookmark(m.revision, string(bookmark))
+			case common.DeleteBookmarkOperation:
+				return m, deleteBookmark(string(bookmark))
 			}
 		}
 	}
@@ -78,7 +78,23 @@ func (m Model) View() string {
 	return m.list.View()
 }
 
-func New(revision string, bookmarks []jj.Bookmark, width int) tea.Model {
+func moveBookmark(revision string, bookmark string) tea.Cmd {
+	return func() tea.Msg {
+		return common.MoveBookmarkMsg{
+			Revision: revision,
+			Bookmark: bookmark,
+		}
+	}
+}
+
+func deleteBookmark(bookmark string) tea.Cmd {
+	return func() tea.Msg {
+		return common.DeleteBookmarkMsg{
+			Bookmark: bookmark,
+		}
+	}
+}
+func New(revision string, bookmarks []string, op common.Operation, width int) tea.Model {
 	var items []list.Item
 	for _, bookmark := range bookmarks {
 		item := item(bookmark)
@@ -93,6 +109,7 @@ func New(revision string, bookmarks []jj.Bookmark, width int) tea.Model {
 	l.SetShowHelp(false)
 	return Model{
 		revision: revision,
+		op:       op,
 		list:     l,
 	}
 }

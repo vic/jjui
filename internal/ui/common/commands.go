@@ -45,6 +45,11 @@ func (c Commands) MoveBookmark(revision string, bookmark string) tea.Cmd {
 	return ShowOutput(string(output), err)
 }
 
+func (c Commands) DeleteBookmark(bookmark string) tea.Cmd {
+	output, err := c.jj.DeleteBookmark(bookmark)
+	return ShowOutput(string(output), err)
+}
+
 func (c Commands) FetchRevisions(revset string) tea.Cmd {
 	return func() tea.Msg {
 		graphLines, err := c.jj.GetCommits(revset)
@@ -55,10 +60,14 @@ func (c Commands) FetchRevisions(revset string) tea.Cmd {
 	}
 }
 
-func (c Commands) FetchBookmarks(revision string) tea.Cmd {
+func (c Commands) FetchBookmarks(revision string, op Operation) tea.Cmd {
 	return func() tea.Msg {
 		bookmarks, _ := c.jj.ListBookmark(revision)
-		return UpdateBookmarksMsg(bookmarks)
+		return UpdateBookmarksMsg{
+			Bookmarks: bookmarks,
+			Revision:  revision,
+			Operation: op,
+		}
 	}
 }
 

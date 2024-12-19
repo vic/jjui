@@ -65,18 +65,18 @@ type TestRenderer struct {
 	highlighted bool
 }
 
-func (t TestRenderer) RenderBefore(commit *jj.Commit) string {
+func (t TestRenderer) RenderBefore(*jj.Commit) string {
 	if t.highlighted {
 		return "<here>"
 	}
 	return ""
 }
 
-func (t TestRenderer) RenderAfter(commit *jj.Commit) string {
+func (t TestRenderer) RenderAfter(*jj.Commit) string {
 	return ""
 }
 
-func (t TestRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
+func (t TestRenderer) RenderGlyph(connection jj.ConnectionType, _ *jj.Commit) string {
 	return string(connection)
 }
 
@@ -95,11 +95,11 @@ func (t TestRenderer) RenderAuthor(commit *jj.Commit) string {
 	return ""
 }
 
-func (t TestRenderer) RenderDate(commit *jj.Commit) string {
+func (t TestRenderer) RenderDate(*jj.Commit) string {
 	return ""
 }
 
-func (t TestRenderer) RenderBookmarks(commit *jj.Commit) string {
+func (t TestRenderer) RenderBookmarks(*jj.Commit) string {
 	return ""
 }
 

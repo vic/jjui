@@ -11,8 +11,6 @@ type JJ struct {
 	Location string
 }
 
-type Bookmark string
-
 func (jj JJ) GetConfig(key string) ([]byte, error) {
 	cmd := exec.Command("jj", "config", "get", key)
 	cmd.Dir = jj.Location
@@ -42,7 +40,7 @@ func (jj JJ) SetDescription(rev string, description string) ([]byte, error) {
 	return output, err
 }
 
-func (jj JJ) ListBookmark(revision string) ([]Bookmark, error) {
+func (jj JJ) ListBookmark(revision string) ([]string, error) {
 	cmd := exec.Command("jj", "log", "-r", fmt.Sprintf("::%s- & bookmarks()", revision), "--template", "local_bookmarks.map(|x| x.name() ++ '\n')", "--no-graph")
 	cmd.Dir = jj.Location
 	output, err := cmd.Output()
@@ -50,13 +48,13 @@ func (jj JJ) ListBookmark(revision string) ([]Bookmark, error) {
 		return nil, err
 	}
 
-	var bookmarks []Bookmark
+	var bookmarks []string
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
 		if line == "" {
 			continue
 		}
-		bookmarks = append(bookmarks, Bookmark(line))
+		bookmarks = append(bookmarks, line)
 	}
 	return bookmarks, nil
 }
@@ -70,6 +68,13 @@ func (jj JJ) SetBookmark(revision string, name string) ([]byte, error) {
 
 func (jj JJ) MoveBookmark(revision string, bookmark string) ([]byte, error) {
 	cmd := exec.Command("jj", "bookmark", "move", bookmark, "--to", revision)
+	cmd.Dir = jj.Location
+	output, err := cmd.CombinedOutput()
+	return output, err
+}
+
+func (jj JJ) DeleteBookmark(bookmark string) ([]byte, error) {
+	cmd := exec.Command("jj", "bookmark", "delete", bookmark)
 	cmd.Dir = jj.Location
 	output, err := cmd.CombinedOutput()
 	return output, err

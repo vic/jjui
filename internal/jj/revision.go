@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	TEMPLATE     = `separate(";", change_id.shortest(1), change_id.shortest(8), separate(",", coalesce(bookmarks, ".")), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), description.first_line())`
+	TEMPLATE     = `separate(";", change_id.shortest(1), change_id.shortest(8), coalesce(bookmarks.join(","), "."), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), description.first_line())`
 	RootChangeId = "zzzzzzzz"
 )
 

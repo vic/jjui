@@ -145,7 +145,12 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, layer.move):
 		m.Keymap.resetMode()
-		return m, m.FetchBookmarks(m.selectedRevision().ChangeId)
+		return m, m.FetchBookmarks(m.selectedRevision().ChangeId, common.MoveBookmarkOperation)
+	case key.Matches(msg, layer.delete):
+		m.Keymap.resetMode()
+		selected := m.selectedRevision()
+		m.overlay = bookmark.New(selected.ChangeId, selected.Bookmarks, common.DeleteBookmarkOperation, m.Width)
+		return m, m.overlay.Init()
 	case key.Matches(msg, layer.set):
 		m.overlay = bookmark.NewSetBookmark(m.selectedRevision().ChangeId)
 		m.op = common.SetBookmarkOperation
@@ -206,6 +211,12 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, tea.Sequence(
 			m.MoveBookmark(msg.Revision, msg.Bookmark),
 			common.Refresh(msg.Revision),
+			common.Close,
+		)
+	case common.DeleteBookmarkMsg:
+		return m, tea.Sequence(
+			m.DeleteBookmark(msg.Bookmark),
+			common.Refresh(m.selectedRevision().ChangeId),
 			common.Close,
 		)
 	case common.SetBookmarkMsg:
@@ -272,7 +283,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.error = msg
 		}
 	case common.UpdateBookmarksMsg:
-		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg, m.Width)
+		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg.Bookmarks, msg.Operation, m.Width)
 		return m, m.overlay.Init()
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width

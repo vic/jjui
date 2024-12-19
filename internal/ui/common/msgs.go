@@ -13,10 +13,14 @@ type (
 	UpdateRevSetMsg          string
 	UpdateRevisionsMsg       []jj.GraphRow
 	UpdateRevisionsFailedMsg error
-	UpdateBookmarksMsg       []jj.Bookmark
-	CommandRunningMsg        string
-	AbandonMsg               string
-	SetDescriptionMsg        struct {
+	UpdateBookmarksMsg       struct {
+		Bookmarks []string
+		Revision  string
+		Operation Operation
+	}
+	CommandRunningMsg string
+	AbandonMsg        string
+	SetDescriptionMsg struct {
 		Revision    string
 		Description string
 	}
@@ -26,6 +30,9 @@ type (
 	}
 	MoveBookmarkMsg struct {
 		Revision string
+		Bookmark string
+	}
+	DeleteBookmarkMsg struct {
 		Bookmark string
 	}
 	CommandCompletedMsg struct {
@@ -42,6 +49,8 @@ const (
 	RebaseBranchOperation
 	EditDescriptionOperation
 	SetBookmarkOperation
+	MoveBookmarkOperation
+	DeleteBookmarkOperation
 )
 
 type Status int
