@@ -300,6 +300,9 @@ func (m Model) View() string {
 			if i == m.cursor {
 				selectedLineEnd = w.LineCount()
 			}
+			if selectedLineEnd > 0 && w.LineCount() > h && w.LineCount() > m.viewRange.end {
+				break
+			}
 		}
 
 		if selectedLineStart <= m.viewRange.start {
