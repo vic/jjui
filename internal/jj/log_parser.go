@@ -122,7 +122,6 @@ func (p *Parser) parseCommit(content string) Commit {
 	}
 	if commit.ChangeId == RootChangeId {
 		commit.Conflict = false
-		commit.Parents = nil
 		commit.Immutable = false
 		commit.Author = ""
 		commit.Bookmarks = nil

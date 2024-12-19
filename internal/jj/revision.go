@@ -14,7 +14,6 @@ const (
 type Commit struct {
 	ChangeIdShort string
 	ChangeId      string
-	Parents       []string
 	IsWorkingCopy bool
 	Author        string
 	Timestamp     string
