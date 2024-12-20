@@ -19,6 +19,11 @@ func main() {
 	if len(os.Args) > 1 {
 		location = os.Args[1]
 	}
+	if _, err := os.Stat(location + "/.jj"); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: There is no jj repo in \"%s\".\n", location)
+		os.Exit(1)
+	}
+
 	p := tea.NewProgram(ui.New(jj.JJ{Location: location}), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running program: %v\n", err)
