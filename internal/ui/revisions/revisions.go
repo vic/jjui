@@ -64,28 +64,28 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	case key.Matches(msg, layer.new):
 		return m, tea.Sequence(
-			m.NewRevision(m.selectedRevision().ChangeId),
+			m.NewRevision(m.selectedRevision().GetChangeId()),
 			common.Refresh("@"),
 		)
 	case key.Matches(msg, layer.edit):
 		return m, tea.Sequence(
-			m.Edit(m.selectedRevision().ChangeId),
+			m.Edit(m.selectedRevision().GetChangeId()),
 			common.Refresh("@"),
 		)
 	case key.Matches(msg, layer.diffedit):
-		return m, m.DiffEdit(m.selectedRevision().ChangeId)
+		return m, m.DiffEdit(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.abandon):
-		m.overlay = abandon.New(m.selectedRevision().ChangeId)
+		m.overlay = abandon.New(m.selectedRevision().GetChangeId())
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.split):
-		currentRevision := m.selectedRevision().ChangeId
+		currentRevision := m.selectedRevision().GetChangeId()
 		return m, m.Split(currentRevision)
 	case key.Matches(msg, layer.description):
-		m.overlay = describe.New(m.selectedRevision().ChangeId, m.selectedRevision().Description, m.Width)
+		m.overlay = describe.New(m.selectedRevision().GetChangeId(), m.selectedRevision().Description, m.Width)
 		m.op = common.EditDescriptionOperation
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
-		return m, m.GetDiff(m.selectedRevision().ChangeId)
+		return m, m.GetDiff(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.gitMode):
 		m.Keymap.gitMode()
 		return m, nil
@@ -145,14 +145,14 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, layer.move):
 		m.Keymap.resetMode()
-		return m, m.FetchBookmarks(m.selectedRevision().ChangeId, common.MoveBookmarkOperation)
+		return m, m.FetchBookmarks(m.selectedRevision().GetChangeId(), common.MoveBookmarkOperation)
 	case key.Matches(msg, layer.delete):
 		m.Keymap.resetMode()
 		selected := m.selectedRevision()
-		m.overlay = bookmark.New(selected.ChangeId, selected.Bookmarks, common.DeleteBookmarkOperation, m.Width)
+		m.overlay = bookmark.New(selected.GetChangeId(), selected.Bookmarks, common.DeleteBookmarkOperation, m.Width)
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.set):
-		m.overlay = bookmark.NewSetBookmark(m.selectedRevision().ChangeId)
+		m.overlay = bookmark.NewSetBookmark(m.selectedRevision().GetChangeId())
 		m.op = common.SetBookmarkOperation
 		return m, m.overlay.Init()
 	case key.Matches(msg, m.Keymap.cancel):
@@ -168,13 +168,13 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
 			m.GitFetch(),
-			common.Refresh(m.selectedRevision().ChangeId),
+			common.Refresh(m.selectedRevision().GetChangeId()),
 		)
 	case key.Matches(msg, layer.push):
 		m.Keymap.resetMode()
 		return m, tea.Sequence(
 			m.GitPush(),
-			common.Refresh(m.selectedRevision().ChangeId),
+			common.Refresh(m.selectedRevision().GetChangeId()),
 		)
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
@@ -193,7 +193,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.UpdateRevSetMsg:
 		m.revsetModel.Value = string(msg)
 		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
-			return m, common.Refresh(selectedRevision.ChangeId)
+			return m, common.Refresh(selectedRevision.GetChangeId())
 		}
 		return m, common.Refresh("@")
 	case common.RefreshMsg:
@@ -216,7 +216,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.DeleteBookmarkMsg:
 		return m, tea.Sequence(
 			m.DeleteBookmark(msg.Bookmark),
-			common.Refresh(m.selectedRevision().ChangeId),
+			common.Refresh(m.selectedRevision().GetChangeId()),
 			common.Close,
 		)
 	case common.SetBookmarkMsg:
@@ -263,7 +263,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			if r == "@" {
 				return row.Commit.IsWorkingCopy
 			}
-			return row.Commit.ChangeId == r
+			return row.Commit.GetChangeId() == r
 		})
 		if idx != -1 {
 			m.cursor = idx
@@ -283,7 +283,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.error = msg
 		}
 	case common.UpdateBookmarksMsg:
-		m.overlay = bookmark.New(m.selectedRevision().ChangeId, msg.Bookmarks, msg.Operation, m.Width)
+		m.overlay = bookmark.New(m.selectedRevision().GetChangeId(), msg.Bookmarks, msg.Operation, m.Width)
 		return m, m.overlay.Init()
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
@@ -312,7 +312,7 @@ func (m Model) View() string {
 
 		highlightedRevision := ""
 		if m.cursor < len(m.rows) {
-			highlightedRevision = m.rows[m.cursor].Commit.ChangeIdShort
+			highlightedRevision = m.rows[m.cursor].Commit.GetChangeId()
 		}
 
 		nodeRenderer := SegmentedRenderer{

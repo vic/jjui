@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	TEMPLATE     = `separate(";", change_id.shortest(1), change_id.shortest(8), coalesce(bookmarks.join(","), "."), current_working_copy, immutable, conflict, empty, author.email(), author.timestamp().ago(), description.first_line())`
+	TEMPLATE     = `separate(";", change_id.shortest(1), change_id.shortest(8), coalesce(bookmarks.join(","), "."), current_working_copy, immutable, conflict, empty, hidden, author.email(), author.timestamp().ago(), description.first_line())`
 	RootChangeId = "zzzzzzzz"
 )
 
@@ -22,10 +22,17 @@ type Commit struct {
 	Immutable     bool
 	Conflict      bool
 	Empty         bool
+	Hidden        bool
 }
 
 func (c Commit) IsRoot() bool {
 	return c.ChangeId == RootChangeId
+}
+func (c Commit) GetChangeId() string {
+	if c.Hidden {
+		return "~" + c.ChangeId
+	}
+	return c.ChangeId
 }
 
 func (jj JJ) GetCommits(revset string) ([]GraphRow, error) {

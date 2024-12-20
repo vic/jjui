@@ -112,15 +112,18 @@ func (p *Parser) parseCommit(content string) Commit {
 		commit.Empty = parts[6] == "true"
 	}
 	if len(parts) > 7 {
-		commit.Author = parts[7]
+		commit.Hidden = parts[7] == "true"
 	}
 	if len(parts) > 8 {
-		commit.Timestamp = parts[8]
+		commit.Author = parts[8]
 	}
 	if len(parts) > 9 {
-		commit.Description = parts[9]
+		commit.Timestamp = parts[9]
 	}
-	if commit.ChangeId == RootChangeId {
+	if len(parts) > 10 {
+		commit.Description = parts[10]
+	}
+	if commit.IsRoot() {
 		commit.Conflict = false
 		commit.Immutable = false
 		commit.Author = ""

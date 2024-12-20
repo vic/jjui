@@ -89,7 +89,7 @@ func (t TestRenderer) RenderChangeId(commit *jj.Commit) string {
 }
 
 func (t TestRenderer) RenderAuthor(commit *jj.Commit) string {
-	if commit.ChangeId == jj.RootChangeId {
+	if commit.IsRoot() {
 		return "root()"
 	}
 	return ""
@@ -104,7 +104,7 @@ func (t TestRenderer) RenderBookmarks(*jj.Commit) string {
 }
 
 func (t TestRenderer) RenderDescription(commit *jj.Commit) string {
-	if commit.ChangeId == jj.RootChangeId {
+	if commit.IsRoot() {
 		return ""
 	}
 	var w strings.Builder

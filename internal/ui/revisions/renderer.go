@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"jjui/internal/jj"
 	"jjui/internal/ui/common"
-	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,7 +17,7 @@ type SegmentedRenderer struct {
 }
 
 func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
-	highlighted := commit.ChangeIdShort == s.HighlightedRevision
+	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	if s.op == common.RebaseRevisionOperation || s.op == common.RebaseBranchOperation {
 		if highlighted {
 			return common.DropStyle.Render("<< here >>")
@@ -28,7 +27,7 @@ func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
-	highlighted := commit.ChangeIdShort == s.HighlightedRevision
+	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	if highlighted && s.Overlay != nil && s.op != common.EditDescriptionOperation && s.op != common.SetBookmarkOperation {
 		return s.Overlay.View()
 	}
@@ -36,7 +35,7 @@ func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
-	highlighted := commit.ChangeIdShort == s.HighlightedRevision
+	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	style := s.Palette.Normal
 	if highlighted {
 		style = s.Palette.Selected
@@ -49,11 +48,12 @@ func (s SegmentedRenderer) RenderTermination(connection jj.ConnectionType) strin
 }
 
 func (s SegmentedRenderer) RenderChangeId(commit *jj.Commit) string {
-	if len(commit.ChangeIdShort) > len(commit.ChangeId) {
-		fmt.Fprintln(os.Stderr, commit.ChangeIdShort, "is longer than", commit.ChangeId)
-		os.Exit(1)
+	hidden := ""
+	if commit.Hidden {
+		hidden = s.Palette.Normal.Render(" hidden")
 	}
-	return fmt.Sprintf("%s%s", s.Palette.CommitShortStyle.Render(commit.ChangeIdShort), s.Palette.CommitIdRestStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):]))
+
+	return fmt.Sprintf("%s%s %s", s.Palette.CommitShortStyle.Render(commit.ChangeIdShort), s.Palette.CommitIdRestStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):]), hidden)
 }
 
 func (s SegmentedRenderer) RenderAuthor(commit *jj.Commit) string {
@@ -68,7 +68,7 @@ func (s SegmentedRenderer) RenderDate(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
-	highlighted := commit.ChangeIdShort == s.HighlightedRevision
+	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	var w strings.Builder
 	if s.op == common.SetBookmarkOperation && highlighted {
 		w.WriteString(s.Overlay.View())
@@ -78,7 +78,7 @@ func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
-	highlighted := commit.ChangeIdShort == s.HighlightedRevision
+	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	var w strings.Builder
 	if s.op == common.EditDescriptionOperation && highlighted {
 		w.WriteString(s.Overlay.View())
