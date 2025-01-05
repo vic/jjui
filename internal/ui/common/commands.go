@@ -92,13 +92,14 @@ func (c Commands) Edit(revision string) tea.Cmd {
 
 func (c Commands) DiffEdit(revision string) tea.Cmd {
 	return tea.ExecProcess(exec.Command("jj", "diffedit", "-r", revision), func(err error) tea.Msg {
-		return Refresh(revision)
+		return RefreshMsg{SelectedRevision: revision}
 	})
 }
 
 func (c Commands) Split(revision string) tea.Cmd {
-	return tea.ExecProcess(exec.Command("jj", "split", "-r", revision), func(err error) tea.Msg {
-		return Refresh(revision)
+	command := exec.Command("jj", "split", "-r", revision)
+	return tea.ExecProcess(command, func(err error) tea.Msg {
+		return RefreshMsg{SelectedRevision: revision}
 	})
 }
 
