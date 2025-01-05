@@ -27,7 +27,7 @@ func (w *GraphWriter) Write(p []byte) (n int, err error) {
 		w.renderConnections()
 	}
 
-	if bytes.Index(p, []byte("\n")) == -1 {
+	if !bytes.Contains(p, []byte("\n")) {
 		return w.buffer.Write(p)
 	}
 	scanner := bufio.NewScanner(bytes.NewReader(p))

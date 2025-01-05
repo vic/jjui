@@ -28,6 +28,7 @@ type Commit struct {
 func (c Commit) IsRoot() bool {
 	return c.ChangeId == RootChangeId
 }
+
 func (c Commit) GetChangeId() string {
 	if c.Hidden {
 		return "~" + c.ChangeId
@@ -45,7 +46,7 @@ func (jj JJ) GetCommits(revset string) ([]GraphRow, error) {
 	cmd.Dir = jj.Location
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("%s\n", output)
+		return nil, fmt.Errorf("%s", output)
 	}
 	p := NewParser(bytes.NewReader(output))
 	graphLines := p.Parse()
