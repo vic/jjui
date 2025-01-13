@@ -1,20 +1,23 @@
 package jj
 
+import "os/exec"
+
 type Commands interface {
 	GetConfig(key string) ([]byte, error)
-	RebaseCommand(from string, to string) ([]byte, error)
-	RebaseBranchCommand(from string, to string) ([]byte, error)
-	SetDescription(rev string, description string) ([]byte, error)
-	ListBookmark(revision string) ([]string, error)
-	SetBookmark(revision string, name string) ([]byte, error)
-	MoveBookmark(revision string, bookmark string) ([]byte, error)
-	DeleteBookmark(bookmark string) ([]byte, error)
-	GitFetch() ([]byte, error)
-	GitPush() ([]byte, error)
-	Diff(revision string) ([]byte, error)
-	Edit(revision string) ([]byte, error)
-	DiffEdit(revision string) ([]byte, error)
-	Abandon(revision string) ([]byte, error)
-	New(from string) ([]byte, error)
+	RebaseCommand(from string, to string) *exec.Cmd
+	RebaseBranchCommand(from string, to string) *exec.Cmd
+	SetDescription(rev string, description string) *exec.Cmd
+	ListBookmark(revision string) *exec.Cmd
+	SetBookmark(revision string, name string) *exec.Cmd
+	MoveBookmark(revision string, bookmark string) *exec.Cmd
+	DeleteBookmark(bookmark string) *exec.Cmd
+	GitFetch() *exec.Cmd
+	GitPush() *exec.Cmd
+	Diff(revision string) *exec.Cmd
+	Edit(revision string) *exec.Cmd
+	DiffEdit(revision string) *exec.Cmd
+	Abandon(revision string) *exec.Cmd
+	New(from string) *exec.Cmd
+	Split(revision string) *exec.Cmd
 	GetCommits(revset string) ([]GraphRow, error)
 }

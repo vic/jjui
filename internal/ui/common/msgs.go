@@ -3,6 +3,7 @@ package common
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"jjui/internal/jj"
+	"os/exec"
 )
 
 type (
@@ -89,10 +90,11 @@ func CommandRunning(command string) tea.Cmd {
 	}
 }
 
-func ShowOutput(output string, err error) tea.Cmd {
+func ShowOutput(c *exec.Cmd) tea.Cmd {
+	output, err := c.CombinedOutput()
 	return func() tea.Msg {
 		return CommandCompletedMsg{
-			Output: output,
+			Output: string(output),
 			Err:    err,
 		}
 	}
