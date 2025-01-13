@@ -86,6 +86,8 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
 		return m, m.GetDiff(m.selectedRevision().GetChangeId())
+	case key.Matches(msg, layer.refresh):
+		return m, common.Refresh(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.gitMode):
 		m.Keymap.gitMode()
 		return m, nil

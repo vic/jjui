@@ -23,6 +23,7 @@ type baseLayer struct {
 	diff         key.Binding
 	new          key.Binding
 	revset       key.Binding
+	refresh      key.Binding
 	quit         key.Binding
 }
 
@@ -56,6 +57,7 @@ func newKeyMap() keymap {
 		diff:         key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
 		new:          key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new")),
 		revset:       key.NewBinding(key.WithKeys("L"), key.WithHelp("L", "revset")),
+		refresh:      key.NewBinding(key.WithKeys("ctrl+r"), key.WithHelp("ctrl+r", "refresh")),
 		quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 
