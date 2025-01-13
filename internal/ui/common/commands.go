@@ -27,6 +27,17 @@ func (c Commands) Rebase(from, to string, operation Operation) tea.Cmd {
 	return ShowOutput(cmd)
 }
 
+func (c Commands) Squash(from, destination string) tea.Cmd {
+	cmd := c.jj.Squash(from, destination)
+	return tea.Sequence(
+		CommandRunning(strings.Join(cmd.Args, " ")),
+		tea.ExecProcess(cmd, func(err error) tea.Msg {
+			return CommandCompletedMsg{Output: "", Err: err}
+		}),
+		Refresh(destination),
+	)
+}
+
 func (c Commands) SetDescription(revision string, description string) tea.Cmd {
 	return ShowOutput(c.jj.SetDescription(revision, description))
 }

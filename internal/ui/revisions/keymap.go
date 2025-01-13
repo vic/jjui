@@ -17,6 +17,7 @@ type baseLayer struct {
 	diffedit     key.Binding
 	split        key.Binding
 	rebaseMode   key.Binding
+	squashMode   key.Binding
 	bookmarkMode key.Binding
 	gitMode      key.Binding
 	description  key.Binding
@@ -30,6 +31,10 @@ type baseLayer struct {
 type rebaseLayer struct {
 	revision key.Binding
 	branch   key.Binding
+}
+
+type squashLayer struct {
+	apply key.Binding
 }
 
 type bookmarkLayer struct {
@@ -50,6 +55,7 @@ func newKeyMap() keymap {
 		edit:         key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit")),
 		diffedit:     key.NewBinding(key.WithKeys("E"), key.WithHelp("E", "diff edit")),
 		split:        key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "split")),
+		squashMode:   key.NewBinding(key.WithKeys("S"), key.WithHelp("S", "squash")),
 		rebaseMode:   key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase")),
 		bookmarkMode: key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "bookmark")),
 		gitMode:      key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git")),
@@ -64,6 +70,10 @@ func newKeyMap() keymap {
 	bindings['r'] = rebaseLayer{
 		revision: key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase revision")),
 		branch:   key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "rebase branch")),
+	}
+
+	bindings['s'] = squashLayer{
+		apply: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
 	}
 
 	bindings['b'] = bookmarkLayer{
@@ -95,6 +105,10 @@ func (k *keymap) rebaseMode() {
 	k.current = 'r'
 }
 
+func (k *keymap) squashMode() {
+	k.current = 's'
+}
+
 func (k *keymap) bookmarkMode() {
 	k.current = 'b'
 }
@@ -106,9 +120,11 @@ func (k *keymap) resetMode() {
 func (k *keymap) ShortHelp() []key.Binding {
 	switch b := k.bindings[k.current].(type) {
 	case baseLayer:
-		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.diffedit, b.diff, b.abandon, b.description, b.split, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
+		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.diffedit, b.diff, b.abandon, b.description, b.split, b.rebaseMode, b.squashMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
-		return []key.Binding{b.revision, b.branch}
+		return []key.Binding{k.up, k.down, b.branch, b.revision}
+	case squashLayer:
+		return []key.Binding{k.up, k.down, b.apply}
 	case gitLayer:
 		return []key.Binding{b.push, b.fetch}
 	case bookmarkLayer:

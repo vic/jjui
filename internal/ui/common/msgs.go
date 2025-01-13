@@ -49,6 +49,7 @@ const (
 	None Operation = iota
 	RebaseRevisionOperation
 	RebaseBranchOperation
+	SquashOperation
 	EditDescriptionOperation
 	SetBookmarkOperation
 	MoveBookmarkOperation

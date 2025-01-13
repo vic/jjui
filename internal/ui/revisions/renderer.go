@@ -37,10 +37,14 @@ func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
 func (s SegmentedRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
 	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	style := s.Palette.Normal
+	squashDropMarker := ""
 	if highlighted {
 		style = s.Palette.Selected
+		if s.op == common.SquashOperation {
+			squashDropMarker = common.DropStyle.Render(" << into >> ")
+		}
 	}
-	return style.Render(string(connection))
+	return style.Render(string(connection) + squashDropMarker)
 }
 
 func (s SegmentedRenderer) RenderTermination(connection jj.ConnectionType) string {

@@ -91,6 +91,14 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.gitMode):
 		m.Keymap.gitMode()
 		return m, nil
+	case key.Matches(msg, layer.squashMode):
+		m.Keymap.squashMode()
+		m.op = common.SquashOperation
+		m.draggedRow = m.cursor
+		if m.cursor < len(m.rows)-1 {
+			m.cursor++
+		}
+		return m, nil
 	case key.Matches(msg, layer.rebaseMode):
 		m.Keymap.rebaseMode()
 		return m, nil
@@ -127,14 +135,42 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			break
 		}
 		rebaseOperation := m.op
-		fromRevision := m.rows[m.draggedRow].Commit.ChangeIdShort
-		toRevision := m.rows[m.cursor].Commit.ChangeIdShort
+		fromCommit := m.rows[m.draggedRow].Commit
+		toCommit := m.rows[m.cursor].Commit
 		m.op = common.None
 		m.draggedRow = -1
 		return m, tea.Sequence(
-			m.Rebase(fromRevision, toRevision, rebaseOperation),
-			common.Refresh(fromRevision),
+			m.Rebase(fromCommit.ChangeIdShort, toCommit.ChangeIdShort, rebaseOperation),
+			common.Refresh(fromCommit.GetChangeId()),
 		)
+	case key.Matches(msg, m.Keymap.cancel):
+		m.Keymap.resetMode()
+		m.op = common.None
+	}
+	return m, nil
+}
+
+func (m Model) handleSquashKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
+	switch {
+	case key.Matches(msg, m.Keymap.down):
+		if m.cursor < len(m.rows)-1 {
+			m.cursor++
+		}
+	case key.Matches(msg, m.Keymap.up):
+		if m.cursor > 0 {
+			m.cursor--
+		}
+	case key.Matches(msg, m.Keymap.apply):
+		m.Keymap.resetMode()
+		if m.draggedRow == -1 {
+			m.op = common.None
+			break
+		}
+		fromCommit := m.rows[m.draggedRow].Commit
+		destinationCommit := m.rows[m.cursor].Commit
+		m.op = common.None
+		m.draggedRow = -1
+		return m, m.Squash(fromCommit.ChangeIdShort, destinationCommit.GetChangeId())
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
 		m.op = common.None
@@ -253,6 +289,8 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			return m.handleBaseKeys(msg)
 		case 'r':
 			return m.handleRebaseKeys(msg)
+		case 's':
+			return m.handleSquashKeys(msg)
 		case 'b':
 			return m.handleBookmarkKeys(msg)
 		case 'g':

@@ -30,6 +30,12 @@ func (jj JJ) RebaseBranchCommand(from string, to string) *exec.Cmd {
 	return cmd
 }
 
+func (jj JJ) Squash(from string, destination string) *exec.Cmd {
+	cmd := exec.Command("jj", "squash", "--from", from, "--into", destination)
+	cmd.Dir = jj.Location
+	return cmd
+}
+
 func (jj JJ) SetDescription(rev string, description string) *exec.Cmd {
 	cmd := exec.Command("jj", "describe", "-r", rev, "-m", description)
 	cmd.Dir = jj.Location

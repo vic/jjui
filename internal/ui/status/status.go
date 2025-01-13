@@ -53,7 +53,11 @@ func (m Model) View() string {
 	} else {
 		s = m.spinner.View()
 	}
-	return s + " " + m.command
+	ret := s + " " + m.command
+	if m.error != nil {
+		ret += " " + errorStyle.Render(m.output)
+	}
+	return ret
 }
 
 func New() Model {
