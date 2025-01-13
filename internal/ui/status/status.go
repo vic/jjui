@@ -1,6 +1,7 @@
 package status
 
 import (
+	"github.com/charmbracelet/lipgloss"
 	"jjui/internal/ui/common"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -10,8 +11,13 @@ import (
 type Model struct {
 	spinner spinner.Model
 	command string
+	running bool
 	output  string
+	error   error
 }
+
+var successStyle = lipgloss.NewStyle().Foreground(common.Green)
+var errorStyle = lipgloss.NewStyle().Foreground(common.Red)
 
 func (m Model) Init() tea.Cmd {
 	return nil
@@ -21,10 +27,13 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.CommandRunningMsg:
 		m.command = string(msg)
+		m.running = true
 		return m, m.spinner.Tick
 	case common.CommandCompletedMsg:
-		m.command = ""
+		//m.command = ""
+		m.running = false
 		m.output = msg.Output
+		m.error = msg.Err
 	default:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
@@ -34,9 +43,15 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	s := m.spinner.View()
-	if m.command == "" {
-		s = ""
+	s := ""
+	if !m.running {
+		if m.error != nil {
+			s = errorStyle.Render("✗")
+		} else if m.command != "" {
+			s = successStyle.Render("✓")
+		}
+	} else {
+		s = m.spinner.View()
 	}
 	return s + " " + m.command
 }
@@ -47,6 +62,7 @@ func New() Model {
 	return Model{
 		spinner: s,
 		command: "",
+		running: false,
 		output:  "",
 	}
 }

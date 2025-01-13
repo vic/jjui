@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"jjui/internal/jj"
 	"os/exec"
+	"strings"
 )
 
 type (
@@ -91,11 +92,13 @@ func CommandRunning(command string) tea.Cmd {
 }
 
 func ShowOutput(c *exec.Cmd) tea.Cmd {
-	output, err := c.CombinedOutput()
-	return func() tea.Msg {
-		return CommandCompletedMsg{
-			Output: string(output),
-			Err:    err,
-		}
-	}
+	command := strings.Join(c.Args, " ")
+	return tea.Batch(CommandRunning(command),
+		func() tea.Msg {
+			output, err := c.CombinedOutput()
+			return CommandCompletedMsg{
+				Output: string(output),
+				Err:    err,
+			}
+		})
 }

@@ -11,19 +11,11 @@ type Commands struct {
 }
 
 func (c Commands) GitFetch() tea.Cmd {
-	f := func() tea.Msg {
-		output, err := c.jj.GitFetch().CombinedOutput()
-		return CommandCompletedMsg{Output: string(output), Err: err}
-	}
-	return tea.Sequence(CommandRunning("jj git fetch"), f)
+	return ShowOutput(c.jj.GitFetch())
 }
 
 func (c Commands) GitPush() tea.Cmd {
-	f := func() tea.Msg {
-		output, err := c.jj.GitPush().CombinedOutput()
-		return CommandCompletedMsg{Output: string(output), Err: err}
-	}
-	return tea.Sequence(CommandRunning("jj git push"), f)
+	return ShowOutput(c.jj.GitPush())
 }
 
 func (c Commands) Rebase(from, to string, operation Operation) tea.Cmd {
@@ -90,10 +82,7 @@ func (c Commands) GetDiff(revision string) tea.Cmd {
 }
 
 func (c Commands) Edit(revision string) tea.Cmd {
-	return func() tea.Msg {
-		output, err := c.jj.Edit(revision).CombinedOutput()
-		return CommandCompletedMsg{Output: string(output), Err: err}
-	}
+	return ShowOutput(c.jj.Edit(revision))
 }
 
 func (c Commands) DiffEdit(revision string) tea.Cmd {
@@ -109,10 +98,7 @@ func (c Commands) Split(revision string) tea.Cmd {
 }
 
 func (c Commands) Abandon(revision string) tea.Cmd {
-	return func() tea.Msg {
-		output, err := c.jj.Abandon(revision).CombinedOutput()
-		return CommandCompletedMsg{Output: string(output), Err: err}
-	}
+	return ShowOutput(c.jj.Abandon(revision))
 }
 
 func (c Commands) NewRevision(from string) tea.Cmd {
