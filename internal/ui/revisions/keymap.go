@@ -122,7 +122,7 @@ func (k *keymap) resetMode() {
 func (k *keymap) ShortHelp() []key.Binding {
 	switch b := k.bindings[k.current].(type) {
 	case baseLayer:
-		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.diffedit, b.diff, b.abandon, k.details, b.description, b.split, b.rebaseMode, b.squashMode, b.gitMode, b.bookmarkMode, b.quit}
+		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.description, b.diff, b.abandon, k.details, b.split, b.squashMode, b.diffedit, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
 		return []key.Binding{k.up, k.down, b.branch, b.revision, k.cancel}
 	case squashLayer:
