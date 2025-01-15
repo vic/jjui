@@ -20,9 +20,10 @@ type (
 		Revision  string
 		Operation Operation
 	}
-	CommandRunningMsg string
-	AbandonMsg        string
-	SetDescriptionMsg struct {
+	UpdateCommitStatusMsg []string
+	CommandRunningMsg     string
+	AbandonMsg            string
+	SetDescriptionMsg     struct {
 		Revision    string
 		Description string
 	}

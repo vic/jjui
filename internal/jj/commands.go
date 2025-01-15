@@ -21,4 +21,5 @@ type Commands interface {
 	Split(revision string) *exec.Cmd
 	GetCommits(revset string) ([]GraphRow, error)
 	Squash(from string, destination string) *exec.Cmd
+	Status(revision string) *exec.Cmd
 }

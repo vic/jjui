@@ -2,6 +2,8 @@ package revisions
 
 import (
 	"fmt"
+	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"jjui/internal/jj"
 	"jjui/internal/ui/abandon"
@@ -10,9 +12,6 @@ import (
 	"jjui/internal/ui/describe"
 	"jjui/internal/ui/revisions/revset"
 	"slices"
-
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 type viewRange struct {
@@ -58,6 +57,8 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
+	case key.Matches(msg, m.Keymap.details):
+		return m, m.Status(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.revset):
 		m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
 		return m, nil
@@ -325,6 +326,12 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().GetChangeId(), msg.Bookmarks, msg.Operation, m.Width)
 		return m, m.overlay.Init()
+	case common.UpdateCommitStatusMsg:
+		selected := m.selectedRevision()
+		if selected != nil {
+			selected.Status = msg
+		}
+		return m, nil
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 	}

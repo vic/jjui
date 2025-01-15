@@ -116,6 +116,23 @@ func (c Commands) NewRevision(from string) tea.Cmd {
 	return ShowOutput(c.jj.New(from))
 }
 
+func (c Commands) Status(revision string) tea.Cmd {
+	cmd := c.jj.Status(revision)
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		return func() tea.Msg {
+			summary := strings.Split(string(output), "\n")
+			return UpdateCommitStatusMsg(summary)
+		}
+	}
+	return func() tea.Msg {
+		return CommandCompletedMsg{
+			Output: string(output),
+			Err:    err,
+		}
+	}
+}
+
 func NewCommands(jj jj.Commands) Commands {
 	return Commands{jj}
 }

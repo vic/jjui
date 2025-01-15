@@ -65,7 +65,7 @@ type TestRenderer struct {
 	highlighted bool
 }
 
-func (t TestRenderer) RenderMarkers(commit *jj.Commit) string {
+func (t TestRenderer) RenderMarkers(*jj.Commit) string {
 	return ""
 }
 

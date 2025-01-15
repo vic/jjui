@@ -7,6 +7,7 @@ type keymap struct {
 	bindings map[rune]interface{}
 	up       key.Binding
 	down     key.Binding
+	details  key.Binding
 	cancel   key.Binding
 	apply    key.Binding
 }
@@ -92,6 +93,7 @@ func newKeyMap() keymap {
 		bindings: bindings,
 		up:       key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
 		down:     key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
+		details:  key.NewBinding(key.WithKeys("l", "details"), key.WithHelp("l", "details")),
 		apply:    key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
 		cancel:   key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
 	}
@@ -120,7 +122,7 @@ func (k *keymap) resetMode() {
 func (k *keymap) ShortHelp() []key.Binding {
 	switch b := k.bindings[k.current].(type) {
 	case baseLayer:
-		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.diffedit, b.diff, b.abandon, b.description, b.split, b.rebaseMode, b.squashMode, b.gitMode, b.bookmarkMode, b.quit}
+		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.diffedit, b.diff, b.abandon, k.details, b.description, b.split, b.rebaseMode, b.squashMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
 		return []key.Binding{k.up, k.down, b.branch, b.revision, k.cancel}
 	case squashLayer:

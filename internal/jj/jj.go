@@ -113,3 +113,9 @@ func (jj JJ) New(from string) *exec.Cmd {
 	cmd.Dir = jj.Location
 	return cmd
 }
+
+func (jj JJ) Status(revision string) *exec.Cmd {
+	cmd := exec.Command("jj", "log", "-r", revision, "--summary", "--no-graph", "--template", "")
+	cmd.Dir = jj.Location
+	return cmd
+}
