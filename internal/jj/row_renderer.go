@@ -10,4 +10,5 @@ type RowRenderer interface {
 	RenderDate(commit *Commit) string
 	RenderBookmarks(commit *Commit) string
 	RenderDescription(commit *Commit) string
+	RenderMarkers(commit *Commit) string
 }

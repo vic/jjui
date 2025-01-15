@@ -81,6 +81,13 @@ func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
 	return w.String()
 }
 
+func (s SegmentedRenderer) RenderMarkers(commit *jj.Commit) string {
+	if commit.Conflict {
+		return s.Palette.ConflictStyle.Render("conflict")
+	}
+	return ""
+}
+
 func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
 	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	var w strings.Builder

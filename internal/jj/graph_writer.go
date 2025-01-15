@@ -96,6 +96,10 @@ func (w *GraphWriter) RenderRow(row GraphRow, renderer RowRenderer) {
 		fmt.Fprintf(w, " ")
 		fmt.Fprintf(w, bookmarks)
 	}
+	if markers := renderer.RenderMarkers(row.Commit); markers != "" {
+		fmt.Fprintf(w, " ")
+		fmt.Fprintf(w, markers)
+	}
 	fmt.Fprintln(w)
 
 	if row.Commit.IsRoot() {

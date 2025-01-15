@@ -65,6 +65,10 @@ type TestRenderer struct {
 	highlighted bool
 }
 
+func (t TestRenderer) RenderMarkers(commit *jj.Commit) string {
+	return ""
+}
+
 func (t TestRenderer) RenderBefore(*jj.Commit) string {
 	if t.highlighted {
 		return "<here>"
