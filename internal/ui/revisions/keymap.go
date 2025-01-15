@@ -122,13 +122,13 @@ func (k *keymap) ShortHelp() []key.Binding {
 	case baseLayer:
 		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.diffedit, b.diff, b.abandon, b.description, b.split, b.rebaseMode, b.squashMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
-		return []key.Binding{k.up, k.down, b.branch, b.revision}
+		return []key.Binding{k.up, k.down, b.branch, b.revision, k.cancel}
 	case squashLayer:
-		return []key.Binding{k.up, k.down, b.apply}
+		return []key.Binding{k.up, k.down, b.apply, k.cancel}
 	case gitLayer:
-		return []key.Binding{b.push, b.fetch}
+		return []key.Binding{b.push, b.fetch, k.cancel}
 	case bookmarkLayer:
-		return []key.Binding{b.move, b.set, b.delete}
+		return []key.Binding{b.move, b.set, b.delete, k.cancel}
 	default:
 		return []key.Binding{}
 	}
