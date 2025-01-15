@@ -10,16 +10,15 @@ import (
 )
 
 type SegmentedRenderer struct {
-	Palette             common.Palette
-	HighlightedRevision string
-	Overlay             tea.Model
-	op                  common.Operation
+	Palette       common.Palette
+	IsHighlighted bool
+	Overlay       tea.Model
+	op            common.Operation
 }
 
 func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
-	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	if s.op == common.RebaseRevisionOperation || s.op == common.RebaseBranchOperation {
-		if highlighted {
+		if s.IsHighlighted {
 			return common.DropStyle.Render("<< here >>")
 		}
 	}
@@ -27,18 +26,16 @@ func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
-	highlighted := commit.GetChangeId() == s.HighlightedRevision
-	if highlighted && s.Overlay != nil && s.op != common.EditDescriptionOperation && s.op != common.SetBookmarkOperation {
+	if s.IsHighlighted && s.Overlay != nil && s.op != common.EditDescriptionOperation && s.op != common.SetBookmarkOperation {
 		return s.Overlay.View()
 	}
 	return ""
 }
 
 func (s SegmentedRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
-	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	style := s.Palette.Normal
 	squashDropMarker := ""
-	if highlighted {
+	if s.IsHighlighted {
 		style = s.Palette.Selected
 		if s.op == common.SquashOperation {
 			squashDropMarker = common.DropStyle.Render(" << into >> ")
@@ -72,9 +69,8 @@ func (s SegmentedRenderer) RenderDate(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
-	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	var w strings.Builder
-	if s.op == common.SetBookmarkOperation && highlighted {
+	if s.op == common.SetBookmarkOperation && s.IsHighlighted {
 		w.WriteString(s.Overlay.View())
 	}
 	w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
@@ -89,9 +85,8 @@ func (s SegmentedRenderer) RenderMarkers(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
-	highlighted := commit.GetChangeId() == s.HighlightedRevision
 	var w strings.Builder
-	if s.op == common.EditDescriptionOperation && highlighted {
+	if s.op == common.EditDescriptionOperation && s.IsHighlighted {
 		w.WriteString(s.Overlay.View())
 		return w.String()
 	}

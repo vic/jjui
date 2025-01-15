@@ -332,7 +332,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	revset := m.revsetModel.View()
+	revsetView := m.revsetModel.View()
 	content := ""
 
 	if m.status == common.Loading {
@@ -344,28 +344,23 @@ func (m Model) View() string {
 	}
 
 	if m.status == common.Ready {
-		h := m.Height - lipgloss.Height(revset)
+		h := m.Height - lipgloss.Height(revsetView)
 
 		if m.viewRange.end-m.viewRange.start > h {
 			m.viewRange.end = m.viewRange.start + h
-		}
-
-		highlightedRevision := ""
-		if m.cursor < len(m.rows) {
-			highlightedRevision = m.rows[m.cursor].Commit.GetChangeId()
-		}
-
-		nodeRenderer := SegmentedRenderer{
-			Palette:             common.DefaultPalette,
-			op:                  m.op,
-			HighlightedRevision: highlightedRevision,
-			Overlay:             m.overlay,
 		}
 
 		var w jj.GraphWriter
 		selectedLineStart := -1
 		selectedLineEnd := -1
 		for i, row := range m.rows {
+			nodeRenderer := SegmentedRenderer{
+				Palette:       common.DefaultPalette,
+				op:            m.op,
+				IsHighlighted: i == m.cursor,
+				Overlay:       m.overlay,
+			}
+
 			if i == m.cursor {
 				selectedLineStart = w.LineCount()
 			}
@@ -389,7 +384,7 @@ func (m Model) View() string {
 		content = w.String(m.viewRange.start, m.viewRange.end)
 	}
 
-	return lipgloss.JoinVertical(0, revset, content)
+	return lipgloss.JoinVertical(0, revsetView, content)
 }
 
 func New(jj jj.Commands) Model {
