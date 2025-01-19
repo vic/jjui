@@ -23,7 +23,6 @@ type Commit struct {
 	Conflict      bool
 	Empty         bool
 	Hidden        bool
-	Status        []string
 }
 
 func (c Commit) IsRoot() bool {

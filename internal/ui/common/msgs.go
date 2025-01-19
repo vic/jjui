@@ -55,6 +55,7 @@ const (
 	SetBookmarkOperation
 	MoveBookmarkOperation
 	DeleteBookmarkOperation
+	ShowDetailsOperation
 )
 
 type Status int

@@ -14,7 +14,7 @@ type SegmentedRenderer struct {
 	IsHighlighted bool
 	Overlay       tea.Model
 	op            common.Operation
-	After         []string
+	After         string
 }
 
 func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
@@ -26,25 +26,12 @@ func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
 	return ""
 }
 
-func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
+func (s SegmentedRenderer) RenderAfter(*jj.Commit) string {
 	if s.IsHighlighted && s.Overlay != nil && s.op != common.EditDescriptionOperation && s.op != common.SetBookmarkOperation {
 		return s.Overlay.View()
 	}
-	if s.IsHighlighted && commit.Status != nil {
-		var w strings.Builder
-		for _, status := range commit.Status {
-			style := s.Palette.Modified
-			if strings.HasPrefix(status, "M") {
-				style = s.Palette.Modified
-			} else if strings.HasPrefix(status, "D") {
-				style = s.Palette.Deleted
-			} else {
-				style = s.Palette.Added
-			}
-			w.WriteString(style.Render(status))
-			w.WriteString("\n")
-		}
-		return w.String()
+	if s.After != "" {
+		return s.After
 	}
 	return ""
 }

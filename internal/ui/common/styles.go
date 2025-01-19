@@ -62,9 +62,6 @@ var DefaultPalette = Palette{
 	NonEmpty:          nonEmptyStyle,
 	Normal:            normal,
 	Selected:          selected,
-	Modified:          timestampStyle,
-	Added:             emptyStyle,
-	Deleted:           conflictStyle,
 }
 
 type Palette struct {
@@ -78,7 +75,4 @@ type Palette struct {
 	NonEmpty          lipgloss.Style
 	Normal            lipgloss.Style
 	Selected          lipgloss.Style
-	Added             lipgloss.Style
-	Deleted           lipgloss.Style
-	Modified          lipgloss.Style
 }

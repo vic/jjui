@@ -10,6 +10,7 @@ import (
 	"jjui/internal/ui/bookmark"
 	"jjui/internal/ui/common"
 	"jjui/internal/ui/describe"
+	"jjui/internal/ui/revisions/details"
 	"jjui/internal/ui/revisions/revset"
 	"slices"
 )
@@ -31,6 +32,7 @@ type Model struct {
 	Height      int
 	overlay     tea.Model
 	revsetModel revset.Model
+	details     tea.Model
 	Keymap      keymap
 	common.Commands
 }
@@ -57,8 +59,13 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
+	case key.Matches(msg, m.Keymap.cancel):
+		m.Keymap.resetMode()
+		m.op = common.None
 	case key.Matches(msg, m.Keymap.details):
-		return m, m.Status(m.selectedRevision().GetChangeId())
+		m.op = common.ShowDetailsOperation
+		m.details = details.New(m.selectedRevision().ChangeId, m.Commands)
+		return m, m.details.Init()
 	case key.Matches(msg, layer.revset):
 		m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
 		return m, nil
@@ -222,11 +229,11 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
 		m.Keymap.resetMode()
 		m.overlay = nil
+		m.details = nil
 		m.op = common.None
 		return m, nil
 	case common.UpdateRevSetMsg:
@@ -278,6 +285,11 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, cmd
 	}
 
+	if m.op == common.ShowDetailsOperation {
+		m.details, cmd = m.details.Update(msg)
+		return m, cmd
+	}
+
 	if m.revsetModel.Editing {
 		m.revsetModel, cmd = m.revsetModel.Update(msg)
 		return m, cmd
@@ -326,12 +338,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.UpdateBookmarksMsg:
 		m.overlay = bookmark.New(m.selectedRevision().GetChangeId(), msg.Bookmarks, msg.Operation, m.Width)
 		return m, m.overlay.Init()
-	case common.UpdateCommitStatusMsg:
-		selected := m.selectedRevision()
-		if selected != nil {
-			selected.Status = msg
-		}
-		return m, nil
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 	}
@@ -366,6 +372,10 @@ func (m Model) View() string {
 				op:            m.op,
 				IsHighlighted: i == m.cursor,
 				Overlay:       m.overlay,
+			}
+
+			if m.op == common.ShowDetailsOperation && nodeRenderer.IsHighlighted {
+				nodeRenderer.After = m.details.View()
 			}
 
 			if i == m.cursor {

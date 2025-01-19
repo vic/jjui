@@ -121,7 +121,7 @@ func (c Commands) Status(revision string) tea.Cmd {
 	output, err := cmd.CombinedOutput()
 	if err == nil {
 		return func() tea.Msg {
-			summary := strings.Split(string(output), "\n")
+			summary := strings.Split(strings.TrimSpace(string(output)), "\n")
 			return UpdateCommitStatusMsg(summary)
 		}
 	}
