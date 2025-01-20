@@ -78,8 +78,12 @@ func (jj JJ) GitPush() *exec.Cmd {
 	return cmd
 }
 
-func (jj JJ) Diff(revision string) *exec.Cmd {
-	cmd := exec.Command("jj", "diff", "-r", revision)
+func (jj JJ) Diff(revision string, fileName string) *exec.Cmd {
+	args := []string{"diff", "-r", revision}
+	if fileName != "" {
+		args = append(args, fileName)
+	}
+	cmd := exec.Command("jj", args...)
 	cmd.Dir = jj.Location
 	return cmd
 }

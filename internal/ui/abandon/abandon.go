@@ -16,7 +16,7 @@ type Model struct {
 }
 
 var selectedStyle = common.DefaultPalette.Normal.
-	Background(common.Pink)
+	Background(common.Blue)
 
 var normalStyle = common.DefaultPalette.Normal
 

@@ -3,22 +3,30 @@ package common
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	Black      = lipgloss.Color("0")
-	Cyan       = lipgloss.Color("6")
-	Pink       = lipgloss.Color("4")
-	Yellow     = lipgloss.Color("3")
-	Red        = lipgloss.Color("1")
-	Green      = lipgloss.Color("2")
-	Comment    = lipgloss.Color("8")
-	Foreground = lipgloss.Color("7")
+	Black       = lipgloss.Color("0")
+	Red         = lipgloss.Color("1")
+	Green       = lipgloss.Color("2")
+	Yellow      = lipgloss.Color("3")
+	Blue        = lipgloss.Color("4")
+	Magenta     = lipgloss.Color("5")
+	Cyan        = lipgloss.Color("6")
+	White       = lipgloss.Color("7")
+	DarkBlack   = lipgloss.Color("8")
+	DarkRed     = lipgloss.Color("9")
+	DarkGreen   = lipgloss.Color("10")
+	DarkYellow  = lipgloss.Color("11")
+	DarkBlue    = lipgloss.Color("12")
+	DarkMagenta = lipgloss.Color("13")
+	DarkCyan    = lipgloss.Color("14")
+	DarkWhite   = lipgloss.Color("15")
 )
 
 var commitShortStyle = lipgloss.NewStyle().
 	Bold(true).
-	Foreground(Pink)
+	Foreground(Blue)
 
 var commitIdRestStyle = lipgloss.NewStyle().
-	Foreground(Comment)
+	Foreground(DarkBlack)
 
 var authorStyle = lipgloss.NewStyle().
 	Foreground(Yellow)
@@ -27,13 +35,13 @@ var timestampStyle = lipgloss.NewStyle().
 	Foreground(Cyan)
 
 var branchesStyle = lipgloss.NewStyle().
-	Foreground(Pink)
+	Foreground(Blue)
 
 var conflictStyle = lipgloss.NewStyle().
 	Foreground(Red)
 
 var normal = lipgloss.NewStyle().
-	Foreground(Foreground)
+	Foreground(White)
 
 var selected = lipgloss.NewStyle().
 	Foreground(Red)

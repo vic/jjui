@@ -85,9 +85,9 @@ func (c Commands) SetBookmark(revision string, name string) tea.Cmd {
 	return ShowOutput(c.jj.SetBookmark(revision, name))
 }
 
-func (c Commands) GetDiff(revision string) tea.Cmd {
+func (c Commands) GetDiff(revision string, fileName string) tea.Cmd {
 	return func() tea.Msg {
-		output, _ := c.jj.Diff(revision).CombinedOutput()
+		output, _ := c.jj.Diff(revision, fileName).CombinedOutput()
 		return ShowDiffMsg(output)
 	}
 }

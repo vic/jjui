@@ -13,7 +13,7 @@ type Commands interface {
 	DeleteBookmark(bookmark string) *exec.Cmd
 	GitFetch() *exec.Cmd
 	GitPush() *exec.Cmd
-	Diff(revision string) *exec.Cmd
+	Diff(revision string, fineName string) *exec.Cmd
 	Edit(revision string) *exec.Cmd
 	DiffEdit(revision string) *exec.Cmd
 	Abandon(revision string) *exec.Cmd
