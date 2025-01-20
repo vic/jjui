@@ -64,6 +64,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.op = common.None
 	case key.Matches(msg, m.Keymap.details):
 		m.op = common.ShowDetailsOperation
+		m.Keymap.detailsMode()
 		m.details = details.New(m.selectedRevision().ChangeId, m.Commands)
 		return m, m.details.Init()
 	case key.Matches(msg, layer.revset):

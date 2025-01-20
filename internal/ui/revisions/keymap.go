@@ -49,6 +49,10 @@ type gitLayer struct {
 	push  key.Binding
 }
 
+type detailsLayer struct {
+	diff key.Binding
+}
+
 func newKeyMap() keymap {
 	bindings := make(map[rune]interface{})
 	bindings[' '] = baseLayer{
@@ -88,6 +92,10 @@ func newKeyMap() keymap {
 		push:  key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "git push")),
 	}
 
+	bindings['d'] = detailsLayer{
+		diff: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
+	}
+
 	return keymap{
 		current:  ' ',
 		bindings: bindings,
@@ -119,6 +127,10 @@ func (k *keymap) resetMode() {
 	k.current = ' '
 }
 
+func (k *keymap) detailsMode() {
+	k.current = 'd'
+}
+
 func (k *keymap) ShortHelp() []key.Binding {
 	switch b := k.bindings[k.current].(type) {
 	case baseLayer:
@@ -131,7 +143,12 @@ func (k *keymap) ShortHelp() []key.Binding {
 		return []key.Binding{b.push, b.fetch, k.cancel}
 	case bookmarkLayer:
 		return []key.Binding{b.move, b.set, b.delete, k.cancel}
+	case detailsLayer:
+		return []key.Binding{k.up, k.down, b.diff, k.cancel}
 	default:
+		if k.current == 'd' {
+			return []key.Binding{k.up, k.down, k.cancel}
+		}
 		return []key.Binding{}
 	}
 }
