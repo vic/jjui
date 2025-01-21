@@ -7,40 +7,51 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"io"
 	"jjui/internal/ui/common"
-	"strings"
 )
 
 var (
-	Added    = lipgloss.NewStyle().Foreground(common.Green)
-	Deleted  = lipgloss.NewStyle().Foreground(common.Red)
-	Modified = lipgloss.NewStyle().Foreground(common.Cyan)
+	AddedStyle    = lipgloss.NewStyle().Foreground(common.Green)
+	DeletedStyle  = lipgloss.NewStyle().Foreground(common.Red)
+	ModifiedStyle = lipgloss.NewStyle().Foreground(common.Cyan)
 )
 
-type item string
+type status uint8
 
-func (f item) Title() string       { return string(f) }
+var (
+	Added    status = 0
+	Deleted  status = 1
+	Modified status = 2
+)
+
+type item struct {
+	status status
+	name   string
+}
+
+func (f item) Title() string       { return fmt.Sprintf("%c %s", f.status, f.name) }
 func (f item) Description() string { return "" }
-func (f item) FilterValue() string { return string(f) }
+func (f item) FilterValue() string { return f.name }
 
 type itemDelegate struct{}
 
 func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	f, ok := listItem.(item)
+	item, ok := listItem.(item)
 	if !ok {
 		return
 	}
-	file := string(f)
-
-	var style = Modified
-	if strings.HasPrefix(file, "A") {
-		style = Added
-	} else if strings.HasPrefix(file, "D") {
-		style = Deleted
+	var style lipgloss.Style
+	switch item.status {
+	case Added:
+		style = AddedStyle
+	case Deleted:
+		style = DeletedStyle
+	case Modified:
+		style = ModifiedStyle
 	}
 	if index == m.Index() {
 		style = style.Bold(true).Background(common.DarkBlack)
 	}
-	fmt.Fprint(w, style.Render(file))
+	fmt.Fprint(w, style.Render(item.Title()))
 }
 
 func (i itemDelegate) Height() int                         { return 1 }
@@ -78,8 +89,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc", "h":
 			return m, common.Close
 		case "d":
-			v := m.files.SelectedItem().FilterValue()
-			return m, m.Commands.GetDiff(m.revision, v[2:])
+			v := m.files.SelectedItem().(item).name
+			return m, m.Commands.GetDiff(m.revision, v)
 		default:
 			var cmd tea.Cmd
 			m.files, cmd = m.files.Update(msg)
@@ -87,8 +98,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case common.UpdateCommitStatusMsg:
 		items := make([]list.Item, len(msg))
-		for i, status := range msg {
-			items[i] = item(status)
+		for i, file := range msg {
+			var status status
+			switch file[0] {
+			case 'A':
+				status = Added
+			case 'D':
+				status = Deleted
+			case 'M':
+				status = Modified
+			}
+			items[i] = item{
+				status: status,
+				name:   file[2:],
+			}
 		}
 		m.files.SetItems(items)
 		m.files.SetHeight(min(10, len(items)))
