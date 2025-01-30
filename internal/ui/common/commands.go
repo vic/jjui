@@ -10,12 +10,12 @@ type Commands struct {
 	jj jj.Commands
 }
 
-func (c Commands) GitFetch() tea.Cmd {
-	return ShowOutput(c.jj.GitFetch())
+func (c Commands) GitFetch(revision string) tea.Cmd {
+	return ShowOutput(c.jj.GitFetch(), Refresh(revision))
 }
 
-func (c Commands) GitPush() tea.Cmd {
-	return ShowOutput(c.jj.GitPush())
+func (c Commands) GitPush(revision string) tea.Cmd {
+	return ShowOutput(c.jj.GitPush(), Refresh(revision))
 }
 
 func (c Commands) Rebase(from, to string, operation Operation) tea.Cmd {
@@ -24,7 +24,7 @@ func (c Commands) Rebase(from, to string, operation Operation) tea.Cmd {
 		rebase = c.jj.RebaseBranchCommand
 	}
 	cmd := rebase(from, to)
-	return ShowOutput(cmd)
+	return ShowOutput(cmd, Refresh(to))
 }
 
 func (c Commands) Squash(from, destination string) tea.Cmd {
@@ -39,15 +39,15 @@ func (c Commands) Squash(from, destination string) tea.Cmd {
 }
 
 func (c Commands) SetDescription(revision string, description string) tea.Cmd {
-	return ShowOutput(c.jj.SetDescription(revision, description))
+	return ShowOutput(c.jj.SetDescription(revision, description), Refresh(revision), Close)
 }
 
 func (c Commands) MoveBookmark(revision string, bookmark string) tea.Cmd {
-	return ShowOutput(c.jj.MoveBookmark(revision, bookmark))
+	return ShowOutput(c.jj.MoveBookmark(revision, bookmark), Refresh(revision), Close)
 }
 
-func (c Commands) DeleteBookmark(bookmark string) tea.Cmd {
-	return ShowOutput(c.jj.DeleteBookmark(bookmark))
+func (c Commands) DeleteBookmark(revision, bookmark string) tea.Cmd {
+	return ShowOutput(c.jj.DeleteBookmark(bookmark), Refresh(revision), Close)
 }
 
 func (c Commands) FetchRevisions(revset string) tea.Cmd {
@@ -60,7 +60,7 @@ func (c Commands) FetchRevisions(revset string) tea.Cmd {
 	}
 }
 
-func (c Commands) FetchBookmarks(revision string, op Operation) tea.Cmd {
+func (c Commands) FetchBookmarks(revision string) tea.Cmd {
 	return func() tea.Msg {
 		cmd := c.jj.ListBookmark(revision)
 		//TODO: handle error
@@ -76,13 +76,12 @@ func (c Commands) FetchBookmarks(revision string, op Operation) tea.Cmd {
 		return UpdateBookmarksMsg{
 			Bookmarks: bookmarks,
 			Revision:  revision,
-			Operation: op,
 		}
 	}
 }
 
 func (c Commands) SetBookmark(revision string, name string) tea.Cmd {
-	return ShowOutput(c.jj.SetBookmark(revision, name))
+	return ShowOutput(c.jj.SetBookmark(revision, name), Refresh(revision), Close)
 }
 
 func (c Commands) GetDiff(revision string, fileName string) tea.Cmd {
@@ -93,7 +92,7 @@ func (c Commands) GetDiff(revision string, fileName string) tea.Cmd {
 }
 
 func (c Commands) Edit(revision string) tea.Cmd {
-	return ShowOutput(c.jj.Edit(revision))
+	return ShowOutput(c.jj.Edit(revision), Refresh("@"))
 }
 
 func (c Commands) DiffEdit(revision string) tea.Cmd {
@@ -109,11 +108,11 @@ func (c Commands) Split(revision string) tea.Cmd {
 }
 
 func (c Commands) Abandon(revision string) tea.Cmd {
-	return ShowOutput(c.jj.Abandon(revision))
+	return ShowOutput(c.jj.Abandon(revision), Refresh("@"), Close)
 }
 
 func (c Commands) NewRevision(from string) tea.Cmd {
-	return ShowOutput(c.jj.New(from))
+	return ShowOutput(c.jj.New(from), Refresh("@"))
 }
 
 func (c Commands) Status(revision string) tea.Cmd {

@@ -16,6 +16,7 @@ type Model struct {
 	revision string
 	list     list.Model
 	op       common.Operation
+	common.Commands
 }
 
 type item string
@@ -63,45 +64,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			bookmark := m.list.SelectedItem().(item)
 			switch m.op {
 			case common.MoveBookmarkOperation:
-				return m, moveBookmark(m.revision, string(bookmark))
+				return m, m.MoveBookmark(m.revision, string(bookmark))
 			case common.DeleteBookmarkOperation:
-				return m, deleteBookmark(string(bookmark))
+				return m, m.DeleteBookmark(m.revision, string(bookmark))
 			}
 		}
+	case common.UpdateBookmarksMsg:
+		items := convertToItems(msg.Bookmarks)
+		m.list.SetItems(items)
+		m.list.SetHeight(max(0, min(10, len(items))))
+		return m, nil
 	}
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
 }
 
-func (m Model) View() string {
-	return m.list.View()
-}
-
-func moveBookmark(revision string, bookmark string) tea.Cmd {
-	return func() tea.Msg {
-		return common.MoveBookmarkMsg{
-			Revision: revision,
-			Bookmark: bookmark,
-		}
-	}
-}
-
-func deleteBookmark(bookmark string) tea.Cmd {
-	return func() tea.Msg {
-		return common.DeleteBookmarkMsg{
-			Bookmark: bookmark,
-		}
-	}
-}
-func New(revision string, bookmarks []string, op common.Operation, width int) tea.Model {
+func convertToItems(bookmarks []string) []list.Item {
 	var items []list.Item
 	for _, bookmark := range bookmarks {
 		item := item(bookmark)
 		items = append(items, item)
 	}
+	return items
+}
 
-	l := list.New(items, itemDelegate{}, width, len(items)*2)
+func (m Model) View() string {
+	return m.list.View()
+}
+
+func New(commands common.Commands, revision string, width int) tea.Model {
+	l := list.New(nil, itemDelegate{}, width, 0)
 	l.SetFilteringEnabled(true)
 	l.SetShowPagination(false)
 	l.SetShowStatusBar(false)
@@ -109,7 +102,24 @@ func New(revision string, bookmarks []string, op common.Operation, width int) te
 	l.SetShowHelp(false)
 	return Model{
 		revision: revision,
-		op:       op,
+		op:       common.MoveBookmarkOperation,
 		list:     l,
+		Commands: commands,
+	}
+}
+
+func NewDeleteBookmark(commands common.Commands, revision string, bookmarks []string, width int) tea.Model {
+	items := convertToItems(bookmarks)
+	l := list.New(items, itemDelegate{}, width, max(0, min(10, len(items))))
+	l.SetFilteringEnabled(true)
+	l.SetShowPagination(false)
+	l.SetShowStatusBar(false)
+	l.SetShowTitle(false)
+	l.SetShowHelp(false)
+	return Model{
+		revision: revision,
+		op:       common.DeleteBookmarkOperation,
+		list:     l,
+		Commands: commands,
 	}
 }

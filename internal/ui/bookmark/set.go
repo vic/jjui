@@ -9,6 +9,7 @@ import (
 type SetBookmarkModel struct {
 	revision string
 	name     textarea.Model
+	common.Commands
 }
 
 func (m SetBookmarkModel) Init() tea.Cmd {
@@ -22,9 +23,7 @@ func (m SetBookmarkModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			return m, common.Close
 		case "enter":
-			return m, func() tea.Msg {
-				return common.SetBookmarkMsg{Revision: m.revision, Bookmark: m.name.Value()}
-			}
+			return m, m.SetBookmark(m.revision, m.name.Value())
 		}
 	}
 	var cmd tea.Cmd
@@ -36,7 +35,7 @@ func (m SetBookmarkModel) View() string {
 	return m.name.View()
 }
 
-func NewSetBookmark(revision string) tea.Model {
+func NewSetBookmark(commands common.Commands, revision string) tea.Model {
 	t := textarea.New()
 	t.SetValue("")
 	t.Focus()
@@ -47,5 +46,6 @@ func NewSetBookmark(revision string) tea.Model {
 	return SetBookmarkModel{
 		name:     t,
 		revision: revision,
+		Commands: commands,
 	}
 }

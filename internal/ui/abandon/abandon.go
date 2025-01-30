@@ -13,6 +13,7 @@ type Model struct {
 	revision string
 	options  []string
 	selected int
+	common.Commands
 }
 
 var selectedStyle = common.DefaultPalette.Normal.
@@ -39,9 +40,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			switch m.options[m.selected] {
 			case "Yes":
-				return m, func() tea.Msg {
-					return common.AbandonMsg(m.revision)
-				}
+				return m, m.Abandon(m.revision)
 			case "No":
 				return m, common.Close
 			}
@@ -72,11 +71,12 @@ func (m Model) View() string {
 	return w.String()
 }
 
-func New(revision string) tea.Model {
+func New(commands common.Commands, revision string) tea.Model {
 	return Model{
 		message:  "Are you sure you want to abandon this revision?",
 		revision: revision,
 		options:  []string{"Yes", "No"},
 		selected: 0,
+		Commands: commands,
 	}
 }

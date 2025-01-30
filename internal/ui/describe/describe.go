@@ -9,6 +9,7 @@ import (
 type Model struct {
 	revision    string
 	description textarea.Model
+	common.Commands
 }
 
 func (m Model) Init() tea.Cmd {
@@ -22,9 +23,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			return m, common.Close
 		case "enter":
-			return m, func() tea.Msg {
-				return common.SetDescriptionMsg{Revision: m.revision, Description: m.description.Value()}
-			}
+			return m, m.SetDescription(m.revision, m.description.Value())
 		}
 	case tea.WindowSizeMsg:
 		m.description.SetWidth(msg.Width)
@@ -38,7 +37,7 @@ func (m Model) View() string {
 	return m.description.View()
 }
 
-func New(revision string, description string, width int) tea.Model {
+func New(commands common.Commands, revision string, description string, width int) tea.Model {
 	t := textarea.New()
 	t.SetValue(description)
 	t.Focus()
@@ -49,5 +48,6 @@ func New(revision string, description string, width int) tea.Model {
 	return Model{
 		description: t,
 		revision:    revision,
+		Commands:    commands,
 	}
 }

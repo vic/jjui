@@ -18,7 +18,6 @@ type (
 	UpdateBookmarksMsg       struct {
 		Bookmarks []string
 		Revision  string
-		Operation Operation
 	}
 	UpdateCommitStatusMsg []string
 	CommandRunningMsg     string

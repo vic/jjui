@@ -72,25 +72,19 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 
 	case key.Matches(msg, layer.new):
-		return m, tea.Sequence(
-			m.NewRevision(m.selectedRevision().GetChangeId()),
-			common.Refresh("@"),
-		)
+		return m, m.NewRevision(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.edit):
-		return m, tea.Sequence(
-			m.Edit(m.selectedRevision().GetChangeId()),
-			common.Refresh("@"),
-		)
+		return m, m.Edit(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.diffedit):
 		return m, m.DiffEdit(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.abandon):
-		m.overlay = abandon.New(m.selectedRevision().GetChangeId())
+		m.overlay = abandon.New(m.Commands, m.selectedRevision().GetChangeId())
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.split):
 		currentRevision := m.selectedRevision().GetChangeId()
 		return m, m.Split(currentRevision)
 	case key.Matches(msg, layer.description):
-		m.overlay = describe.New(m.selectedRevision().GetChangeId(), m.selectedRevision().Description, m.Width)
+		m.overlay = describe.New(m.Commands, m.selectedRevision().GetChangeId(), m.selectedRevision().Description, m.Width)
 		m.op = common.EditDescriptionOperation
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
@@ -148,10 +142,7 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		toCommit := m.rows[m.cursor].Commit
 		m.op = common.None
 		m.draggedRow = -1
-		return m, tea.Sequence(
-			m.Rebase(fromCommit.ChangeIdShort, toCommit.ChangeIdShort, rebaseOperation),
-			common.Refresh(fromCommit.GetChangeId()),
-		)
+		return m, m.Rebase(fromCommit.ChangeIdShort, toCommit.ChangeIdShort, rebaseOperation)
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
 		m.op = common.None
@@ -192,14 +183,16 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, layer.move):
 		m.Keymap.resetMode()
-		return m, m.FetchBookmarks(m.selectedRevision().GetChangeId(), common.MoveBookmarkOperation)
+		selected := m.selectedRevision()
+		m.overlay = bookmark.New(m.Commands, selected.GetChangeId(), m.Width)
+		return m, m.FetchBookmarks(selected.GetChangeId())
 	case key.Matches(msg, layer.delete):
 		m.Keymap.resetMode()
 		selected := m.selectedRevision()
-		m.overlay = bookmark.New(selected.GetChangeId(), selected.Bookmarks, common.DeleteBookmarkOperation, m.Width)
+		m.overlay = bookmark.NewDeleteBookmark(m.Commands, selected.GetChangeId(), selected.Bookmarks, m.Width)
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.set):
-		m.overlay = bookmark.NewSetBookmark(m.selectedRevision().GetChangeId())
+		m.overlay = bookmark.NewSetBookmark(m.Commands, m.selectedRevision().GetChangeId())
 		m.op = common.SetBookmarkOperation
 		return m, m.overlay.Init()
 	case key.Matches(msg, m.Keymap.cancel):
@@ -213,16 +206,10 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, layer.fetch):
 		m.Keymap.resetMode()
-		return m, tea.Sequence(
-			m.GitFetch(),
-			common.Refresh(m.selectedRevision().GetChangeId()),
-		)
+		return m, m.GitFetch(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.push):
 		m.Keymap.resetMode()
-		return m, tea.Sequence(
-			m.GitPush(),
-			common.Refresh(m.selectedRevision().GetChangeId()),
-		)
+		return m, m.GitPush(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
 	}
@@ -242,89 +229,15 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.revsetModel.Value = string(msg)
 		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
 			cmds = append(cmds, common.Refresh(selectedRevision.GetChangeId()))
+		} else {
+			cmds = append(cmds, common.Refresh("@"))
 		}
-		cmds = append(cmds, common.Refresh("@"))
 	case common.RefreshMsg:
 		cmds = append(cmds,
 			tea.Sequence(
 				m.FetchRevisions(m.revsetModel.Value),
 				common.SelectRevision(msg.SelectedRevision),
 			))
-	case common.AbandonMsg:
-		cmds = append(cmds,
-			tea.Sequence(
-				m.Abandon(string(msg)),
-				common.Refresh("@"),
-				common.Close,
-			))
-	case common.MoveBookmarkMsg:
-		cmds = append(cmds,
-			tea.Sequence(
-				m.MoveBookmark(msg.Revision, msg.Bookmark),
-				common.Refresh(msg.Revision),
-				common.Close,
-			))
-	case common.DeleteBookmarkMsg:
-		cmds = append(cmds,
-			tea.Sequence(
-				m.DeleteBookmark(msg.Bookmark),
-				common.Refresh(m.selectedRevision().GetChangeId()),
-				common.Close,
-			))
-	case common.SetBookmarkMsg:
-		cmds = append(cmds,
-			tea.Sequence(
-				m.SetBookmark(msg.Revision, msg.Bookmark),
-				common.Refresh(msg.Revision),
-				common.Close,
-			))
-	case common.SetDescriptionMsg:
-		cmds = append(cmds,
-			tea.Sequence(
-				m.SetDescription(msg.Revision, msg.Description),
-				common.Refresh(msg.Revision),
-				common.Close,
-			))
-	}
-
-	var cmd tea.Cmd
-	if m.overlay != nil {
-		if m.overlay, cmd = m.overlay.Update(msg); cmd != nil {
-			cmds = append(cmds, cmd)
-		}
-	}
-
-	if m.op == common.ShowDetailsOperation {
-		if m.details, cmd = m.details.Update(msg); cmd != nil {
-			cmds = append(cmds, cmd)
-		}
-	}
-
-	if m.revsetModel.Editing {
-		if m.revsetModel, cmd = m.revsetModel.Update(msg); cmd != nil {
-			cmds = append(cmds, cmd)
-		}
-	}
-
-	if len(cmds) > 0 {
-		return m, tea.Batch(cmds...)
-	}
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch m.Keymap.current {
-		case ' ':
-			return m.handleBaseKeys(msg)
-		case 'r':
-			return m.handleRebaseKeys(msg)
-		case 's':
-			return m.handleSquashKeys(msg)
-		case 'b':
-			return m.handleBookmarkKeys(msg)
-		case 'g':
-			return m.handleGitKeys(msg)
-		}
-
 	case common.SelectRevisionMsg:
 		r := string(msg)
 		idx := slices.IndexFunc(m.rows, func(row jj.GraphRow) bool {
@@ -350,13 +263,54 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.status = common.Error
 			m.error = msg
 		}
-	case common.UpdateBookmarksMsg:
-		m.overlay = bookmark.New(m.selectedRevision().GetChangeId(), msg.Bookmarks, msg.Operation, m.Width)
-		return m, m.overlay.Init()
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 	}
-	return m, cmd
+
+	if m.overlay != nil {
+		var cmd tea.Cmd
+		if m.overlay, cmd = m.overlay.Update(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+	}
+
+	if m.op == common.ShowDetailsOperation {
+		var cmd tea.Cmd
+		if m.details, cmd = m.details.Update(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+	}
+
+	if m.revsetModel.Editing {
+		var cmd tea.Cmd
+		if m.revsetModel, cmd = m.revsetModel.Update(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+	}
+
+	var cmd tea.Cmd
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch m.Keymap.current {
+		case ' ':
+			m, cmd = m.handleBaseKeys(msg)
+		case 'r':
+			m, cmd = m.handleRebaseKeys(msg)
+		case 's':
+			m, cmd = m.handleSquashKeys(msg)
+		case 'b':
+			m, cmd = m.handleBookmarkKeys(msg)
+		case 'g':
+			m, cmd = m.handleGitKeys(msg)
+		}
+	}
+	if cmd != nil {
+		cmds = append(cmds, cmd)
+	}
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
