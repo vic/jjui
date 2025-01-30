@@ -91,6 +91,13 @@ func (c Commands) GetDiff(revision string, fileName string) tea.Cmd {
 	}
 }
 
+func (c Commands) Restore(revision string, files []string) tea.Cmd {
+	return ShowOutput(
+		c.jj.Restore(revision, files),
+		Refresh(revision),
+	)
+}
+
 func (c Commands) Edit(revision string) tea.Cmd {
 	return ShowOutput(c.jj.Edit(revision), Refresh("@"))
 }

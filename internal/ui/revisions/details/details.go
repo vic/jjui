@@ -24,8 +24,9 @@ var (
 )
 
 type item struct {
-	status status
-	name   string
+	status   status
+	name     string
+	selected bool
 }
 
 func (f item) Title() string       { return fmt.Sprintf("%c %s", f.status, f.name) }
@@ -51,7 +52,14 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	if index == m.Index() {
 		style = style.Bold(true).Background(common.DarkBlack)
 	}
-	fmt.Fprint(w, style.Render(item.Title()))
+	title := item.Title()
+	if item.selected {
+		title = "✓" + title
+	} else {
+		title = " " + title
+	}
+
+	fmt.Fprint(w, style.Render(title))
 }
 
 func (i itemDelegate) Height() int                         { return 1 }
@@ -91,14 +99,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "d":
 			v := m.files.SelectedItem().(item).name
 			return m, m.Commands.GetDiff(m.revision, v)
+		case "r":
+			selectedFiles := make([]string, 0)
+			for _, f := range m.files.Items() {
+				if f.(item).selected {
+					selectedFiles = append(selectedFiles, f.(item).name)
+				}
+			}
+			if len(selectedFiles) == 0 {
+				return m, nil
+			}
+			return m, m.Commands.Restore(m.revision, selectedFiles)
+		case " ", "m":
+			item := m.files.SelectedItem().(item)
+			item.selected = !item.selected
+			return m, m.files.SetItem(m.files.Index(), item)
 		default:
 			var cmd tea.Cmd
 			m.files, cmd = m.files.Update(msg)
 			return m, cmd
 		}
+	case common.RefreshMsg:
+		return m, m.Status(m.revision)
 	case common.UpdateCommitStatusMsg:
-		items := make([]list.Item, len(msg))
-		for i, file := range msg {
+		items := make([]list.Item, 0)
+		for _, file := range msg {
+			if file == "" {
+				continue
+			}
 			var status status
 			switch file[0] {
 			case 'A':
@@ -108,10 +136,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case 'M':
 				status = Modified
 			}
-			items[i] = item{
+			items = append(items, item{
 				status: status,
 				name:   file[2:],
-			}
+			})
 		}
 		m.files.SetItems(items)
 		m.files.SetHeight(min(10, len(items)))

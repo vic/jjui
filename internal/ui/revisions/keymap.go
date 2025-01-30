@@ -50,7 +50,9 @@ type gitLayer struct {
 }
 
 type detailsLayer struct {
-	diff key.Binding
+	diff    key.Binding
+	restore key.Binding
+	mark    key.Binding
 }
 
 func newKeyMap() keymap {
@@ -93,7 +95,9 @@ func newKeyMap() keymap {
 	}
 
 	bindings['d'] = detailsLayer{
-		diff: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
+		diff:    key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
+		restore: key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "restore selected")),
+		mark:    key.NewBinding(key.WithKeys(" "), key.WithHelp("space", "toggle selection")),
 	}
 
 	return keymap{
@@ -144,7 +148,7 @@ func (k *keymap) ShortHelp() []key.Binding {
 	case bookmarkLayer:
 		return []key.Binding{b.move, b.set, b.delete, k.cancel}
 	case detailsLayer:
-		return []key.Binding{k.up, k.down, b.diff, k.cancel}
+		return []key.Binding{k.up, k.down, b.mark, b.diff, b.restore, k.cancel}
 	default:
 		if k.current == 'd' {
 			return []key.Binding{k.up, k.down, k.cancel}

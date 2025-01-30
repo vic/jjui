@@ -123,3 +123,11 @@ func (jj JJ) Status(revision string) *exec.Cmd {
 	cmd.Dir = jj.Location
 	return cmd
 }
+
+func (jj JJ) Restore(revision string, files []string) *exec.Cmd {
+	args := []string{"restore", "-c", revision}
+	args = append(args, files...)
+	cmd := exec.Command("jj", args...)
+	cmd.Dir = jj.Location
+	return cmd
+}
