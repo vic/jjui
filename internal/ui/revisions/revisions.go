@@ -230,6 +230,7 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+	cmds := make([]tea.Cmd, 0)
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
 		m.Keymap.resetMode()
@@ -240,60 +241,73 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.UpdateRevSetMsg:
 		m.revsetModel.Value = string(msg)
 		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
-			return m, common.Refresh(selectedRevision.GetChangeId())
+			cmds = append(cmds, common.Refresh(selectedRevision.GetChangeId()))
 		}
-		return m, common.Refresh("@")
+		cmds = append(cmds, common.Refresh("@"))
 	case common.RefreshMsg:
-		return m, tea.Sequence(
-			m.FetchRevisions(m.revsetModel.Value),
-			common.SelectRevision(msg.SelectedRevision),
-		)
+		cmds = append(cmds,
+			tea.Sequence(
+				m.FetchRevisions(m.revsetModel.Value),
+				common.SelectRevision(msg.SelectedRevision),
+			))
 	case common.AbandonMsg:
-		return m, tea.Sequence(
-			m.Abandon(string(msg)),
-			common.Refresh("@"),
-			common.Close,
-		)
+		cmds = append(cmds,
+			tea.Sequence(
+				m.Abandon(string(msg)),
+				common.Refresh("@"),
+				common.Close,
+			))
 	case common.MoveBookmarkMsg:
-		return m, tea.Sequence(
-			m.MoveBookmark(msg.Revision, msg.Bookmark),
-			common.Refresh(msg.Revision),
-			common.Close,
-		)
+		cmds = append(cmds,
+			tea.Sequence(
+				m.MoveBookmark(msg.Revision, msg.Bookmark),
+				common.Refresh(msg.Revision),
+				common.Close,
+			))
 	case common.DeleteBookmarkMsg:
-		return m, tea.Sequence(
-			m.DeleteBookmark(msg.Bookmark),
-			common.Refresh(m.selectedRevision().GetChangeId()),
-			common.Close,
-		)
+		cmds = append(cmds,
+			tea.Sequence(
+				m.DeleteBookmark(msg.Bookmark),
+				common.Refresh(m.selectedRevision().GetChangeId()),
+				common.Close,
+			))
 	case common.SetBookmarkMsg:
-		return m, tea.Sequence(
-			m.SetBookmark(msg.Revision, msg.Bookmark),
-			common.Refresh(msg.Revision),
-			common.Close,
-		)
+		cmds = append(cmds,
+			tea.Sequence(
+				m.SetBookmark(msg.Revision, msg.Bookmark),
+				common.Refresh(msg.Revision),
+				common.Close,
+			))
 	case common.SetDescriptionMsg:
-		return m, tea.Sequence(
-			m.SetDescription(msg.Revision, msg.Description),
-			common.Refresh(msg.Revision),
-			common.Close,
-		)
+		cmds = append(cmds,
+			tea.Sequence(
+				m.SetDescription(msg.Revision, msg.Description),
+				common.Refresh(msg.Revision),
+				common.Close,
+			))
 	}
 
 	var cmd tea.Cmd
 	if m.overlay != nil {
-		m.overlay, cmd = m.overlay.Update(msg)
-		return m, cmd
+		if m.overlay, cmd = m.overlay.Update(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	if m.op == common.ShowDetailsOperation {
-		m.details, cmd = m.details.Update(msg)
-		return m, cmd
+		if m.details, cmd = m.details.Update(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	if m.revsetModel.Editing {
-		m.revsetModel, cmd = m.revsetModel.Update(msg)
-		return m, cmd
+		if m.revsetModel, cmd = m.revsetModel.Update(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	if len(cmds) > 0 {
+		return m, tea.Batch(cmds...)
 	}
 
 	switch msg := msg.(type) {
