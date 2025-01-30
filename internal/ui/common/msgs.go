@@ -94,14 +94,19 @@ func CommandRunning(command string) tea.Cmd {
 	}
 }
 
-func ShowOutput(c *exec.Cmd) tea.Cmd {
-	command := strings.Join(c.Args, " ")
-	return tea.Batch(CommandRunning(command),
+func ShowOutput(c *exec.Cmd, continuations ...tea.Cmd) tea.Cmd {
+	commands := make([]tea.Cmd, 0)
+	commands = append(commands,
 		func() tea.Msg {
-			output, err := c.CombinedOutput()
+			_, err := c.CombinedOutput()
 			return CommandCompletedMsg{
-				Output: string(output),
-				Err:    err,
+				//Output: string(output),
+				Err: err,
 			}
 		})
+	commands = append(commands, continuations...)
+	return tea.Batch(
+		CommandRunning(strings.Join(c.Args, " ")),
+		tea.Sequence(commands...),
+	)
 }
