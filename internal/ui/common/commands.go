@@ -103,13 +103,13 @@ func (c Commands) Edit(revision string) tea.Cmd {
 }
 
 func (c Commands) DiffEdit(revision string) tea.Cmd {
-	return tea.ExecProcess(c.jj.DiffEdit(revision), func(err error) tea.Msg {
+	return tea.ExecProcess(c.jj.DiffEdit(revision).GetCommand(), func(err error) tea.Msg {
 		return RefreshMsg{SelectedRevision: revision}
 	})
 }
 
 func (c Commands) Split(revision string) tea.Cmd {
-	return tea.ExecProcess(c.jj.Split(revision), func(err error) tea.Msg {
+	return tea.ExecProcess(c.jj.Split(revision).GetCommand(), func(err error) tea.Msg {
 		return RefreshMsg{SelectedRevision: revision}
 	})
 }

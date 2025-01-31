@@ -3,7 +3,6 @@ package common
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"jjui/internal/jj"
-	"os/exec"
 	"strings"
 )
 
@@ -93,7 +92,7 @@ func CommandRunning(command string) tea.Cmd {
 	}
 }
 
-func ShowOutput(c *exec.Cmd, continuations ...tea.Cmd) tea.Cmd {
+func ShowOutput(c jj.Command, continuations ...tea.Cmd) tea.Cmd {
 	commands := make([]tea.Cmd, 0)
 	commands = append(commands,
 		func() tea.Msg {
@@ -105,7 +104,7 @@ func ShowOutput(c *exec.Cmd, continuations ...tea.Cmd) tea.Cmd {
 		})
 	commands = append(commands, continuations...)
 	return tea.Batch(
-		CommandRunning(strings.Join(c.Args, " ")),
+		CommandRunning(strings.Join(c.Args(), " ")),
 		tea.Sequence(commands...),
 	)
 }

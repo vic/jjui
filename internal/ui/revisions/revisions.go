@@ -2,9 +2,8 @@ package revisions
 
 import (
 	"fmt"
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"slices"
+
 	"jjui/internal/jj"
 	"jjui/internal/ui/abandon"
 	"jjui/internal/ui/bookmark"
@@ -12,7 +11,10 @@ import (
 	"jjui/internal/ui/describe"
 	"jjui/internal/ui/revisions/details"
 	"jjui/internal/ui/revisions/revset"
-	"slices"
+
+	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type viewRange struct {
