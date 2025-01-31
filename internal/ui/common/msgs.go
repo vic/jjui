@@ -92,7 +92,7 @@ func CommandRunning(command string) tea.Cmd {
 	}
 }
 
-func ShowOutput(c jj.Command, continuations ...tea.Cmd) tea.Cmd {
+func RunCommand(c jj.Command, continuations ...tea.Cmd) tea.Cmd {
 	commands := make([]tea.Cmd, 0)
 	commands = append(commands,
 		func() tea.Msg {
