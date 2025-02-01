@@ -36,7 +36,7 @@ type Model struct {
 	revsetModel revset.Model
 	details     tea.Model
 	Keymap      keymap
-	common.Commands
+	common.UICommands
 }
 
 func (m Model) selectedRevision() *jj.Commit {
@@ -67,7 +67,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, m.Keymap.details):
 		m.op = common.ShowDetailsOperation
 		m.Keymap.detailsMode()
-		m.details = details.New(m.selectedRevision().ChangeId, m.Commands)
+		m.details = details.New(m.selectedRevision().ChangeId, m.UICommands)
 		return m, m.details.Init()
 	case key.Matches(msg, layer.revset):
 		m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
@@ -80,13 +80,13 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.diffedit):
 		return m, m.DiffEdit(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.abandon):
-		m.overlay = abandon.New(m.Commands, m.selectedRevision().GetChangeId())
+		m.overlay = abandon.New(m.UICommands, m.selectedRevision().GetChangeId())
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.split):
 		currentRevision := m.selectedRevision().GetChangeId()
 		return m, m.Split(currentRevision)
 	case key.Matches(msg, layer.description):
-		m.overlay = describe.New(m.Commands, m.selectedRevision().GetChangeId(), m.selectedRevision().Description, m.Width)
+		m.overlay = describe.New(m.UICommands, m.selectedRevision().GetChangeId(), m.selectedRevision().Description, m.Width)
 		m.op = common.EditDescriptionOperation
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
@@ -186,15 +186,15 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.move):
 		m.Keymap.resetMode()
 		selected := m.selectedRevision()
-		m.overlay = bookmark.New(m.Commands, selected.GetChangeId(), m.Width)
+		m.overlay = bookmark.New(m.UICommands, selected.GetChangeId(), m.Width)
 		return m, m.FetchBookmarks(selected.GetChangeId())
 	case key.Matches(msg, layer.delete):
 		m.Keymap.resetMode()
 		selected := m.selectedRevision()
-		m.overlay = bookmark.NewDeleteBookmark(m.Commands, selected.GetChangeId(), selected.Bookmarks, m.Width)
+		m.overlay = bookmark.NewDeleteBookmark(m.UICommands, selected.GetChangeId(), selected.Bookmarks, m.Width)
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.set):
-		m.overlay = bookmark.NewSetBookmark(m.Commands, m.selectedRevision().GetChangeId())
+		m.overlay = bookmark.NewSetBookmark(m.UICommands, m.selectedRevision().GetChangeId())
 		m.op = common.SetBookmarkOperation
 		return m, m.overlay.Init()
 	case key.Matches(msg, m.Keymap.cancel):
@@ -380,7 +380,7 @@ func New(jj jj.Commands) Model {
 	defaultRevSet, _ := jj.GetConfig("revsets.log")
 	return Model{
 		status:      common.Loading,
-		Commands:    common.NewCommands(jj),
+		UICommands:  common.NewCommands(jj),
 		rows:        nil,
 		draggedRow:  -1,
 		viewRange:   &v,

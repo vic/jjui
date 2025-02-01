@@ -71,10 +71,10 @@ type Model struct {
 	revision     string
 	files        list.Model
 	confirmation *confirmation.Model
-	common.Commands
+	common.UICommands
 }
 
-func New(revision string, commands common.Commands) tea.Model {
+func New(revision string, commands common.UICommands) tea.Model {
 	l := list.New(nil, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)
 	l.SetShowTitle(false)
@@ -82,9 +82,9 @@ func New(revision string, commands common.Commands) tea.Model {
 	l.SetShowPagination(false)
 	l.SetShowHelp(false)
 	return Model{
-		revision: revision,
-		files:    l,
-		Commands: commands,
+		revision:   revision,
+		files:      l,
+		UICommands: commands,
 	}
 }
 
@@ -105,7 +105,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, common.Close
 		case "d":
 			v := m.files.SelectedItem().(item).name
-			return m, m.Commands.GetDiff(m.revision, v)
+			return m, m.UICommands.GetDiff(m.revision, v)
 		case "r":
 			selectedFiles := make([]string, 0)
 			for _, f := range m.files.Items() {
@@ -117,14 +117,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			model := confirmation.New("Restore selected files?")
-			model.AddOption("Yes", tea.Batch(m.Commands.Restore(m.revision, selectedFiles), confirmation.Close))
+			model.AddOption("Yes", tea.Batch(m.UICommands.Restore(m.revision, selectedFiles), confirmation.Close))
 			model.AddOption("No", confirmation.Close)
 			m.confirmation = &model
 			return m, m.confirmation.Init()
 		case " ", "m":
-			item := m.files.SelectedItem().(item)
-			item.selected = !item.selected
-			return m, m.files.SetItem(m.files.Index(), item)
+			if item, ok := m.files.SelectedItem().(item); ok {
+				item.selected = !item.selected
+				return m, m.files.SetItem(m.files.Index(), item)
+			}
+			return m, nil
 		default:
 			var cmd tea.Cmd
 			m.files, cmd = m.files.Update(msg)

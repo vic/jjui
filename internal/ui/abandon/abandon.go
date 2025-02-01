@@ -9,7 +9,7 @@ import (
 
 type Model struct {
 	confirmation confirmation.Model
-	common.Commands
+	common.UICommands
 }
 
 func (m Model) Init() tea.Cmd {
@@ -26,13 +26,13 @@ func (m Model) View() string {
 	return m.confirmation.View()
 }
 
-func New(commands common.Commands, revision string) tea.Model {
+func New(commands common.UICommands, revision string) tea.Model {
 	model := confirmation.New("Are you sure you want to abandon this revision?")
 	model.AddOption("Yes", tea.Batch(commands.Abandon(revision), common.Close))
 	model.AddOption("No", common.Close)
 
 	return Model{
 		confirmation: model,
-		Commands:     commands,
+		UICommands:   commands,
 	}
 }

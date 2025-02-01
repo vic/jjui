@@ -16,7 +16,7 @@ type Model struct {
 	revision string
 	list     list.Model
 	op       common.Operation
-	common.Commands
+	common.UICommands
 }
 
 type item string
@@ -93,7 +93,7 @@ func (m Model) View() string {
 	return m.list.View()
 }
 
-func New(commands common.Commands, revision string, width int) tea.Model {
+func New(commands common.UICommands, revision string, width int) tea.Model {
 	l := list.New(nil, itemDelegate{}, width, 0)
 	l.SetFilteringEnabled(true)
 	l.SetShowPagination(false)
@@ -101,14 +101,14 @@ func New(commands common.Commands, revision string, width int) tea.Model {
 	l.SetShowTitle(false)
 	l.SetShowHelp(false)
 	return Model{
-		revision: revision,
-		op:       common.MoveBookmarkOperation,
-		list:     l,
-		Commands: commands,
+		revision:   revision,
+		op:         common.MoveBookmarkOperation,
+		list:       l,
+		UICommands: commands,
 	}
 }
 
-func NewDeleteBookmark(commands common.Commands, revision string, bookmarks []string, width int) tea.Model {
+func NewDeleteBookmark(commands common.UICommands, revision string, bookmarks []string, width int) tea.Model {
 	items := convertToItems(bookmarks)
 	l := list.New(items, itemDelegate{}, width, max(0, min(10, len(items))))
 	l.SetFilteringEnabled(true)
@@ -117,9 +117,9 @@ func NewDeleteBookmark(commands common.Commands, revision string, bookmarks []st
 	l.SetShowTitle(false)
 	l.SetShowHelp(false)
 	return Model{
-		revision: revision,
-		op:       common.DeleteBookmarkOperation,
-		list:     l,
-		Commands: commands,
+		revision:   revision,
+		op:         common.DeleteBookmarkOperation,
+		list:       l,
+		UICommands: commands,
 	}
 }

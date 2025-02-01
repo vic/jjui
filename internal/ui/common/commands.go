@@ -6,19 +6,19 @@ import (
 	"strings"
 )
 
-type Commands struct {
+type UICommands struct {
 	jj jj.Commands
 }
 
-func (c Commands) GitFetch(revision string) tea.Cmd {
+func (c UICommands) GitFetch(revision string) tea.Cmd {
 	return RunCommand(c.jj.GitFetch(), Refresh(revision))
 }
 
-func (c Commands) GitPush(revision string) tea.Cmd {
+func (c UICommands) GitPush(revision string) tea.Cmd {
 	return RunCommand(c.jj.GitPush(), Refresh(revision))
 }
 
-func (c Commands) Rebase(from, to string, operation Operation) tea.Cmd {
+func (c UICommands) Rebase(from, to string, operation Operation) tea.Cmd {
 	rebase := c.jj.RebaseCommand
 	if operation == RebaseBranchOperation {
 		rebase = c.jj.RebaseBranchCommand
@@ -27,30 +27,30 @@ func (c Commands) Rebase(from, to string, operation Operation) tea.Cmd {
 	return RunCommand(cmd, Refresh(to))
 }
 
-func (c Commands) Squash(from, destination string) tea.Cmd {
+func (c UICommands) Squash(from, destination string) tea.Cmd {
 	cmd := c.jj.Squash(from, destination)
 	return tea.Sequence(
-		CommandRunning(strings.Join(cmd.Args, " ")),
-		tea.ExecProcess(cmd, func(err error) tea.Msg {
+		CommandRunning(strings.Join(cmd.Args(), " ")),
+		tea.ExecProcess(cmd.GetCommand(), func(err error) tea.Msg {
 			return CommandCompletedMsg{Output: "", Err: err}
 		}),
 		Refresh(destination),
 	)
 }
 
-func (c Commands) SetDescription(revision string, description string) tea.Cmd {
+func (c UICommands) SetDescription(revision string, description string) tea.Cmd {
 	return RunCommand(c.jj.SetDescription(revision, description), Refresh(revision), Close)
 }
 
-func (c Commands) MoveBookmark(revision string, bookmark string) tea.Cmd {
+func (c UICommands) MoveBookmark(revision string, bookmark string) tea.Cmd {
 	return RunCommand(c.jj.MoveBookmark(revision, bookmark), Refresh(revision), Close)
 }
 
-func (c Commands) DeleteBookmark(revision, bookmark string) tea.Cmd {
+func (c UICommands) DeleteBookmark(revision, bookmark string) tea.Cmd {
 	return RunCommand(c.jj.DeleteBookmark(bookmark), Refresh(revision), Close)
 }
 
-func (c Commands) FetchRevisions(revset string) tea.Cmd {
+func (c UICommands) FetchRevisions(revset string) tea.Cmd {
 	return func() tea.Msg {
 		graphLines, err := c.jj.GetCommits(revset)
 		if err != nil {
@@ -60,7 +60,7 @@ func (c Commands) FetchRevisions(revset string) tea.Cmd {
 	}
 }
 
-func (c Commands) FetchBookmarks(revision string) tea.Cmd {
+func (c UICommands) FetchBookmarks(revision string) tea.Cmd {
 	return func() tea.Msg {
 		cmd := c.jj.ListBookmark(revision)
 		//TODO: handle error
@@ -80,49 +80,49 @@ func (c Commands) FetchBookmarks(revision string) tea.Cmd {
 	}
 }
 
-func (c Commands) SetBookmark(revision string, name string) tea.Cmd {
+func (c UICommands) SetBookmark(revision string, name string) tea.Cmd {
 	return RunCommand(c.jj.SetBookmark(revision, name), Refresh(revision), Close)
 }
 
-func (c Commands) GetDiff(revision string, fileName string) tea.Cmd {
+func (c UICommands) GetDiff(revision string, fileName string) tea.Cmd {
 	return func() tea.Msg {
 		output, _ := c.jj.Diff(revision, fileName).CombinedOutput()
 		return ShowDiffMsg(output)
 	}
 }
 
-func (c Commands) Restore(revision string, files []string) tea.Cmd {
+func (c UICommands) Restore(revision string, files []string) tea.Cmd {
 	return RunCommand(
 		c.jj.Restore(revision, files),
 		Refresh(revision),
 	)
 }
 
-func (c Commands) Edit(revision string) tea.Cmd {
+func (c UICommands) Edit(revision string) tea.Cmd {
 	return RunCommand(c.jj.Edit(revision), Refresh("@"))
 }
 
-func (c Commands) DiffEdit(revision string) tea.Cmd {
+func (c UICommands) DiffEdit(revision string) tea.Cmd {
 	return tea.ExecProcess(c.jj.DiffEdit(revision).GetCommand(), func(err error) tea.Msg {
 		return RefreshMsg{SelectedRevision: revision}
 	})
 }
 
-func (c Commands) Split(revision string) tea.Cmd {
+func (c UICommands) Split(revision string) tea.Cmd {
 	return tea.ExecProcess(c.jj.Split(revision).GetCommand(), func(err error) tea.Msg {
 		return RefreshMsg{SelectedRevision: revision}
 	})
 }
 
-func (c Commands) Abandon(revision string) tea.Cmd {
+func (c UICommands) Abandon(revision string) tea.Cmd {
 	return RunCommand(c.jj.Abandon(revision), Refresh("@"), Close)
 }
 
-func (c Commands) NewRevision(from string) tea.Cmd {
+func (c UICommands) NewRevision(from string) tea.Cmd {
 	return RunCommand(c.jj.New(from), Refresh("@"))
 }
 
-func (c Commands) Status(revision string) tea.Cmd {
+func (c UICommands) Status(revision string) tea.Cmd {
 	cmd := c.jj.Status(revision)
 	output, err := cmd.CombinedOutput()
 	if err == nil {
@@ -139,6 +139,6 @@ func (c Commands) Status(revision string) tea.Cmd {
 	}
 }
 
-func NewCommands(jj jj.Commands) Commands {
-	return Commands{jj}
+func NewCommands(jj jj.Commands) UICommands {
+	return UICommands{jj}
 }

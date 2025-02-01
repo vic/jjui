@@ -9,7 +9,7 @@ import (
 type Model struct {
 	revision    string
 	description textarea.Model
-	common.Commands
+	common.UICommands
 }
 
 func (m Model) Init() tea.Cmd {
@@ -37,7 +37,7 @@ func (m Model) View() string {
 	return m.description.View()
 }
 
-func New(commands common.Commands, revision string, description string, width int) tea.Model {
+func New(commands common.UICommands, revision string, description string, width int) tea.Model {
 	t := textarea.New()
 	t.SetValue(description)
 	t.Focus()
@@ -48,6 +48,6 @@ func New(commands common.Commands, revision string, description string, width in
 	return Model{
 		description: t,
 		revision:    revision,
-		Commands:    commands,
+		UICommands:  commands,
 	}
 }

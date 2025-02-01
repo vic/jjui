@@ -5,11 +5,14 @@ go 1.22
 require (
 	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/charmbracelet/lipgloss v1.0.0
+	github.com/charmbracelet/x/exp/teatest v0.0.0-20250131172436-6251e772efa1
 	github.com/stretchr/testify v1.10.0
 )
 
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
+	github.com/aymanbagabas/go-udiff v0.2.0 // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20240815200342-61de596daa2b // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect
 )
 

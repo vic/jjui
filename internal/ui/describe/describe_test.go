@@ -1,120 +1,18 @@
 package describe
 
 import (
+	"bytes"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/x/exp/teatest"
 	"github.com/stretchr/testify/assert"
-	"jjui/internal/jj"
 	"jjui/internal/ui/common"
-	"os/exec"
+	"jjui/test"
 	"testing"
+	"time"
 )
 
-type TestJJCommands struct {
-	Invocations [][]string
-}
-
-func (t *TestJJCommands) GetConfig(key string) ([]byte, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) RebaseCommand(from string, to string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) RebaseBranchCommand(from string, to string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) SetDescription(rev string, description string) jj.Command {
-	t.Invocations = append(t.Invocations, []string{"SetDescription", rev, description})
-	return &exec.Cmd{}
-}
-
-func (t *TestJJCommands) ListBookmark(revision string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) SetBookmark(revision string, name string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) MoveBookmark(revision string, bookmark string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) DeleteBookmark(bookmark string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) GitFetch() jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) GitPush() jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) Diff(revision string, fineName string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) Edit(revision string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) DiffEdit(revision string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) Abandon(revision string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) New(from string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) Split(revision string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) GetCommits(revset string) ([]jj.GraphRow, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) Squash(from string, destination string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) Status(revision string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t *TestJJCommands) Restore(revision string, files []string) jj.Command {
-	//TODO implement me
-	panic("implement me")
-}
-
 func TestCancel(t *testing.T) {
-	model := New(common.NewCommands(&TestJJCommands{}), "revision", "description", 20)
+	model := New(common.NewCommands(&test.JJCommands{}), "revision", "description", 20)
 	var cmd tea.Cmd
 	model, cmd = model.Update(tea.KeyMsg{Type: tea.KeyEsc})
 	assert.NotNil(t, cmd)
@@ -124,13 +22,15 @@ func TestCancel(t *testing.T) {
 }
 
 func TestEdit(t *testing.T) {
-	commands := TestJJCommands{}
-	model := New(common.NewCommands(&commands), "revision", "description", 20)
-	var cmd tea.Cmd
-	model, cmd = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	assert.NotNil(t, cmd)
-	msg := cmd()
-	assert.NotNil(t, msg)
-	//assert.Equal(t, [][]string{{"SetDescription", "revision", "description"}}, commands.Invocations)
-	assert.Contains(t, commands.Invocations, []string{"SetDescriptions", "revision", "description"})
+	commands := test.NewJJCommands()
+	commands.ExpectSetDescription(t, "revision", "description changed")
+	tm := teatest.NewTestModel(t, New(common.NewUICommands(commands), "revision", "description", 20))
+	tm.Type(" changed")
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+		return bytes.Contains(bts, []byte("changed"))
+	})
+	tm.Quit()
+	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
+	commands.Verify(t)
 }
