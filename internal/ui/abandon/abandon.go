@@ -28,24 +28,25 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "left":
+		switch msg.Type {
+		case tea.KeyLeft:
 			if m.selected > 0 {
 				m.selected--
 			}
-		case "right":
+		case tea.KeyRight:
 			if m.selected < len(m.options) {
 				m.selected++
 			}
-		case "enter":
+		case tea.KeyEnter:
 			switch m.options[m.selected] {
 			case "Yes":
 				return m, m.Abandon(m.revision)
 			case "No":
 				return m, common.Close
 			}
-		case "esc":
+		case tea.KeyEscape:
 			return m, common.Close
+		default:
 		}
 	}
 	return m, nil

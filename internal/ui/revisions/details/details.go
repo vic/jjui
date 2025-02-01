@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"io"
 	"jjui/internal/ui/common"
+	"jjui/internal/ui/confirmation"
 )
 
 var (
@@ -67,8 +68,9 @@ func (i itemDelegate) Spacing() int                        { return 0 }
 func (i itemDelegate) Update(tea.Msg, *list.Model) tea.Cmd { return nil }
 
 type Model struct {
-	revision string
-	files    list.Model
+	revision     string
+	files        list.Model
+	confirmation *confirmation.Model
 	common.Commands
 }
 
@@ -93,6 +95,11 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.confirmation != nil {
+			model, cmd := m.confirmation.Update(msg)
+			m.confirmation = &model
+			return m, cmd
+		}
 		switch msg.String() {
 		case "esc", "h":
 			return m, common.Close
@@ -109,7 +116,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(selectedFiles) == 0 {
 				return m, nil
 			}
-			return m, m.Commands.Restore(m.revision, selectedFiles)
+			model := confirmation.New("Restore selected files?")
+			model.AddOption("Yes", tea.Batch(m.Commands.Restore(m.revision, selectedFiles), confirmation.Close))
+			model.AddOption("No", confirmation.Close)
+			m.confirmation = &model
+			return m, m.confirmation.Init()
 		case " ", "m":
 			item := m.files.SelectedItem().(item)
 			item.selected = !item.selected
@@ -119,6 +130,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.files, cmd = m.files.Update(msg)
 			return m, cmd
 		}
+	case confirmation.CloseMsg:
+		m.confirmation = nil
+		return m, nil
 	case common.RefreshMsg:
 		return m, m.Status(m.revision)
 	case common.UpdateCommitStatusMsg:
@@ -148,5 +162,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return m.files.View()
+	filesView := m.files.View()
+	if m.confirmation != nil {
+		confirmationView := m.confirmation.View()
+		return lipgloss.JoinVertical(lipgloss.Top, filesView, confirmationView)
+	}
+	return filesView
 }
