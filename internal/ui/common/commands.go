@@ -139,6 +139,6 @@ func (c UICommands) Status(revision string) tea.Cmd {
 	}
 }
 
-func NewCommands(jj jj.Commands) UICommands {
+func NewUICommands(jj jj.Commands) UICommands {
 	return UICommands{jj}
 }

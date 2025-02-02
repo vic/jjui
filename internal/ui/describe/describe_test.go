@@ -12,7 +12,7 @@ import (
 )
 
 func TestCancel(t *testing.T) {
-	model := New(common.NewCommands(&test.JJCommands{}), "revision", "description", 20)
+	model := New(common.NewUICommands(&test.JJCommands{}), "revision", "description", 20)
 	var cmd tea.Cmd
 	model, cmd = model.Update(tea.KeyMsg{Type: tea.KeyEsc})
 	assert.NotNil(t, cmd)

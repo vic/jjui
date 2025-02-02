@@ -380,7 +380,7 @@ func New(jj jj.Commands) Model {
 	defaultRevSet, _ := jj.GetConfig("revsets.log")
 	return Model{
 		status:      common.Loading,
-		UICommands:  common.NewCommands(jj),
+		UICommands:  common.NewUICommands(jj),
 		rows:        nil,
 		draggedRow:  -1,
 		viewRange:   &v,
