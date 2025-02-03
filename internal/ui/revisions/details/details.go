@@ -159,6 +159,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.files.SetItems(items)
 		m.files.SetHeight(min(10, len(items)))
+		m.files.SetShowPagination(len(items) > 10)
 	}
 	return m, nil
 }
