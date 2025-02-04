@@ -116,6 +116,11 @@ func (t *JJCommands) New(from string) jj.Command {
 	panic("implement me")
 }
 
+func (t *JJCommands) Undo() jj.Command {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (t *JJCommands) Split(revision string) jj.Command {
 	//TODO implement me
 	panic("implement me")
