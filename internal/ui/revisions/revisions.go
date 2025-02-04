@@ -91,7 +91,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.split):
 		currentRevision := m.selectedRevision().GetChangeId()
-		return m, m.Split(currentRevision)
+		return m, m.Split(currentRevision, []string{})
 	case key.Matches(msg, layer.description):
 		m.overlay = describe.New(m.UICommands, m.selectedRevision().GetChangeId(), m.selectedRevision().Description, m.Width)
 		m.op = common.EditDescriptionOperation

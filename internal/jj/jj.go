@@ -105,8 +105,10 @@ func (jj JJ) DiffEdit(revision string) Command {
 	return jj.createCommand("jj", "diffedit", "-r", revision)
 }
 
-func (jj JJ) Split(revision string) Command {
-	return jj.createCommand("jj", "split", "-r", revision)
+func (jj JJ) Split(revision string, files []string) Command {
+	args := []string{"split", "-r", revision}
+	args = append(args, files...)
+	return jj.createCommand("jj", args...)
 }
 
 func (jj JJ) Abandon(revision string) Command {

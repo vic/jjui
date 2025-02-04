@@ -29,6 +29,7 @@ var (
 	cancel  = key.NewBinding(key.WithKeys("esc", "h"))
 	mark    = key.NewBinding(key.WithKeys("m", " "))
 	restore = key.NewBinding(key.WithKeys("r"))
+	split   = key.NewBinding(key.WithKeys("s"))
 	up      = key.NewBinding(key.WithKeys("up", "k"))
 	down    = key.NewBinding(key.WithKeys("down", "j"))
 	diff    = key.NewBinding(key.WithKeys("d"))
@@ -118,16 +119,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, diff):
 			v := m.files.SelectedItem().(item).name
 			return m, m.UICommands.GetDiff(m.revision, v)
+		case key.Matches(msg, split):
+			selectedFiles := m.getSelectedFiles()
+			return m, tea.Batch(m.UICommands.Split(m.revision, selectedFiles), common.Close)
 		case key.Matches(msg, restore):
-			selectedFiles := make([]string, 0)
-			for _, f := range m.files.Items() {
-				if f.(item).selected {
-					selectedFiles = append(selectedFiles, f.(item).name)
-				}
-			}
-			if len(selectedFiles) == 0 {
-				selectedFiles = append(selectedFiles, m.files.SelectedItem().(item).name)
-			}
+			selectedFiles := m.getSelectedFiles()
 			message := "Restore selected files?"
 			if len(selectedFiles) == 1 {
 				message = fmt.Sprintf("Restore '%s'?", selectedFiles[0])
@@ -180,6 +176,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.files.SetShowPagination(len(items) > 10)
 	}
 	return m, nil
+}
+
+func (m Model) getSelectedFiles() []string {
+	selectedFiles := make([]string, 0)
+	for _, f := range m.files.Items() {
+		if f.(item).selected {
+			selectedFiles = append(selectedFiles, f.(item).name)
+		}
+	}
+	if len(selectedFiles) == 0 {
+		selectedFiles = append(selectedFiles, m.files.SelectedItem().(item).name)
+	}
+	return selectedFiles
 }
 
 func (m Model) View() string {

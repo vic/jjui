@@ -25,7 +25,9 @@ func (m *MockedCommand) CombinedOutput() ([]byte, error) {
 }
 
 func (m *MockedCommand) GetCommand() *exec.Cmd {
-	return nil
+	m.called = true
+	// do nothing
+	return exec.Command(":")
 }
 
 func (m *MockedCommand) Args() []string {
@@ -121,9 +123,22 @@ func (t *JJCommands) Undo() jj.Command {
 	panic("implement me")
 }
 
-func (t *JJCommands) Split(revision string) jj.Command {
-	//TODO implement me
-	panic("implement me")
+func (t *JJCommands) Split(revision string, files []string) jj.Command {
+	expectation := t.expectations["Split"]
+	if expectation == nil {
+		panic("unexpected call to Split")
+	}
+	assert.Equal(expectation.t, expectation.args, append([]string{revision}, files...))
+	return expectation
+}
+
+func (t *JJCommands) ExpectSplit(tt *testing.T, revision string, files []string) *MockedCommand {
+	command := MockedCommand{
+		args: append([]string{revision}, files...),
+		t:    tt,
+	}
+	t.expectations["Split"] = &command
+	return &command
 }
 
 func (t *JJCommands) GetCommits(revset string) ([]jj.GraphRow, error) {

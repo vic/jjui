@@ -16,7 +16,7 @@ type Commands interface {
 	DiffEdit(revision string) Command
 	Abandon(revision string) Command
 	New(from string) Command
-	Split(revision string) Command
+	Split(revision string, files []string) Command
 	GetCommits(revset string) ([]GraphRow, error)
 	Squash(from string, destination string) Command
 	Status(revision string) Command

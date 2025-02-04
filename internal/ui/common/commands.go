@@ -108,8 +108,8 @@ func (c UICommands) DiffEdit(revision string) tea.Cmd {
 	})
 }
 
-func (c UICommands) Split(revision string) tea.Cmd {
-	return tea.ExecProcess(c.jj.Split(revision).GetCommand(), func(err error) tea.Msg {
+func (c UICommands) Split(revision string, files []string) tea.Cmd {
+	return tea.ExecProcess(c.jj.Split(revision, files).GetCommand(), func(err error) tea.Msg {
 		return RefreshMsg{SelectedRevision: revision}
 	})
 }
