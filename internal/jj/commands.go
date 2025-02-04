@@ -21,4 +21,5 @@ type Commands interface {
 	Squash(from string, destination string) Command
 	Status(revision string) Command
 	Restore(revision string, files []string) Command
+	Undo() Command
 }

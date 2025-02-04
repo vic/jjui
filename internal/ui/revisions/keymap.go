@@ -26,6 +26,7 @@ type baseLayer struct {
 	new          key.Binding
 	revset       key.Binding
 	refresh      key.Binding
+	undo         key.Binding
 	quit         key.Binding
 }
 
@@ -71,6 +72,7 @@ func newKeyMap() keymap {
 		new:          key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new")),
 		revset:       key.NewBinding(key.WithKeys("L"), key.WithHelp("L", "revset")),
 		refresh:      key.NewBinding(key.WithKeys("ctrl+r"), key.WithHelp("ctrl+r", "refresh")),
+		undo:         key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "undo")),
 		quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 
@@ -138,7 +140,7 @@ func (k *keymap) detailsMode() {
 func (k *keymap) ShortHelp() []key.Binding {
 	switch b := k.bindings[k.current].(type) {
 	case baseLayer:
-		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.description, b.diff, b.abandon, k.details, b.split, b.squashMode, b.diffedit, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
+		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.description, b.diff, b.abandon, b.undo, k.details, b.split, b.squashMode, b.diffedit, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
 		return []key.Binding{k.up, k.down, b.branch, b.revision, k.cancel}
 	case squashLayer:

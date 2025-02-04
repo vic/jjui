@@ -2,6 +2,7 @@ package revisions
 
 import (
 	"fmt"
+	"jjui/internal/ui/confirmation"
 	"slices"
 
 	"jjui/internal/jj"
@@ -23,19 +24,20 @@ type viewRange struct {
 }
 
 type Model struct {
-	rows        []jj.GraphRow
-	status      common.Status
-	error       error
-	op          common.Operation
-	viewRange   *viewRange
-	draggedRow  int
-	cursor      int
-	Width       int
-	Height      int
-	overlay     tea.Model
-	revsetModel revset.Model
-	details     tea.Model
-	Keymap      keymap
+	rows         []jj.GraphRow
+	status       common.Status
+	error        error
+	op           common.Operation
+	viewRange    *viewRange
+	draggedRow   int
+	cursor       int
+	Width        int
+	Height       int
+	overlay      tea.Model
+	revsetModel  revset.Model
+	confirmation *confirmation.Model
+	details      tea.Model
+	Keymap       keymap
 	common.UICommands
 }
 
@@ -72,7 +74,12 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.revset):
 		m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
 		return m, nil
-
+	case key.Matches(msg, layer.undo):
+		model := confirmation.New("Are you sure you want to undo last change?")
+		model.AddOption("Yes", tea.Batch(m.Undo(), confirmation.Close))
+		model.AddOption("No", confirmation.Close)
+		m.confirmation = &model
+		return m, m.confirmation.Init()
 	case key.Matches(msg, layer.new):
 		return m, m.NewRevision(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.edit):
@@ -227,6 +234,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.details = nil
 		m.op = common.None
 		return m, nil
+	case confirmation.CloseMsg:
+		m.confirmation = nil
+		return m, nil
 	case common.UpdateRevSetMsg:
 		m.revsetModel.Value = string(msg)
 		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
@@ -267,6 +277,16 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
+	}
+
+	if m.confirmation != nil {
+		var cmd tea.Cmd
+		var cm confirmation.Model
+		if cm, cmd = m.confirmation.Update(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		m.confirmation = &cm
+		return m, tea.Batch(cmds...)
 	}
 
 	if m.overlay != nil {
@@ -316,7 +336,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	revsetView := m.revsetModel.View()
+	topView := m.revsetModel.View()
 	content := ""
 
 	if m.status == common.Loading {
@@ -328,7 +348,10 @@ func (m Model) View() string {
 	}
 
 	if m.status == common.Ready {
-		h := m.Height - lipgloss.Height(revsetView)
+		if m.confirmation != nil {
+			topView = lipgloss.JoinVertical(0, topView, m.confirmation.View())
+		}
+		h := m.Height - lipgloss.Height(topView)
 
 		if m.viewRange.end-m.viewRange.start > h {
 			m.viewRange.end = m.viewRange.start + h
@@ -372,7 +395,7 @@ func (m Model) View() string {
 		content = w.String(m.viewRange.start, m.viewRange.end)
 	}
 
-	return lipgloss.JoinVertical(0, revsetView, content)
+	return lipgloss.JoinVertical(0, topView, content)
 }
 
 func New(jj jj.Commands) Model {

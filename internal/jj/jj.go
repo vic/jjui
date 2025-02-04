@@ -117,6 +117,10 @@ func (jj JJ) New(from string) Command {
 	return jj.createCommand("jj", "new", "-r", from)
 }
 
+func (jj JJ) Undo() Command {
+	return jj.createCommand("jj", "undo")
+}
+
 func (jj JJ) Status(revision string) Command {
 	return jj.createCommand("jj", "log", "-r", revision, "--summary", "--no-graph", "--color", "never", "--template", "")
 }

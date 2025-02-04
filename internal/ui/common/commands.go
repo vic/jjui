@@ -122,6 +122,10 @@ func (c UICommands) NewRevision(from string) tea.Cmd {
 	return RunCommand(c.jj.New(from), Refresh("@"))
 }
 
+func (c UICommands) Undo() tea.Cmd {
+	return RunCommand(c.jj.Undo(), Refresh("@"))
+}
+
 func (c UICommands) Status(revision string) tea.Cmd {
 	cmd := c.jj.Status(revision)
 	output, err := cmd.CombinedOutput()
