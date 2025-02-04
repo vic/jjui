@@ -2,6 +2,7 @@ package details
 
 import (
 	"fmt"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -22,6 +23,15 @@ var (
 	Added    status = 0
 	Deleted  status = 1
 	Modified status = 2
+)
+
+var (
+	cancel  = key.NewBinding(key.WithKeys("esc", "h"))
+	mark    = key.NewBinding(key.WithKeys("m", " "))
+	restore = key.NewBinding(key.WithKeys("r"))
+	up      = key.NewBinding(key.WithKeys("up", "k"))
+	down    = key.NewBinding(key.WithKeys("down", "j"))
+	diff    = key.NewBinding(key.WithKeys("d"))
 )
 
 type item struct {
@@ -81,6 +91,8 @@ func New(revision string, commands common.UICommands) tea.Model {
 	l.SetShowStatusBar(false)
 	l.SetShowPagination(false)
 	l.SetShowHelp(false)
+	l.KeyMap.CursorUp = up
+	l.KeyMap.CursorDown = down
 	return Model{
 		revision:   revision,
 		files:      l,
@@ -100,13 +112,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.confirmation = &model
 			return m, cmd
 		}
-		switch msg.String() {
-		case "esc", "h":
+		switch {
+		case key.Matches(msg, cancel):
 			return m, common.Close
-		case "d":
+		case key.Matches(msg, diff):
 			v := m.files.SelectedItem().(item).name
 			return m, m.UICommands.GetDiff(m.revision, v)
-		case "r":
+		case key.Matches(msg, restore):
 			selectedFiles := make([]string, 0)
 			for _, f := range m.files.Items() {
 				if f.(item).selected {
@@ -114,17 +126,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			if len(selectedFiles) == 0 {
-				return m, nil
+				selectedFiles = append(selectedFiles, m.files.SelectedItem().(item).name)
 			}
-			model := confirmation.New("Restore selected files?")
+			message := "Restore selected files?"
+			if len(selectedFiles) == 1 {
+				message = fmt.Sprintf("Restore '%s'?", selectedFiles[0])
+			}
+			model := confirmation.New(message)
 			model.AddOption("Yes", tea.Batch(m.UICommands.Restore(m.revision, selectedFiles), confirmation.Close))
 			model.AddOption("No", confirmation.Close)
 			m.confirmation = &model
 			return m, m.confirmation.Init()
-		case " ", "m":
+		case key.Matches(msg, mark):
 			if item, ok := m.files.SelectedItem().(item); ok {
 				item.selected = !item.selected
-				return m, m.files.SetItem(m.files.Index(), item)
+				oldIndex := m.files.Index()
+				m.files.CursorDown()
+				return m, m.files.SetItem(oldIndex, item)
 			}
 			return m, nil
 		default:
