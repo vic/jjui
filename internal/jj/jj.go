@@ -65,7 +65,7 @@ func (jj JJ) SetDescription(rev string, description string) Command {
 }
 
 func (jj JJ) ListBookmark(revision string) Command {
-	return jj.createCommand("jj", "log", "-r", fmt.Sprintf("::%s- & bookmarks()", revision), "--template", "local_bookmarks.map(|x| x.name() ++ '\n')", "--no-graph")
+	return jj.createCommand("jj", "log", "-r", fmt.Sprintf("::%s- & bookmarks()", revision), "--template", "local_bookmarks.map(|x| x.name() ++ '\n')", "--no-graph", "--color", "never")
 }
 
 func (jj JJ) SetBookmark(revision string, name string) Command {
@@ -89,7 +89,7 @@ func (jj JJ) GitPush() Command {
 }
 
 func (jj JJ) Diff(revision string, fileName string) Command {
-	args := []string{"diff", "-r", revision}
+	args := []string{"diff", "-r", revision, "--color", "always"}
 	if fileName != "" {
 		args = append(args, fileName)
 	}
@@ -118,7 +118,7 @@ func (jj JJ) New(from string) Command {
 }
 
 func (jj JJ) Status(revision string) Command {
-	return jj.createCommand("jj", "log", "-r", revision, "--summary", "--no-graph", "--template", "")
+	return jj.createCommand("jj", "log", "-r", revision, "--summary", "--no-graph", "--color", "never", "--template", "")
 }
 
 func (jj JJ) Restore(revision string, files []string) Command {
