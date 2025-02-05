@@ -47,3 +47,22 @@ func TestModel_Update_RestoresSelectedFiles(t *testing.T) {
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
 	commands.Verify(t)
 }
+
+func TestModel_Update_SplitsSelectedFiles(t *testing.T) {
+	commands := test.NewJJCommands()
+	statusCommand := commands.ExpectStatus(t, Revision)
+	statusCommand.Output = []byte(StatusOutput)
+
+	commands.ExpectSplit(t, Revision, []string{"file.txt"})
+
+	tm := teatest.NewTestModel(t, test.NewShell(New(Revision, common.NewUICommands(commands))))
+	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+		return bytes.Contains(bts, []byte("file.txt"))
+	})
+
+	tm.Send(tea.KeyMsg{Type: tea.KeySpace})
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
+	commands.Verify(t)
+}

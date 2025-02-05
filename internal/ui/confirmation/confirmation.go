@@ -22,7 +22,7 @@ type Model struct {
 	selected int
 }
 
-var textStyle = lipgloss.NewStyle().Bold(true).Foreground(common.DarkWhite)
+var textStyle = lipgloss.NewStyle().Bold(true).Foreground(common.Magenta)
 var normalStyle = lipgloss.NewStyle().
 	Foreground(common.White).
 	PaddingLeft(2).

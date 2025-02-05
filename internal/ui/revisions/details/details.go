@@ -15,6 +15,7 @@ var (
 	AddedStyle    = lipgloss.NewStyle().Foreground(common.Green)
 	DeletedStyle  = lipgloss.NewStyle().Foreground(common.Red)
 	ModifiedStyle = lipgloss.NewStyle().Foreground(common.Cyan)
+	HintStyle     = lipgloss.NewStyle().Foreground(common.DarkBlack).PaddingLeft(1)
 )
 
 type status uint8
@@ -56,7 +57,10 @@ func (f item) Title() string {
 func (f item) Description() string { return "" }
 func (f item) FilterValue() string { return f.name }
 
-type itemDelegate struct{}
+type itemDelegate struct {
+	selectedHint   string
+	unselectedHint string
+}
 
 func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
 	item, ok := listItem.(item)
@@ -76,13 +80,15 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		style = style.Bold(true).Background(common.DarkBlack)
 	}
 	title := item.Title()
+	hint := ""
 	if item.selected {
 		title = "✓" + title
+		hint = i.selectedHint
 	} else {
 		title = " " + title
+		hint = i.unselectedHint
 	}
-
-	fmt.Fprint(w, style.Render(title))
+	fmt.Fprint(w, style.PaddingRight(1).Render(title), HintStyle.Render(hint))
 }
 
 func (i itemDelegate) Height() int                         { return 1 }
@@ -92,6 +98,7 @@ func (i itemDelegate) Update(tea.Msg, *list.Model) tea.Cmd { return nil }
 type Model struct {
 	revision     string
 	files        list.Model
+	height       int
 	confirmation *confirmation.Model
 	common.UICommands
 }
@@ -113,7 +120,7 @@ func New(revision string, commands common.UICommands) tea.Model {
 }
 
 func (m Model) Init() tea.Cmd {
-	return m.Status(m.revision)
+	return tea.Batch(m.Status(m.revision), tea.WindowSize())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -132,15 +139,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.UICommands.GetDiff(m.revision, v)
 		case key.Matches(msg, split):
 			selectedFiles := m.getSelectedFiles()
-			return m, tea.Batch(m.UICommands.Split(m.revision, selectedFiles), common.Close)
+			m.files.SetDelegate(itemDelegate{
+				selectedHint:   "stays as is",
+				unselectedHint: "moves to the new revision",
+			})
+			model := confirmation.New("Are you sure you want to split the selected files?")
+			model.AddOption("Yes", tea.Batch(m.UICommands.Split(m.revision, selectedFiles), common.Close))
+			model.AddOption("No", confirmation.Close)
+			m.confirmation = &model
+			return m, m.confirmation.Init()
 		case key.Matches(msg, restore):
 			selectedFiles := m.getSelectedFiles()
-			message := "Restore selected files?"
-			if len(selectedFiles) == 1 {
-				message = fmt.Sprintf("Restore '%s'?", selectedFiles[0])
-			}
-			model := confirmation.New(message)
-			model.AddOption("Yes", tea.Batch(m.UICommands.Restore(m.revision, selectedFiles), confirmation.Close))
+			m.files.SetDelegate(itemDelegate{
+				selectedHint:   "gets restored",
+				unselectedHint: "stays as is",
+			})
+			model := confirmation.New("Are you sure you want to restore the selected files?")
+			model.AddOption("Yes", tea.Batch(m.UICommands.Restore(m.revision, selectedFiles), common.Close))
 			model.AddOption("No", confirmation.Close)
 			m.confirmation = &model
 			return m, m.confirmation.Init()
@@ -159,6 +174,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case confirmation.CloseMsg:
 		m.confirmation = nil
+		m.files.SetDelegate(itemDelegate{})
 		return m, nil
 	case common.RefreshMsg:
 		return m, m.Status(m.revision)
@@ -183,8 +199,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			})
 		}
 		m.files.SetItems(items)
-		m.files.SetHeight(min(10, len(items)))
-		m.files.SetShowPagination(len(items) > 10)
+	case tea.WindowSizeMsg:
+		m.height = msg.Height
 	}
 	return m, nil
 }
@@ -203,10 +219,13 @@ func (m Model) getSelectedFiles() []string {
 }
 
 func (m Model) View() string {
-	filesView := m.files.View()
+	confirmationView := ""
+	ch := 0
 	if m.confirmation != nil {
-		confirmationView := m.confirmation.View()
-		return lipgloss.JoinVertical(lipgloss.Top, filesView, confirmationView)
+		confirmationView = m.confirmation.View()
+		ch = lipgloss.Height(confirmationView)
 	}
-	return filesView
+	m.files.SetHeight(min(m.height-5-ch, len(m.files.Items())))
+	filesView := m.files.View()
+	return lipgloss.JoinVertical(lipgloss.Top, filesView, confirmationView)
 }
