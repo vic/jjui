@@ -41,7 +41,18 @@ type item struct {
 	selected bool
 }
 
-func (f item) Title() string       { return fmt.Sprintf("%c %s", f.status, f.name) }
+func (f item) Title() string {
+	status := "M"
+	switch f.status {
+	case Added:
+		status = "A"
+	case Deleted:
+		status = "D"
+	case Modified:
+		status = "M"
+	}
+	return fmt.Sprintf("%s %s", status, f.name)
+}
 func (f item) Description() string { return "" }
 func (f item) FilterValue() string { return f.name }
 
