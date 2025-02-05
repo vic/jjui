@@ -235,8 +235,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.op = common.None
 		return m, nil
 	case confirmation.CloseMsg:
-		m.confirmation = nil
-		return m, nil
+		if m.confirmation != nil {
+			m.confirmation = nil
+			return m, nil
+		}
 	case common.UpdateRevSetMsg:
 		m.revsetModel.Value = string(msg)
 		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
