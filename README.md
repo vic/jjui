@@ -2,7 +2,7 @@
 
 # Jujutsu UI
 
-`jjui` is a terminal user interface for working with [Jujutsu version control system](https://github.com/martinvonz/jj). I have built it according to my own needs and will keep adding new features as I need them. I am open to feature requests and contributions.
+`jjui` is a terminal user interface for working with [Jujutsu version control system](https://github.com/jj-vcs/jj). I have built it according to my own needs and will keep adding new features as I need them. I am open to feature requests and contributions.
 
 ## Features
 
