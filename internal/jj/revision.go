@@ -38,7 +38,7 @@ func (c Commit) GetChangeId() string {
 
 func (jj JJ) GetCommits(revset string) ([]GraphRow, error) {
 	var args []string
-	args = append(args, "log", "--color", "never", "--template", TEMPLATE)
+	args = append(args, "log", "--color", "never", "--config", "ui.graph.style=curved", "--template", TEMPLATE)
 	if revset != "" {
 		args = append(args, "-r", revset)
 	}
