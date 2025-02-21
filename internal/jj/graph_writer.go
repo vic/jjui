@@ -83,22 +83,22 @@ func (w *GraphWriter) RenderRow(row GraphRow, renderer RowRenderer) {
 	}
 	w.connectionsWritten = false
 	w.connections = row.Connections[0]
-	fmt.Fprintf(w, renderer.RenderChangeId(row.Commit))
+	fmt.Fprint(w, renderer.RenderChangeId(row.Commit))
 	if author := renderer.RenderAuthor(row.Commit); author != "" {
 		fmt.Fprintf(w, " ")
-		fmt.Fprintf(w, author)
+		fmt.Fprint(w, author)
 	}
 	if date := renderer.RenderDate(row.Commit); date != "" {
 		fmt.Fprintf(w, " ")
-		fmt.Fprintf(w, date)
+		fmt.Fprint(w, date)
 	}
 	if bookmarks := renderer.RenderBookmarks(row.Commit); bookmarks != "" {
 		fmt.Fprintf(w, " ")
-		fmt.Fprintf(w, bookmarks)
+		fmt.Fprint(w, bookmarks)
 	}
 	if markers := renderer.RenderMarkers(row.Commit); markers != "" {
 		fmt.Fprintf(w, " ")
-		fmt.Fprintf(w, markers)
+		fmt.Fprint(w, markers)
 	}
 	fmt.Fprintln(w)
 
@@ -121,7 +121,7 @@ func (w *GraphWriter) RenderRow(row GraphRow, renderer RowRenderer) {
 			} else {
 				w.connections = extendConnections(row.Connections[0])
 			}
-			fmt.Fprintf(w, line)
+			fmt.Fprint(w, line)
 			fmt.Fprintln(w)
 		}
 	}
