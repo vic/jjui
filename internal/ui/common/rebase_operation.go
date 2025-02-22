@@ -33,5 +33,14 @@ func (r RebaseOperation) RenderPosition() RenderPosition {
 }
 
 func (r RebaseOperation) Render() string {
+	if r.Target == RebaseTargetDestination {
+		return DropStyle.Render("<< onto >>")
+	}
+	if r.Target == RebaseTargetAfter {
+		return DropStyle.Render("<< after >>")
+	}
+	if r.Target == RebaseTargetBefore {
+		return DropStyle.Render("<< before >>")
+	}
 	return ""
 }

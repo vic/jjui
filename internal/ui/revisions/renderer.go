@@ -6,47 +6,24 @@ import (
 
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 type SegmentedRenderer struct {
 	Palette       common.Palette
 	IsHighlighted bool
-	Overlay       tea.Model
 	op            common.Operation
-	After         string
 }
 
-func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
-	if s.IsHighlighted {
-		if op, ok := s.op.(common.RebaseOperation); ok {
-			if op.Target == common.RebaseTargetDestination {
-				return fmt.Sprintf("%s %s onto %s", common.DropStyle.Render("<< onto >>"), s.Palette.CommitShortStyle.Render(op.From), s.Palette.CommitShortStyle.Render(commit.ChangeIdShort))
-			}
-			if op.Target == common.RebaseTargetAfter {
-				return fmt.Sprintf("%s %s after %s", common.DropStyle.Render("<< after >>"), s.Palette.CommitShortStyle.Render(op.From), s.Palette.CommitShortStyle.Render(commit.ChangeIdShort))
-			}
-		}
+func (s SegmentedRenderer) RenderBefore(*jj.Commit) string {
+	if s.IsHighlighted && s.op.RenderPosition() == common.RenderPositionBefore {
+		return s.op.Render()
 	}
 	return ""
 }
 
-func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
-	if s.IsHighlighted && s.Overlay != nil {
-		if s.op.RenderPosition() == common.RenderPositionAfter {
-			return s.op.Render()
-		}
-	}
-	if s.IsHighlighted {
-		if op, ok := s.op.(common.RebaseOperation); ok {
-			if op.Target == common.RebaseTargetBefore {
-				return fmt.Sprintf("%s %s before %s", common.DropStyle.Render("<< before >>"), s.Palette.CommitShortStyle.Render(op.From), s.Palette.CommitShortStyle.Render(commit.ChangeIdShort))
-			}
-		}
-	}
-	if s.After != "" {
-		return s.After
+func (s SegmentedRenderer) RenderAfter(*jj.Commit) string {
+	if s.IsHighlighted && s.op.RenderPosition() == common.RenderPositionAfter {
+		return s.op.Render()
 	}
 	return ""
 }

@@ -63,9 +63,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			bookmark := m.list.SelectedItem().(item)
 			switch m.op.(type) {
-			case common.MoveBookmarkOperation:
+			case MoveBookmarkOperation:
 				return m, m.MoveBookmark(m.revision, string(bookmark))
-			case common.DeleteBookmarkOperation:
+			case DeleteBookmarkOperation:
 				return m, m.DeleteBookmark(m.revision, string(bookmark))
 			}
 		}
@@ -102,7 +102,7 @@ func New(commands common.UICommands, revision string, width int) tea.Model {
 	l.SetShowHelp(false)
 	return Model{
 		revision:   revision,
-		op:         common.MoveBookmarkOperation{},
+		op:         MoveBookmarkOperation{},
 		list:       l,
 		UICommands: commands,
 	}
@@ -118,7 +118,7 @@ func NewDeleteBookmark(commands common.UICommands, revision string, bookmarks []
 	l.SetShowHelp(false)
 	return Model{
 		revision:   revision,
-		op:         common.DeleteBookmarkOperation{},
+		op:         DeleteBookmarkOperation{},
 		list:       l,
 		UICommands: commands,
 	}
