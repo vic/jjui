@@ -34,11 +34,7 @@ func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
 	if s.IsHighlighted && s.Overlay != nil {
-		// TODO: neither of the following conditions should not match for overlay to be rendered
-		if _, ok := s.op.(common.EditDescriptionOperation); !ok {
-			return s.Overlay.View()
-		}
-		if _, ok := s.op.(common.SetBookmarkOperation); !ok {
+		if s.op.RendersAfter() {
 			return s.Overlay.View()
 		}
 	}
