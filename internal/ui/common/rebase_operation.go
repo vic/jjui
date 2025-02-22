@@ -22,6 +22,16 @@ type RebaseOperation struct {
 	Target RebaseTarget
 }
 
-func (r RebaseOperation) RendersAfter() bool {
-	return false
+func (r RebaseOperation) RenderPosition() RenderPosition {
+	if r.Target == RebaseTargetAfter {
+		return RenderPositionBefore
+	}
+	if r.Target == RebaseTargetDestination {
+		return RenderPositionBefore
+	}
+	return RenderPositionAfter
+}
+
+func (r RebaseOperation) Render() string {
+	return ""
 }

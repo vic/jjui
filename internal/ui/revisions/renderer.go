@@ -34,8 +34,8 @@ func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
 	if s.IsHighlighted && s.Overlay != nil {
-		if s.op.RendersAfter() {
-			return s.Overlay.View()
+		if s.op.RenderPosition() == common.RenderPositionAfter {
+			return s.op.Render()
 		}
 	}
 	if s.IsHighlighted {
@@ -53,14 +53,14 @@ func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
 	style := s.Palette.Normal
-	squashDropMarker := ""
+	opMarker := ""
 	if s.IsHighlighted {
 		style = s.Palette.Selected
-		if _, ok := s.op.(common.SquashOperation); ok {
-			squashDropMarker = common.DropStyle.Render(" << into >> ")
+		if s.op.RenderPosition() == common.RenderPositionGlyph {
+			opMarker = s.op.Render()
 		}
 	}
-	return style.Render(string(connection) + squashDropMarker)
+	return style.Render(string(connection) + opMarker)
 }
 
 func (s SegmentedRenderer) RenderTermination(connection jj.ConnectionType) string {
@@ -89,8 +89,8 @@ func (s SegmentedRenderer) RenderDate(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
 	var w strings.Builder
-	if _, ok := s.op.(common.SetBookmarkOperation); ok && s.IsHighlighted {
-		w.WriteString(s.Overlay.View())
+	if s.IsHighlighted && s.op.RenderPosition() == common.RenderPositionBookmark {
+		w.WriteString(s.op.Render())
 	}
 	w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
 	return w.String()
@@ -105,9 +105,8 @@ func (s SegmentedRenderer) RenderMarkers(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
 	var w strings.Builder
-	if _, ok := s.op.(common.EditDescriptionOperation); ok && s.IsHighlighted {
-		w.WriteString(s.Overlay.View())
-		return w.String()
+	if s.IsHighlighted && s.op.RenderPosition() == common.RenderPositionDescription {
+		w.WriteString(s.op.Render())
 	}
 	if commit.Empty {
 		w.WriteString(s.Palette.Empty.Render("(empty)"))

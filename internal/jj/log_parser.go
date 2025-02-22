@@ -3,6 +3,7 @@ package jj
 import (
 	"bufio"
 	"io"
+	"log"
 	"slices"
 	"strings"
 	"unicode"
@@ -80,9 +81,11 @@ func (p *Parser) Parse() []GraphRow {
 			commit = p.parseCommit(content)
 			r := GraphRow{Connections: [][]ConnectionType{connections}, Commit: &commit}
 			ret = append(ret, r)
-		} else {
+		} else if len(ret) > 0 {
 			previousLine := &ret[len(ret)-1]
 			previousLine.Connections = append(previousLine.Connections, connections)
+		} else {
+			log.Fatalf("failed to parse %s", content)
 		}
 	}
 	return ret

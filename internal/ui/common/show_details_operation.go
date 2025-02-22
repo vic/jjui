@@ -2,6 +2,10 @@ package common
 
 type ShowDetailsOperation struct{}
 
-func (s ShowDetailsOperation) RendersAfter() bool {
-	return true
+func (s *ShowDetailsOperation) Render() string {
+	return ""
+}
+
+func (s *ShowDetailsOperation) RenderPosition() RenderPosition {
+	return RenderPositionAfter
 }

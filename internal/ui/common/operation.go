@@ -1,5 +1,17 @@
 package common
 
+type RenderPosition int
+
+const (
+	RenderPositionNil RenderPosition = iota
+	RenderPositionAfter
+	RenderPositionBefore
+	RenderPositionGlyph
+	RenderPositionBookmark
+	RenderPositionDescription
+)
+
 type Operation interface {
-	RendersAfter() bool
+	RenderPosition() RenderPosition
+	Render() string
 }
