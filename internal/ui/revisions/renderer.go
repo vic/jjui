@@ -20,23 +20,33 @@ type SegmentedRenderer struct {
 
 func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
 	if s.IsHighlighted {
-		if s.op == common.RebaseRevisionOperation || s.op == common.RebaseBranchOperation {
-			return common.DropStyle.Render("<< onto " + commit.ChangeIdShort + " >>")
-		}
-		if s.op == common.RebaseAfterOperation {
-			return common.DropStyle.Render("<< after " + commit.ChangeIdShort + " >>")
+		if op, ok := s.op.(common.RebaseOperation); ok {
+			if op.Target == common.RebaseTargetDestination {
+				return fmt.Sprintf("%s %s onto %s", common.DropStyle.Render("<< onto >>"), s.Palette.CommitShortStyle.Render(op.From), s.Palette.CommitShortStyle.Render(commit.ChangeIdShort))
+			}
+			if op.Target == common.RebaseTargetAfter {
+				return fmt.Sprintf("%s %s after %s", common.DropStyle.Render("<< after >>"), s.Palette.CommitShortStyle.Render(op.From), s.Palette.CommitShortStyle.Render(commit.ChangeIdShort))
+			}
 		}
 	}
 	return ""
 }
 
 func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
-	if s.IsHighlighted && s.Overlay != nil && s.op != common.EditDescriptionOperation && s.op != common.SetBookmarkOperation {
-		return s.Overlay.View()
+	if s.IsHighlighted && s.Overlay != nil {
+		// TODO: neither of the following conditions should not match for overlay to be rendered
+		if _, ok := s.op.(common.EditDescriptionOperation); !ok {
+			return s.Overlay.View()
+		}
+		if _, ok := s.op.(common.SetBookmarkOperation); !ok {
+			return s.Overlay.View()
+		}
 	}
 	if s.IsHighlighted {
-		if s.op == common.RebaseBeforeOperation {
-			return common.DropStyle.Render("<< ^ before " + commit.ChangeIdShort + " >>")
+		if op, ok := s.op.(common.RebaseOperation); ok {
+			if op.Target == common.RebaseTargetBefore {
+				return fmt.Sprintf("%s %s before %s", common.DropStyle.Render("<< before >>"), s.Palette.CommitShortStyle.Render(op.From), s.Palette.CommitShortStyle.Render(commit.ChangeIdShort))
+			}
 		}
 	}
 	if s.After != "" {
@@ -50,7 +60,7 @@ func (s SegmentedRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.
 	squashDropMarker := ""
 	if s.IsHighlighted {
 		style = s.Palette.Selected
-		if s.op == common.SquashOperation {
+		if _, ok := s.op.(common.SquashOperation); ok {
 			squashDropMarker = common.DropStyle.Render(" << into >> ")
 		}
 	}
@@ -83,7 +93,7 @@ func (s SegmentedRenderer) RenderDate(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
 	var w strings.Builder
-	if s.op == common.SetBookmarkOperation && s.IsHighlighted {
+	if _, ok := s.op.(common.SetBookmarkOperation); ok && s.IsHighlighted {
 		w.WriteString(s.Overlay.View())
 	}
 	w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
@@ -99,7 +109,7 @@ func (s SegmentedRenderer) RenderMarkers(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
 	var w strings.Builder
-	if s.op == common.EditDescriptionOperation && s.IsHighlighted {
+	if _, ok := s.op.(common.EditDescriptionOperation); ok && s.IsHighlighted {
 		w.WriteString(s.Overlay.View())
 		return w.String()
 	}

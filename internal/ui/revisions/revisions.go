@@ -66,9 +66,9 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
-		m.op = common.None
+		m.op = common.None{}
 	case key.Matches(msg, m.Keymap.details):
-		m.op = common.ShowDetailsOperation
+		m.op = common.ShowDetailsOperation{}
 		m.Keymap.detailsMode()
 		m.details = details.New(m.selectedRevision().ChangeId, m.UICommands)
 		return m, m.details.Init()
@@ -95,7 +95,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, m.Split(currentRevision, []string{})
 	case key.Matches(msg, layer.description):
 		m.overlay = describe.New(m.UICommands, m.selectedRevision().GetChangeId(), m.selectedRevision().Description, m.Width)
-		m.op = common.EditDescriptionOperation
+		m.op = common.EditDescriptionOperation{}
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.diff):
 		return m, m.GetDiff(m.selectedRevision().GetChangeId(), "")
@@ -106,8 +106,8 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 	case key.Matches(msg, layer.squashMode):
 		m.Keymap.squashMode()
-		m.op = common.SquashOperation
 		m.draggedRow = m.cursor
+		m.op = common.SquashOperation{From: m.rows[m.draggedRow].Commit.ChangeIdShort}
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
@@ -128,21 +128,38 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	layer := m.Keymap.bindings[m.Keymap.current].(rebaseLayer)
 	switch {
 	case key.Matches(msg, layer.revision):
-		m.op = common.RebaseRevisionOperation
 		m.draggedRow = m.cursor
-	case key.Matches(msg, layer.branch) && m.op == common.None:
-		m.op = common.RebaseBranchOperation
+		m.op = common.RebaseOperation{
+			From:   m.selectedRevision().ChangeIdShort,
+			Source: common.RebaseSourceRevision,
+			Target: common.RebaseTargetDestination,
+		}
+	case key.Matches(msg, layer.branch) && m.op == common.None{}:
 		m.draggedRow = m.cursor
+		m.op = common.RebaseOperation{
+			From:   m.selectedRevision().ChangeIdShort,
+			Source: common.RebaseSourceBranch,
+			Target: common.RebaseTargetDestination,
+		}
 	case key.Matches(msg, m.Keymap.down):
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
 	case key.Matches(msg, layer.after):
-		m.op = common.RebaseAfterOperation
+		if op, ok := m.op.(common.RebaseOperation); ok {
+			op.Target = common.RebaseTargetAfter
+			m.op = op
+		}
 	case key.Matches(msg, layer.before):
-		m.op = common.RebaseBeforeOperation
+		if op, ok := m.op.(common.RebaseOperation); ok {
+			op.Target = common.RebaseTargetBefore
+			m.op = op
+		}
 	case key.Matches(msg, layer.destination):
-		m.op = common.RebaseRevisionOperation
+		if op, ok := m.op.(common.RebaseOperation); ok {
+			op.Target = common.RebaseTargetDestination
+			m.op = op
+		}
 	case key.Matches(msg, m.Keymap.up):
 		if m.cursor > 0 {
 			m.cursor--
@@ -150,18 +167,17 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, m.Keymap.apply):
 		m.Keymap.resetMode()
 		if m.draggedRow == -1 {
-			m.op = common.None
+			m.op = common.None{}
 			break
 		}
-		rebaseOperation := m.op
 		fromCommit := m.rows[m.draggedRow].Commit
 		toCommit := m.rows[m.cursor].Commit
-		m.op = common.None
+		m.op = common.None{}
 		m.draggedRow = -1
-		return m, m.Rebase(fromCommit.ChangeIdShort, toCommit.ChangeIdShort, rebaseOperation)
+		return m, m.Rebase(fromCommit.ChangeIdShort, toCommit.ChangeIdShort, m.op.(common.RebaseOperation))
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
-		m.op = common.None
+		m.op = common.None{}
 	}
 	return m, nil
 }
@@ -179,17 +195,17 @@ func (m Model) handleSquashKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, m.Keymap.apply):
 		m.Keymap.resetMode()
 		if m.draggedRow == -1 {
-			m.op = common.None
+			m.op = common.None{}
 			break
 		}
 		fromCommit := m.rows[m.draggedRow].Commit
 		destinationCommit := m.rows[m.cursor].Commit
-		m.op = common.None
+		m.op = common.None{}
 		m.draggedRow = -1
 		return m, m.Squash(fromCommit.ChangeIdShort, destinationCommit.GetChangeId())
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
-		m.op = common.None
+		m.op = common.None{}
 	}
 	return m, nil
 }
@@ -209,7 +225,7 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, m.overlay.Init()
 	case key.Matches(msg, layer.set):
 		m.overlay = bookmark.NewSetBookmark(m.UICommands, m.selectedRevision().GetChangeId())
-		m.op = common.SetBookmarkOperation
+		m.op = common.SetBookmarkOperation{}
 		return m, m.overlay.Init()
 	case key.Matches(msg, m.Keymap.cancel):
 		m.Keymap.resetMode()
@@ -240,7 +256,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.Keymap.resetMode()
 		m.overlay = nil
 		m.details = nil
-		m.op = common.None
+		m.op = common.None{}
 		return m, nil
 	case confirmation.CloseMsg:
 		if m.confirmation != nil {
@@ -307,7 +323,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 	}
 
-	if m.op == common.ShowDetailsOperation {
+	if _, ok := m.op.(common.ShowDetailsOperation); ok {
 		var cmd tea.Cmd
 		if m.details, cmd = m.details.Update(msg); cmd != nil {
 			cmds = append(cmds, cmd)
@@ -378,7 +394,7 @@ func (m Model) View() string {
 				Overlay:       m.overlay,
 			}
 
-			if m.op == common.ShowDetailsOperation && nodeRenderer.IsHighlighted {
+			if _, ok := m.op.(common.ShowDetailsOperation); ok && nodeRenderer.IsHighlighted {
 				nodeRenderer.After = m.details.View()
 			}
 
@@ -417,7 +433,7 @@ func New(jj jj.Commands) Model {
 		rows:        nil,
 		draggedRow:  -1,
 		viewRange:   &v,
-		op:          common.None,
+		op:          common.None{},
 		cursor:      0,
 		Width:       20,
 		revsetModel: revset.New(string(defaultRevSet)),

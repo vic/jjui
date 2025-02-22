@@ -43,20 +43,38 @@ type (
 	}
 )
 
-type Operation int
+type RebaseSource int
 
 const (
-	None Operation = iota
-	RebaseRevisionOperation
-	RebaseBranchOperation
-	RebaseAfterOperation
-	RebaseBeforeOperation
-	SquashOperation
-	EditDescriptionOperation
-	SetBookmarkOperation
-	MoveBookmarkOperation
-	DeleteBookmarkOperation
-	ShowDetailsOperation
+	RebaseSourceRevision RebaseSource = iota
+	RebaseSourceBranch
+)
+
+type RebaseTarget int
+
+const (
+	RebaseTargetDestination RebaseTarget = iota
+	RebaseTargetAfter
+	RebaseTargetBefore
+)
+
+type (
+	Operation       any
+	RebaseOperation struct {
+		From   string
+		To     string
+		Source RebaseSource
+		Target RebaseTarget
+	}
+	SquashOperation struct {
+		From string
+	}
+	EditDescriptionOperation struct{}
+	SetBookmarkOperation     struct{}
+	MoveBookmarkOperation    struct{}
+	DeleteBookmarkOperation  struct{}
+	ShowDetailsOperation     struct{}
+	None                     struct{}
 )
 
 type Status int
