@@ -1,10 +1,14 @@
 package revisions
 
-import "github.com/charmbracelet/bubbles/key"
+import (
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/idursun/jjui/internal/ui/common"
+)
 
 type keymap struct {
 	current  rune
-	bindings map[rune]interface{}
+	op       common.Operation
+	bindings map[rune]any
 	up       key.Binding
 	down     key.Binding
 	details  key.Binding
@@ -31,8 +35,11 @@ type baseLayer struct {
 }
 
 type rebaseLayer struct {
-	revision key.Binding
-	branch   key.Binding
+	revision    key.Binding
+	branch      key.Binding
+	destination key.Binding
+	after       key.Binding
+	before      key.Binding
 }
 
 type squashLayer struct {
@@ -58,7 +65,7 @@ type detailsLayer struct {
 }
 
 func newKeyMap() keymap {
-	bindings := make(map[rune]interface{})
+	bindings := make(map[rune]any)
 	bindings[' '] = baseLayer{
 		abandon:      key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "abandon")),
 		edit:         key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit")),
@@ -78,8 +85,11 @@ func newKeyMap() keymap {
 	}
 
 	bindings['r'] = rebaseLayer{
-		revision: key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase revision")),
-		branch:   key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "rebase branch")),
+		revision:    key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase revision")),
+		branch:      key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "rebase branch")),
+		destination: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "destination")),
+		after:       key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "after")),
+		before:      key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "before")),
 	}
 
 	bindings['s'] = squashLayer{
@@ -144,7 +154,10 @@ func (k *keymap) ShortHelp() []key.Binding {
 	case baseLayer:
 		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.description, b.diff, b.abandon, b.undo, k.details, b.split, b.squashMode, b.diffedit, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
-		return []key.Binding{k.up, k.down, b.branch, b.revision, k.cancel}
+		if k.op == common.RebaseBranchOperation || k.op == common.RebaseRevisionOperation || k.op == common.RebaseAfterOperation || k.op == common.RebaseBeforeOperation {
+			return []key.Binding{k.up, k.down, b.after, b.before, b.destination, k.cancel}
+		}
+		return []key.Binding{b.branch, b.revision, k.cancel}
 	case squashLayer:
 		return []key.Binding{k.up, k.down, b.apply, k.cancel}
 	case gitLayer:

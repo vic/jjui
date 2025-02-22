@@ -130,13 +130,19 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.revision):
 		m.op = common.RebaseRevisionOperation
 		m.draggedRow = m.cursor
-	case key.Matches(msg, layer.branch):
+	case key.Matches(msg, layer.branch) && m.op == common.None:
 		m.op = common.RebaseBranchOperation
 		m.draggedRow = m.cursor
 	case key.Matches(msg, m.Keymap.down):
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
+	case key.Matches(msg, layer.after):
+		m.op = common.RebaseAfterOperation
+	case key.Matches(msg, layer.before):
+		m.op = common.RebaseBeforeOperation
+	case key.Matches(msg, layer.destination):
+		m.op = common.RebaseRevisionOperation
 	case key.Matches(msg, m.Keymap.up):
 		if m.cursor > 0 {
 			m.cursor--
@@ -227,6 +233,7 @@ func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+	m.Keymap.op = m.op
 	cmds := make([]tea.Cmd, 0)
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:

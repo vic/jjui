@@ -40,12 +40,7 @@ func (t *JJCommands) GetConfig(key string) ([]byte, error) {
 	panic("implement me")
 }
 
-func (t *JJCommands) RebaseCommand(from string, to string) jj.Command {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (t *JJCommands) RebaseBranchCommand(from string, to string) jj.Command {
+func (t *JJCommands) RebaseCommand(from string, to string, source string, target string) jj.Command {
 	// TODO implement me
 	panic("implement me")
 }

@@ -19,17 +19,25 @@ type SegmentedRenderer struct {
 }
 
 func (s SegmentedRenderer) RenderBefore(commit *jj.Commit) string {
-	if s.op == common.RebaseRevisionOperation || s.op == common.RebaseBranchOperation {
-		if s.IsHighlighted {
-			return common.DropStyle.Render("<< here >>")
+	if s.IsHighlighted {
+		if s.op == common.RebaseRevisionOperation || s.op == common.RebaseBranchOperation {
+			return common.DropStyle.Render("<< onto " + commit.ChangeIdShort + " >>")
+		}
+		if s.op == common.RebaseAfterOperation {
+			return common.DropStyle.Render("<< after " + commit.ChangeIdShort + " >>")
 		}
 	}
 	return ""
 }
 
-func (s SegmentedRenderer) RenderAfter(*jj.Commit) string {
+func (s SegmentedRenderer) RenderAfter(commit *jj.Commit) string {
 	if s.IsHighlighted && s.Overlay != nil && s.op != common.EditDescriptionOperation && s.op != common.SetBookmarkOperation {
 		return s.Overlay.View()
+	}
+	if s.IsHighlighted {
+		if s.op == common.RebaseBeforeOperation {
+			return common.DropStyle.Render("<< ^ before " + commit.ChangeIdShort + " >>")
+		}
 	}
 	if s.After != "" {
 		return s.After

@@ -2,8 +2,7 @@ package jj
 
 type Commands interface {
 	GetConfig(key string) ([]byte, error)
-	RebaseCommand(from string, to string) Command
-	RebaseBranchCommand(from string, to string) Command
+	RebaseCommand(from string, to string, source string, target string) Command
 	SetDescription(rev string, description string) Command
 	ListBookmark(revision string) Command
 	SetBookmark(revision string, name string) Command

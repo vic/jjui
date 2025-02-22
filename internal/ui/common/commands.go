@@ -20,11 +20,22 @@ func (c UICommands) GitPush(revision string) tea.Cmd {
 }
 
 func (c UICommands) Rebase(from, to string, operation Operation) tea.Cmd {
-	rebase := c.jj.RebaseCommand
-	if operation == RebaseBranchOperation {
-		rebase = c.jj.RebaseBranchCommand
+	var source, target string
+	switch operation {
+	case RebaseAfterOperation:
+		source = "-r"
+		target = "-A"
+	case RebaseBeforeOperation:
+		source = "-r"
+		target = "-B"
+	case RebaseBranchOperation:
+		source = "-b"
+		target = "-d"
+	case RebaseRevisionOperation:
+		source = "-r"
+		target = "-d"
 	}
-	cmd := rebase(from, to)
+	cmd := c.jj.RebaseCommand(from, to, source, target)
 	return RunCommand(cmd, Refresh(to))
 }
 

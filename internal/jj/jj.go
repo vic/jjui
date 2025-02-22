@@ -48,12 +48,10 @@ func (jj JJ) GetConfig(key string) ([]byte, error) {
 	return output, err
 }
 
-func (jj JJ) RebaseCommand(from string, to string) Command {
-	return jj.createCommand("jj", "rebase", "-r", from, "-d", to)
-}
-
-func (jj JJ) RebaseBranchCommand(from string, to string) Command {
-	return jj.createCommand("jj", "rebase", "-b", from, "-d", to)
+// source can be -r for revision and -b for branch
+// target can be -d for onto, -a after, or -b before
+func (jj JJ) RebaseCommand(from string, to string, source string, target string) Command {
+	return jj.createCommand("jj", "rebase", source, from, target, to)
 }
 
 func (jj JJ) Squash(from string, destination string) Command {
