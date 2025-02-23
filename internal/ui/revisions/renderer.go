@@ -2,6 +2,7 @@ package revisions
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/ui/operations"
 	"strings"
 
 	"github.com/idursun/jjui/internal/jj"
@@ -11,18 +12,18 @@ import (
 type SegmentedRenderer struct {
 	Palette       common.Palette
 	IsHighlighted bool
-	op            common.Operation
+	op            operations.Operation
 }
 
 func (s SegmentedRenderer) RenderBefore(*jj.Commit) string {
-	if s.IsHighlighted && s.op.RenderPosition() == common.RenderPositionBefore {
+	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionBefore {
 		return s.op.Render()
 	}
 	return ""
 }
 
 func (s SegmentedRenderer) RenderAfter(*jj.Commit) string {
-	if s.IsHighlighted && s.op.RenderPosition() == common.RenderPositionAfter {
+	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionAfter {
 		return s.op.Render()
 	}
 	return ""
@@ -33,7 +34,7 @@ func (s SegmentedRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.
 	opMarker := ""
 	if s.IsHighlighted {
 		style = s.Palette.Selected
-		if s.op.RenderPosition() == common.RenderPositionGlyph {
+		if s.op.RenderPosition() == operations.RenderPositionGlyph {
 			opMarker = s.op.Render()
 		}
 	}
@@ -66,7 +67,7 @@ func (s SegmentedRenderer) RenderDate(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
 	var w strings.Builder
-	if s.IsHighlighted && s.op.RenderPosition() == common.RenderPositionBookmark {
+	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionBookmark {
 		w.WriteString(s.op.Render())
 	}
 	w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
@@ -82,7 +83,7 @@ func (s SegmentedRenderer) RenderMarkers(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
 	var w strings.Builder
-	if s.IsHighlighted && s.op.RenderPosition() == common.RenderPositionDescription {
+	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionDescription {
 		w.WriteString(s.op.Render())
 	}
 	if commit.Empty {

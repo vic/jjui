@@ -1,4 +1,4 @@
-package common
+package operations
 
 type Noop struct{}
 

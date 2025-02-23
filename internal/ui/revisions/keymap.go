@@ -2,12 +2,13 @@ package revisions
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/operations"
+	"github.com/idursun/jjui/internal/ui/operations/rebase"
 )
 
 type keymap struct {
 	current  rune
-	op       common.Operation
+	op       operations.Operation
 	bindings map[rune]any
 	up       key.Binding
 	down     key.Binding
@@ -154,7 +155,7 @@ func (k *keymap) ShortHelp() []key.Binding {
 	case baseLayer:
 		return []key.Binding{k.up, k.down, b.revset, b.new, b.edit, b.description, b.diff, b.abandon, b.undo, k.details, b.split, b.squashMode, b.diffedit, b.rebaseMode, b.gitMode, b.bookmarkMode, b.quit}
 	case rebaseLayer:
-		if _, ok := k.op.(common.RebaseOperation); ok {
+		if _, ok := k.op.(rebase.Operation); ok {
 			return []key.Binding{k.up, k.down, b.after, b.before, b.destination, k.cancel}
 		}
 		return []key.Binding{b.branch, b.revision, k.cancel}

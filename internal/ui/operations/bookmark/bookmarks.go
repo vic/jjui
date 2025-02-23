@@ -2,6 +2,7 @@ package bookmark
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/ui/operations"
 	"io"
 	"strings"
 
@@ -15,7 +16,7 @@ import (
 type Model struct {
 	revision string
 	list     list.Model
-	op       common.Operation
+	op       operations.Operation
 	common.UICommands
 }
 

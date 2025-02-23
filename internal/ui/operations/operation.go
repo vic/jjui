@@ -1,4 +1,4 @@
-package common
+package operations
 
 import tea "github.com/charmbracelet/bubbletea"
 
