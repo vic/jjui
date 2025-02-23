@@ -28,3 +28,7 @@ type OperationWithOverlay interface {
 type TracksSelectedRevision interface {
 	SetSelectedRevision(commit *jj.Commit)
 }
+
+type HandleKey interface {
+	HandleKey(msg tea.KeyMsg) tea.Cmd
+}

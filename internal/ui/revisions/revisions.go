@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/idursun/jjui/internal/ui/keymap"
+	"github.com/idursun/jjui/internal/ui/operations/rebase"
 	"slices"
 
 	"github.com/idursun/jjui/internal/jj"
@@ -14,7 +15,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations/bookmark"
 	"github.com/idursun/jjui/internal/ui/operations/describe"
 	"github.com/idursun/jjui/internal/ui/operations/details"
-	"github.com/idursun/jjui/internal/ui/operations/rebase"
 	"github.com/idursun/jjui/internal/ui/operations/squash"
 	"github.com/idursun/jjui/internal/ui/revisions/revset"
 
@@ -123,65 +123,13 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 		return m, nil
 	case key.Matches(msg, layer.RebaseMode):
-		m.Keymap.RebaseMode()
+		m.op = rebase.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
 		return m, nil
 	case key.Matches(msg, layer.BookmarkMode):
 		m.Keymap.BookmarkMode()
 		return m, nil
 	case key.Matches(msg, layer.Quit), key.Matches(msg, m.Keymap.Cancel):
 		return m, tea.Quit
-	}
-	return m, nil
-}
-
-func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	layer := m.Keymap.Bindings[m.Keymap.Current].(keymap.RebaseLayer)
-	switch {
-	case key.Matches(msg, layer.Revision):
-		m.draggedRow = m.cursor
-		m.op = rebase.NewOperation(m.selectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
-	case key.Matches(msg, layer.Branch) && m.op == &operations.Noop{}:
-		m.draggedRow = m.cursor
-		m.op = rebase.NewOperation(m.selectedRevision().ChangeIdShort, rebase.SourceBranch, rebase.TargetDestination)
-	case key.Matches(msg, m.Keymap.Up):
-		if m.cursor > 0 {
-			m.cursor--
-		}
-	case key.Matches(msg, m.Keymap.Down):
-		if m.cursor < len(m.rows)-1 {
-			m.cursor++
-		}
-	case key.Matches(msg, layer.After):
-		if op, ok := m.op.(*rebase.Operation); ok {
-			op.Target = rebase.TargetAfter
-			m.op = op
-		}
-	case key.Matches(msg, layer.Before):
-		if op, ok := m.op.(*rebase.Operation); ok {
-			op.Target = rebase.TargetBefore
-			m.op = op
-		}
-	case key.Matches(msg, layer.Destination):
-		if op, ok := m.op.(*rebase.Operation); ok {
-			op.Target = rebase.TargetDestination
-			m.op = op
-		}
-	case key.Matches(msg, m.Keymap.Apply):
-		m.Keymap.ResetMode()
-		if m.draggedRow == -1 {
-			m.op = &operations.Noop{}
-			break
-		}
-		fromCommit := m.rows[m.draggedRow].Commit
-		toCommit := m.rows[m.cursor].Commit
-		rebaseOperation := m.op.(*rebase.Operation)
-		source, target := rebaseOperation.GetSourceTargetFlags()
-		m.op = &operations.Noop{}
-		m.draggedRow = -1
-		return m, m.Rebase(fromCommit.ChangeIdShort, toCommit.ChangeIdShort, source, target)
-	case key.Matches(msg, m.Keymap.Cancel):
-		m.Keymap.ResetMode()
-		m.op = &operations.Noop{}
 	}
 	return m, nil
 }
@@ -338,17 +286,30 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch m.Keymap.Current {
-		case ' ':
-			m, cmd = m.handleBaseKeys(msg)
-		case 'r':
-			m, cmd = m.handleRebaseKeys(msg)
-		case 's':
-			m, cmd = m.handleSquashKeys(msg)
-		case 'b':
-			m, cmd = m.handleBookmarkKeys(msg)
-		case 'g':
-			m, cmd = m.handleGitKeys(msg)
+		switch {
+		case key.Matches(msg, m.Keymap.Up):
+			if m.cursor > 0 {
+				m.cursor--
+			}
+		case key.Matches(msg, m.Keymap.Down):
+			if m.cursor < len(m.rows)-1 {
+				m.cursor++
+			}
+		default:
+			if op, ok := m.op.(operations.HandleKey); ok {
+				cmd = op.HandleKey(msg)
+			} else {
+				switch m.Keymap.Current {
+				case ' ':
+					m, cmd = m.handleBaseKeys(msg)
+				case 's':
+					m, cmd = m.handleSquashKeys(msg)
+				case 'b':
+					m, cmd = m.handleBookmarkKeys(msg)
+				case 'g':
+					m, cmd = m.handleGitKeys(msg)
+				}
+			}
 		}
 	}
 	if op, ok := m.op.(operations.TracksSelectedRevision); ok {

@@ -3,7 +3,6 @@ package keymap
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/ui/operations"
-	"github.com/idursun/jjui/internal/ui/operations/rebase"
 )
 
 type Keymap struct {
@@ -33,14 +32,6 @@ type BaseLayer struct {
 	Refresh      key.Binding
 	Undo         key.Binding
 	Quit         key.Binding
-}
-
-type RebaseLayer struct {
-	Revision    key.Binding
-	Branch      key.Binding
-	Destination key.Binding
-	After       key.Binding
-	Before      key.Binding
 }
 
 type SquashLayer struct {
@@ -85,14 +76,6 @@ func NewKeyMap() Keymap {
 		Quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 
-	bindings['r'] = RebaseLayer{
-		Revision:    key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase revision")),
-		Branch:      key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "rebase branch")),
-		Destination: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "destination")),
-		After:       key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "after")),
-		Before:      key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "before")),
-	}
-
 	bindings['s'] = SquashLayer{
 		Apply: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
 	}
@@ -130,10 +113,6 @@ func (k *Keymap) GitMode() {
 	k.Current = 'g'
 }
 
-func (k *Keymap) RebaseMode() {
-	k.Current = 'r'
-}
-
 func (k *Keymap) SquashMode() {
 	k.Current = 's'
 }
@@ -154,11 +133,6 @@ func (k *Keymap) ShortHelp() []key.Binding {
 	switch b := k.Bindings[k.Current].(type) {
 	case BaseLayer:
 		return []key.Binding{k.Up, k.Down, b.Revset, b.New, b.Edit, b.Description, b.Diff, b.Abandon, b.Undo, k.Details, b.Split, b.SquashMode, b.Diffedit, b.RebaseMode, b.GitMode, b.BookmarkMode, b.Quit}
-	case RebaseLayer:
-		if _, ok := k.Op.(*rebase.Operation); ok {
-			return []key.Binding{k.Up, k.Down, b.After, b.Before, b.Destination, k.Cancel}
-		}
-		return []key.Binding{b.Branch, b.Revision, k.Cancel}
 	case SquashLayer:
 		return []key.Binding{k.Up, k.Down, b.Apply, k.Cancel}
 	case GitLayer:
