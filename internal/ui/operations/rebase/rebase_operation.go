@@ -24,6 +24,18 @@ const (
 	TargetBefore
 )
 
+var (
+	sourceToFlags = map[Source]string{
+		SourceBranch:   "-b",
+		SourceRevision: "-r",
+	}
+	targetToFlags = map[Target]string{
+		TargetAfter:       "-A",
+		TargetBefore:      "-B",
+		TargetDestination: "-d",
+	}
+)
+
 type Operation struct {
 	From     string
 	To       *jj.Commit
@@ -55,7 +67,8 @@ func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	case key.Matches(msg, Before):
 		r.Target = TargetBefore
 	case key.Matches(msg, Apply):
-		source, target := r.GetSourceTargetFlags()
+		source := sourceToFlags[r.Source]
+		target := targetToFlags[r.Target]
 		return tea.Batch(r.Commands.Rebase(r.From, r.To.ChangeIdShort, source, target), common.Close)
 	case key.Matches(msg, Cancel):
 		return common.Close
@@ -123,24 +136,6 @@ func (r *Operation) Render() string {
 		" ",
 		common.DefaultPalette.CommitShortStyle.Render(r.To.ChangeIdShort),
 	)
-}
-
-func (r *Operation) GetSourceTargetFlags() (source string, target string) {
-	switch r.Source {
-	case SourceBranch:
-		source = "-b"
-	case SourceRevision:
-		source = "-r"
-	}
-	switch r.Target {
-	case TargetAfter:
-		target = "-A"
-	case TargetBefore:
-		target = "-B"
-	case TargetDestination:
-		target = "-d"
-	}
-	return source, target
 }
 
 func NewOperation(commands common.UICommands, from string, source Source, target Target) *Operation {
