@@ -20,15 +20,13 @@ func (c *ChooseBookmarkOperation) SetSelectedRevision(commit *jj.Commit) {
 func (c *ChooseBookmarkOperation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, Move):
-		//TODO: pass the correct width
-		operation, cmd := NewMoveBookmarkOperation(c.Commands, c.selected, 80)
+		operation, cmd := NewMoveBookmarkOperation(c.Commands, c.selected)
 		return tea.Sequence(common.SetOperation(operation), cmd)
 	case key.Matches(msg, Set):
 		operation, cmd := NewSetBookmarkOperation(c.Commands, c.selected)
 		return tea.Sequence(common.SetOperation(operation), cmd)
 	case key.Matches(msg, Delete):
-		//TODO: pass the correct width
-		operation, cmd := NewDeleteBookmarkOperation(c.Commands, c.selected, 80)
+		operation, cmd := NewDeleteBookmarkOperation(c.Commands, c.selected)
 		return tea.Sequence(common.SetOperation(operation), cmd)
 	case key.Matches(msg, Cancel):
 		return common.Close

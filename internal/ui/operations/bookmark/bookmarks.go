@@ -111,7 +111,7 @@ func New(commands common.UICommands, revision string) tea.Model {
 	}
 }
 
-func NewDeleteBookmark(commands common.UICommands, revision string, bookmarks []string, width int) tea.Model {
+func NewDeleteBookmark(commands common.UICommands, revision string, bookmarks []string) tea.Model {
 	items := convertToItems(bookmarks)
 	l := list.New(items, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)

@@ -25,6 +25,8 @@ func (m SetBookmarkModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			return m, m.SetBookmark(m.revision, m.name.Value())
 		}
+	case tea.WindowSizeMsg:
+		m.name.SetWidth(msg.Width)
 	}
 	var cmd tea.Cmd
 	m.name, cmd = m.name.Update(msg)

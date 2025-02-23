@@ -41,9 +41,9 @@ func (m MoveBookmarkOperation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionAfter
 }
 
-func NewMoveBookmarkOperation(commands common.UICommands, selected *jj.Commit, width int) (operations.Operation, tea.Cmd) {
+func NewMoveBookmarkOperation(commands common.UICommands, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := MoveBookmarkOperation{
-		Overlay: New(commands, selected.GetChangeId(), width),
+		Overlay: New(commands, selected.GetChangeId()),
 	}
 	return op, tea.Batch(commands.FetchBookmarks(selected.GetChangeId()), op.Overlay.Init())
 }
