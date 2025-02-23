@@ -67,7 +67,7 @@ func (m Model) View() string {
 	}
 
 	var b strings.Builder
-	b.WriteString(m.help.View(&m.revisions.Keymap))
+	b.WriteString(m.help.View(m.revisions.GetKeyMap()))
 	b.WriteString("\n")
 	b.WriteString(m.status.View())
 

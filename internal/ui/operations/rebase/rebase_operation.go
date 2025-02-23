@@ -1,6 +1,7 @@
 package rebase
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
@@ -25,6 +26,17 @@ type Operation struct {
 	To     string
 	Source Source
 	Target Target
+}
+
+func (r Operation) ShortHelp() []key.Binding {
+	return []key.Binding{
+		key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
+	}
+}
+
+func (r Operation) FullHelp() [][]key.Binding {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (r Operation) RenderPosition() operations.RenderPosition {
