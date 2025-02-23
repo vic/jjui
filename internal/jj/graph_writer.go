@@ -58,8 +58,7 @@ func (w *GraphWriter) String(start, end int) string {
 	if start < 0 {
 		start = 0
 	}
-	h := end - start
-	for h > len(lines) {
+	for end > len(lines) {
 		lines = append(lines, "")
 	}
 	return strings.Join(lines[start:end], "\n")
