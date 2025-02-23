@@ -34,12 +34,6 @@ type BaseLayer struct {
 	Quit         key.Binding
 }
 
-type BookmarkLayer struct {
-	Move   key.Binding
-	Set    key.Binding
-	Delete key.Binding
-}
-
 type DetailsLayer struct {
 	Diff    key.Binding
 	Restore key.Binding
@@ -67,12 +61,6 @@ func NewKeyMap() Keymap {
 		Quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 
-	bindings['b'] = BookmarkLayer{
-		Move:   key.NewBinding(key.WithKeys("m"), key.WithHelp("m", "bookmark move")),
-		Set:    key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "bookmark set")),
-		Delete: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "bookmark delete")),
-	}
-
 	bindings['d'] = DetailsLayer{
 		Diff:    key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
 		Restore: key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "restore selected")),
@@ -91,10 +79,6 @@ func NewKeyMap() Keymap {
 	}
 }
 
-func (k *Keymap) BookmarkMode() {
-	k.Current = 'b'
-}
-
 func (k *Keymap) ResetMode() {
 	k.Current = ' '
 }
@@ -107,8 +91,6 @@ func (k *Keymap) ShortHelp() []key.Binding {
 	switch b := k.Bindings[k.Current].(type) {
 	case BaseLayer:
 		return []key.Binding{k.Up, k.Down, b.Revset, b.New, b.Edit, b.Description, b.Diff, b.Abandon, b.Undo, k.Details, b.Split, b.SquashMode, b.Diffedit, b.RebaseMode, b.GitMode, b.BookmarkMode, b.Quit}
-	case BookmarkLayer:
-		return []key.Binding{b.Move, b.Set, b.Delete, k.Cancel}
 	case DetailsLayer:
 		return []key.Binding{k.Up, k.Down, b.Mark, b.Diff, b.Restore, b.Split, k.Cancel}
 	default:

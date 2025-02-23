@@ -1,6 +1,7 @@
 package common
 
 import (
+	"github.com/idursun/jjui/internal/ui/operations"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,6 +12,7 @@ type (
 	CloseViewMsg             struct{}
 	RefreshMsg               struct{ SelectedRevision string }
 	SelectRevisionMsg        string
+	SetOperationMsg          struct{ Operation operations.Operation }
 	ShowDiffMsg              string
 	UpdateRevSetMsg          string
 	UpdateRevisionsMsg       []jj.GraphRow
@@ -70,6 +72,12 @@ func UpdateRevSet(revset string) tea.Cmd {
 func SelectRevision(revision string) tea.Cmd {
 	return func() tea.Msg {
 		return SelectRevisionMsg(revision)
+	}
+}
+
+func SetOperation(op operations.Operation) tea.Cmd {
+	return func() tea.Msg {
+		return SetOperationMsg{Operation: op}
 	}
 }
 

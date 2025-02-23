@@ -124,35 +124,10 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.op = rebase.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
 		return m, nil
 	case key.Matches(msg, layer.BookmarkMode):
-		m.Keymap.BookmarkMode()
+		m.op = bookmark.NewChooseBookmarkOperation(m.UICommands)
 		return m, nil
 	case key.Matches(msg, layer.Quit), key.Matches(msg, m.Keymap.Cancel):
 		return m, tea.Quit
-	}
-	return m, nil
-}
-
-func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	layer := m.Keymap.Bindings[m.Keymap.Current].(keymap.BookmarkLayer)
-	switch {
-	case key.Matches(msg, layer.Move):
-		m.Keymap.ResetMode()
-		selected := m.selectedRevision()
-		var cmd tea.Cmd
-		m.op, cmd = bookmark.NewMoveBookmarkOperation(m.UICommands, selected, m.Width)
-		return m, cmd
-	case key.Matches(msg, layer.Delete):
-		m.Keymap.ResetMode()
-		selected := m.selectedRevision()
-		var cmd tea.Cmd
-		m.op, cmd = bookmark.NewDeleteBookmarkOperation(m.UICommands, selected, m.Width)
-		return m, cmd
-	case key.Matches(msg, layer.Set):
-		var cmd tea.Cmd
-		m.op, cmd = bookmark.NewSetBookmarkOperation(m.UICommands, m.selectedRevision())
-		return m, cmd
-	case key.Matches(msg, m.Keymap.Cancel):
-		m.Keymap.ResetMode()
 	}
 	return m, nil
 }
@@ -170,6 +145,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.confirmation = nil
 			return m, nil
 		}
+	case common.SetOperationMsg:
+		m.op = msg.Operation
+		return m, nil
 	case common.UpdateRevSetMsg:
 		m.revsetModel.Value = string(msg)
 		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
@@ -257,8 +235,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				switch m.Keymap.Current {
 				case ' ':
 					m, cmd = m.handleBaseKeys(msg)
-				case 'b':
-					m, cmd = m.handleBookmarkKeys(msg)
 				}
 			}
 		}
