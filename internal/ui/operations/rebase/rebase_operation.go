@@ -78,8 +78,7 @@ func (r *Operation) ShortHelp() []key.Binding {
 }
 
 func (r *Operation) FullHelp() [][]key.Binding {
-	//TODO implement me
-	panic("implement me")
+	return [][]key.Binding{r.ShortHelp()}
 }
 
 func (r *Operation) RenderPosition() operations.RenderPosition {

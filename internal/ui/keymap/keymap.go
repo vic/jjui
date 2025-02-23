@@ -34,10 +34,6 @@ type BaseLayer struct {
 	Quit         key.Binding
 }
 
-type SquashLayer struct {
-	Apply key.Binding
-}
-
 type BookmarkLayer struct {
 	Move   key.Binding
 	Set    key.Binding
@@ -76,10 +72,6 @@ func NewKeyMap() Keymap {
 		Quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 
-	bindings['s'] = SquashLayer{
-		Apply: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
-	}
-
 	bindings['b'] = BookmarkLayer{
 		Move:   key.NewBinding(key.WithKeys("m"), key.WithHelp("m", "bookmark move")),
 		Set:    key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "bookmark set")),
@@ -113,10 +105,6 @@ func (k *Keymap) GitMode() {
 	k.Current = 'g'
 }
 
-func (k *Keymap) SquashMode() {
-	k.Current = 's'
-}
-
 func (k *Keymap) BookmarkMode() {
 	k.Current = 'b'
 }
@@ -133,8 +121,6 @@ func (k *Keymap) ShortHelp() []key.Binding {
 	switch b := k.Bindings[k.Current].(type) {
 	case BaseLayer:
 		return []key.Binding{k.Up, k.Down, b.Revset, b.New, b.Edit, b.Description, b.Diff, b.Abandon, b.Undo, k.Details, b.Split, b.SquashMode, b.Diffedit, b.RebaseMode, b.GitMode, b.BookmarkMode, b.Quit}
-	case SquashLayer:
-		return []key.Binding{k.Up, k.Down, b.Apply, k.Cancel}
 	case GitLayer:
 		return []key.Binding{b.Push, b.Fetch, k.Cancel}
 	case BookmarkLayer:

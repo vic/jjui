@@ -34,7 +34,6 @@ type Model struct {
 	error        error
 	op           operations.Operation
 	viewRange    *viewRange
-	draggedRow   int
 	cursor       int
 	Width        int
 	Height       int
@@ -115,9 +114,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.GitMode()
 		return m, nil
 	case key.Matches(msg, layer.SquashMode):
-		m.Keymap.SquashMode()
-		m.draggedRow = m.cursor
-		m.op = squash.NewOperation(m.rows[m.draggedRow].Commit.ChangeIdShort)
+		m.op = squash.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort)
 		if m.cursor < len(m.rows)-1 {
 			m.cursor++
 		}
@@ -130,34 +127,6 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 	case key.Matches(msg, layer.Quit), key.Matches(msg, m.Keymap.Cancel):
 		return m, tea.Quit
-	}
-	return m, nil
-}
-
-func (m Model) handleSquashKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	switch {
-	case key.Matches(msg, m.Keymap.Down):
-		if m.cursor < len(m.rows)-1 {
-			m.cursor++
-		}
-	case key.Matches(msg, m.Keymap.Up):
-		if m.cursor > 0 {
-			m.cursor--
-		}
-	case key.Matches(msg, m.Keymap.Apply):
-		m.Keymap.ResetMode()
-		if m.draggedRow == -1 {
-			m.op = &operations.Noop{}
-			break
-		}
-		fromCommit := m.rows[m.draggedRow].Commit
-		destinationCommit := m.rows[m.cursor].Commit
-		m.op = &operations.Noop{}
-		m.draggedRow = -1
-		return m, m.Squash(fromCommit.ChangeIdShort, destinationCommit.GetChangeId())
-	case key.Matches(msg, m.Keymap.Cancel):
-		m.Keymap.ResetMode()
-		m.op = &operations.Noop{}
 	}
 	return m, nil
 }
@@ -302,8 +271,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				switch m.Keymap.Current {
 				case ' ':
 					m, cmd = m.handleBaseKeys(msg)
-				case 's':
-					m, cmd = m.handleSquashKeys(msg)
 				case 'b':
 					m, cmd = m.handleBookmarkKeys(msg)
 				case 'g':
@@ -386,7 +353,6 @@ func New(jj jj.Commands) Model {
 		status:      common.Loading,
 		UICommands:  common.NewUICommands(jj),
 		rows:        nil,
-		draggedRow:  -1,
 		viewRange:   &v,
 		op:          &operations.Noop{},
 		cursor:      0,
