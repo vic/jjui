@@ -61,13 +61,6 @@ func NewKeyMap() Keymap {
 		Quit:         key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 	}
 
-	bindings['d'] = DetailsLayer{
-		Diff:    key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
-		Restore: key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "restore selected")),
-		Split:   key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "split selected")),
-		Mark:    key.NewBinding(key.WithKeys(" "), key.WithHelp("space", "toggle selection")),
-	}
-
 	return Keymap{
 		Current:  ' ',
 		Bindings: bindings,
@@ -81,10 +74,6 @@ func NewKeyMap() Keymap {
 
 func (k *Keymap) ResetMode() {
 	k.Current = ' '
-}
-
-func (k *Keymap) DetailsMode() {
-	k.Current = 'd'
 }
 
 func (k *Keymap) ShortHelp() []key.Binding {

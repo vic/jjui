@@ -1,6 +1,7 @@
 package details
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
@@ -9,6 +10,22 @@ import (
 
 type Operation struct {
 	Overlay tea.Model
+}
+
+func (s Operation) ShortHelp() []key.Binding {
+	return []key.Binding{
+		up,
+		down,
+		cancel,
+		diff,
+		mark,
+		split,
+		restore,
+	}
+}
+
+func (s Operation) FullHelp() [][]key.Binding {
+	return [][]key.Binding{s.ShortHelp()}
 }
 
 func (s Operation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {

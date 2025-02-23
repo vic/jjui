@@ -28,13 +28,13 @@ var (
 )
 
 var (
-	cancel  = key.NewBinding(key.WithKeys("esc", "h"))
-	mark    = key.NewBinding(key.WithKeys("m", " "))
-	restore = key.NewBinding(key.WithKeys("r"))
-	split   = key.NewBinding(key.WithKeys("s"))
-	up      = key.NewBinding(key.WithKeys("up", "k"))
-	down    = key.NewBinding(key.WithKeys("down", "j"))
-	diff    = key.NewBinding(key.WithKeys("d"))
+	cancel  = key.NewBinding(key.WithKeys("esc", "h"), key.WithHelp("esc/h", "cancel"))
+	mark    = key.NewBinding(key.WithKeys("m", " "), key.WithHelp("m/space", "mark"))
+	restore = key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "restore"))
+	split   = key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "split"))
+	up      = key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("k/up", "up"))
+	down    = key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("j/down", "down"))
+	diff    = key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff"))
 )
 
 type item struct {

@@ -77,7 +77,6 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.Keymap.ResetMode()
 		m.op = &operations.Noop{}
 	case key.Matches(msg, m.Keymap.Details):
-		m.Keymap.DetailsMode()
 		var cmd tea.Cmd
 		m.op, cmd = details.NewOperation(m.UICommands, m.selectedRevision())
 		return m, cmd
