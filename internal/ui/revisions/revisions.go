@@ -152,17 +152,17 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.cursor++
 		}
 	case key.Matches(msg, layer.After):
-		if op, ok := m.op.(rebase.Operation); ok {
+		if op, ok := m.op.(*rebase.Operation); ok {
 			op.Target = rebase.TargetAfter
 			m.op = op
 		}
 	case key.Matches(msg, layer.Before):
-		if op, ok := m.op.(rebase.Operation); ok {
+		if op, ok := m.op.(*rebase.Operation); ok {
 			op.Target = rebase.TargetBefore
 			m.op = op
 		}
 	case key.Matches(msg, layer.Destination):
-		if op, ok := m.op.(rebase.Operation); ok {
+		if op, ok := m.op.(*rebase.Operation); ok {
 			op.Target = rebase.TargetDestination
 			m.op = op
 		}
@@ -174,7 +174,7 @@ func (m Model) handleRebaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 		fromCommit := m.rows[m.draggedRow].Commit
 		toCommit := m.rows[m.cursor].Commit
-		rebaseOperation := m.op.(rebase.Operation)
+		rebaseOperation := m.op.(*rebase.Operation)
 		source, target := rebaseOperation.GetSourceTargetFlags()
 		m.op = &operations.Noop{}
 		m.draggedRow = -1
@@ -350,6 +350,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		case 'g':
 			m, cmd = m.handleGitKeys(msg)
 		}
+	}
+	if op, ok := m.op.(operations.TracksSelectedRevision); ok {
+		op.SetSelectedRevision(m.selectedRevision())
 	}
 	if cmd != nil {
 		cmds = append(cmds, cmd)

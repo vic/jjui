@@ -1,6 +1,9 @@
 package operations
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/idursun/jjui/internal/jj"
+)
 
 type RenderPosition int
 
@@ -20,4 +23,8 @@ type Operation interface {
 
 type OperationWithOverlay interface {
 	Update(msg tea.Msg) (Operation, tea.Cmd)
+}
+
+type TracksSelectedRevision interface {
+	SetSelectedRevision(commit *jj.Commit)
 }

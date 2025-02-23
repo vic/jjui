@@ -155,7 +155,7 @@ func (k *Keymap) ShortHelp() []key.Binding {
 	case BaseLayer:
 		return []key.Binding{k.Up, k.Down, b.Revset, b.New, b.Edit, b.Description, b.Diff, b.Abandon, b.Undo, k.Details, b.Split, b.SquashMode, b.Diffedit, b.RebaseMode, b.GitMode, b.BookmarkMode, b.Quit}
 	case RebaseLayer:
-		if _, ok := k.Op.(rebase.Operation); ok {
+		if _, ok := k.Op.(*rebase.Operation); ok {
 			return []key.Binding{k.Up, k.Down, b.After, b.Before, b.Destination, k.Cancel}
 		}
 		return []key.Binding{b.Branch, b.Revision, k.Cancel}

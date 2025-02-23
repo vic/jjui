@@ -2,6 +2,7 @@ package rebase
 
 import (
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
@@ -23,23 +24,27 @@ const (
 
 type Operation struct {
 	From   string
-	To     string
+	To     *jj.Commit
 	Source Source
 	Target Target
 }
 
-func (r Operation) ShortHelp() []key.Binding {
+func (r *Operation) SetSelectedRevision(commit *jj.Commit) {
+	r.To = commit
+}
+
+func (r *Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
 		key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
 	}
 }
 
-func (r Operation) FullHelp() [][]key.Binding {
+func (r *Operation) FullHelp() [][]key.Binding {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r Operation) RenderPosition() operations.RenderPosition {
+func (r *Operation) RenderPosition() operations.RenderPosition {
 	if r.Target == TargetAfter {
 		return operations.RenderPositionBefore
 	}
@@ -49,9 +54,9 @@ func (r Operation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionAfter
 }
 
-func (r Operation) Render() string {
+func (r *Operation) Render() string {
 	if r.Target == TargetDestination {
-		return common.DropStyle.Render("<< onto >>")
+		return common.DropStyle.Render("<< onto >> " + r.To.ChangeIdShort)
 	}
 	if r.Target == TargetAfter {
 		return common.DropStyle.Render("<< after >>")
@@ -62,7 +67,7 @@ func (r Operation) Render() string {
 	return ""
 }
 
-func (r Operation) GetSourceTargetFlags() (source string, target string) {
+func (r *Operation) GetSourceTargetFlags() (source string, target string) {
 	switch r.Source {
 	case SourceBranch:
 		source = "-b"
@@ -80,8 +85,8 @@ func (r Operation) GetSourceTargetFlags() (source string, target string) {
 	return source, target
 }
 
-func NewOperation(from string, source Source, target Target) Operation {
-	return Operation{
+func NewOperation(from string, source Source, target Target) *Operation {
+	return &Operation{
 		From:   from,
 		Source: source,
 		Target: target,
