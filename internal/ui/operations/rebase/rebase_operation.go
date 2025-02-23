@@ -117,7 +117,6 @@ func (r *Operation) Render() string {
 		common.DefaultPalette.CommitIdRestStyle.Render("rebase"),
 		" ",
 		common.DefaultPalette.CommitIdRestStyle.Render(source),
-		" ",
 		common.DefaultPalette.CommitShortStyle.Render(r.From),
 		" ",
 		common.DefaultPalette.CommitIdRestStyle.Render(ret),
