@@ -21,10 +21,10 @@ type BaseLayer struct {
 	Edit         key.Binding
 	Diffedit     key.Binding
 	Split        key.Binding
+	GitMode      key.Binding
 	RebaseMode   key.Binding
 	SquashMode   key.Binding
 	BookmarkMode key.Binding
-	GitMode      key.Binding
 	Description  key.Binding
 	Diff         key.Binding
 	New          key.Binding
@@ -38,11 +38,6 @@ type BookmarkLayer struct {
 	Move   key.Binding
 	Set    key.Binding
 	Delete key.Binding
-}
-
-type GitLayer struct {
-	Fetch key.Binding
-	Push  key.Binding
 }
 
 type DetailsLayer struct {
@@ -78,11 +73,6 @@ func NewKeyMap() Keymap {
 		Delete: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "bookmark delete")),
 	}
 
-	bindings['g'] = GitLayer{
-		Fetch: key.NewBinding(key.WithKeys("f"), key.WithHelp("f", "git fetch")),
-		Push:  key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "git push")),
-	}
-
 	bindings['d'] = DetailsLayer{
 		Diff:    key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
 		Restore: key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "restore selected")),
@@ -101,10 +91,6 @@ func NewKeyMap() Keymap {
 	}
 }
 
-func (k *Keymap) GitMode() {
-	k.Current = 'g'
-}
-
 func (k *Keymap) BookmarkMode() {
 	k.Current = 'b'
 }
@@ -121,8 +107,6 @@ func (k *Keymap) ShortHelp() []key.Binding {
 	switch b := k.Bindings[k.Current].(type) {
 	case BaseLayer:
 		return []key.Binding{k.Up, k.Down, b.Revset, b.New, b.Edit, b.Description, b.Diff, b.Abandon, b.Undo, k.Details, b.Split, b.SquashMode, b.Diffedit, b.RebaseMode, b.GitMode, b.BookmarkMode, b.Quit}
-	case GitLayer:
-		return []key.Binding{b.Push, b.Fetch, k.Cancel}
 	case BookmarkLayer:
 		return []key.Binding{b.Move, b.Set, b.Delete, k.Cancel}
 	case DetailsLayer:

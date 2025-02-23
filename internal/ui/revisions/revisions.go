@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/idursun/jjui/internal/ui/keymap"
+	"github.com/idursun/jjui/internal/ui/operations/git"
 	"github.com/idursun/jjui/internal/ui/operations/rebase"
 	"slices"
 
@@ -111,7 +112,7 @@ func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case key.Matches(msg, layer.Refresh):
 		return m, common.Refresh(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, layer.GitMode):
-		m.Keymap.GitMode()
+		m.op = git.NewOperation(m.UICommands)
 		return m, nil
 	case key.Matches(msg, layer.SquashMode):
 		m.op = squash.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort)
@@ -150,21 +151,6 @@ func (m Model) handleBookmarkKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
 		var cmd tea.Cmd
 		m.op, cmd = bookmark.NewSetBookmarkOperation(m.UICommands, m.selectedRevision())
 		return m, cmd
-	case key.Matches(msg, m.Keymap.Cancel):
-		m.Keymap.ResetMode()
-	}
-	return m, nil
-}
-
-func (m Model) handleGitKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	layer := m.Keymap.Bindings[m.Keymap.Current].(keymap.GitLayer)
-	switch {
-	case key.Matches(msg, layer.Fetch):
-		m.Keymap.ResetMode()
-		return m, m.GitFetch(m.selectedRevision().GetChangeId())
-	case key.Matches(msg, layer.Push):
-		m.Keymap.ResetMode()
-		return m, m.GitPush(m.selectedRevision().GetChangeId())
 	case key.Matches(msg, m.Keymap.Cancel):
 		m.Keymap.ResetMode()
 	}
@@ -273,8 +259,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 					m, cmd = m.handleBaseKeys(msg)
 				case 'b':
 					m, cmd = m.handleBookmarkKeys(msg)
-				case 'g':
-					m, cmd = m.handleGitKeys(msg)
 				}
 			}
 		}
