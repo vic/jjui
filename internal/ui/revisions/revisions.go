@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/idursun/jjui/internal/ui/operations/git"
 	"github.com/idursun/jjui/internal/ui/operations/rebase"
+	"github.com/idursun/jjui/internal/ui/operations/undo"
 	"slices"
 
 	"github.com/idursun/jjui/internal/jj"
@@ -29,16 +30,15 @@ type viewRange struct {
 }
 
 type Model struct {
-	rows         []jj.GraphRow
-	status       common.Status
-	error        error
-	op           operations.Operation
-	viewRange    *viewRange
-	cursor       int
-	Width        int
-	Height       int
-	revsetModel  revset.Model
-	confirmation *confirmation.Model
+	rows        []jj.GraphRow
+	status      common.Status
+	error       error
+	op          operations.Operation
+	viewRange   *viewRange
+	cursor      int
+	Width       int
+	Height      int
+	revsetModel revset.Model
 	common.UICommands
 }
 
@@ -67,10 +67,8 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.op = &operations.Noop{}
 		return m, nil
 	case confirmation.CloseMsg:
-		if m.confirmation != nil {
-			m.confirmation = nil
-			return m, nil
-		}
+		m.op = &operations.Noop{}
+		return m, nil
 	case common.SetOperationMsg:
 		m.op = msg.Operation
 		return m, nil
@@ -116,16 +114,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.Width = msg.Width
 	}
 
-	if m.confirmation != nil {
-		var cmd tea.Cmd
-		var cm confirmation.Model
-		if cm, cmd = m.confirmation.Update(msg); cmd != nil {
-			cmds = append(cmds, cmd)
-		}
-		m.confirmation = &cm
-		return m, tea.Batch(cmds...)
-	}
-
 	if op, ok := m.op.(operations.OperationWithOverlay); ok {
 		var cmd tea.Cmd
 		if m.op, cmd = op.Update(msg); cmd != nil {
@@ -166,11 +154,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				case key.Matches(msg, operations.Revset):
 					m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
 				case key.Matches(msg, operations.Undo):
-					model := confirmation.New("Are you sure you want to undo last change?")
-					model.AddOption("Yes", tea.Batch(m.Undo(), confirmation.Close))
-					model.AddOption("No", confirmation.Close)
-					m.confirmation = &model
-					cmd = m.confirmation.Init()
+					m.op, cmd = undo.NewOperation(m.UICommands)
 				case key.Matches(msg, operations.New):
 					cmd = m.NewRevision(m.selectedRevision().GetChangeId())
 				case key.Matches(msg, operations.Edit):
@@ -227,8 +211,8 @@ func (m Model) View() string {
 	}
 
 	if m.status == common.Ready {
-		if m.confirmation != nil {
-			topView = lipgloss.JoinVertical(0, topView, m.confirmation.View())
+		if m.op.RenderPosition() == operations.RenderPositionTop {
+			topView = lipgloss.JoinVertical(0, topView, m.op.Render())
 		}
 		h := m.Height - lipgloss.Height(topView)
 

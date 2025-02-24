@@ -14,6 +14,7 @@ const (
 	RenderPositionGlyph
 	RenderPositionBookmark
 	RenderPositionDescription
+	RenderPositionTop
 )
 
 type Operation interface {
