@@ -14,6 +14,7 @@ type Source int
 const (
 	SourceRevision Source = iota
 	SourceBranch
+	SourceDescendants
 )
 
 type Target int
@@ -26,13 +27,13 @@ const (
 
 var (
 	sourceToFlags = map[Source]string{
-		SourceBranch:   "-b",
-		SourceRevision: "-r",
+		SourceBranch:      "--branch",
+		SourceRevision:    "--revisions",
+		SourceDescendants: "--source",
 	}
 	targetToFlags = map[Target]string{
-		TargetAfter:       "-A",
-		TargetBefore:      "-B",
-		TargetDestination: "-d",
+		TargetAfter:       "--insert-after",
+		TargetDestination: "--destination",
 	}
 )
 
@@ -45,11 +46,11 @@ type Operation struct {
 }
 
 var (
-	Revision    = key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "rebase revision"))
-	Branch      = key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "rebase branch"))
-	Destination = key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "destination"))
-	After       = key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "after"))
-	Before      = key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "before"))
+	Revision    = key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "change source to revision"))
+	Branch      = key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "change source to branch"))
+	SourceKey   = key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "change source to descendants"))
+	Destination = key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "change target to destination"))
+	After       = key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "change target to after"))
 	Apply       = key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply"))
 	Cancel      = key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel"))
 )
@@ -60,12 +61,12 @@ func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 		r.Source = SourceRevision
 	case key.Matches(msg, Branch):
 		r.Source = SourceBranch
+	case key.Matches(msg, SourceKey):
+		r.Source = SourceDescendants
 	case key.Matches(msg, Destination):
 		r.Target = TargetDestination
 	case key.Matches(msg, After):
 		r.Target = TargetAfter
-	case key.Matches(msg, Before):
-		r.Target = TargetBefore
 	case key.Matches(msg, Apply):
 		source := sourceToFlags[r.Source]
 		target := targetToFlags[r.Target]
@@ -84,9 +85,9 @@ func (r *Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
 		Revision,
 		Branch,
+		SourceKey,
 		Destination,
 		After,
-		Before,
 	}
 }
 
@@ -119,8 +120,11 @@ func (r *Operation) Render() string {
 	if r.Source == SourceBranch {
 		source = "branch of "
 	}
+	if r.Source == SourceDescendants {
+		source = "itself and descendants of "
+	}
 	if r.Source == SourceRevision {
-		source = ""
+		source = "only "
 	}
 	lipgloss.NewStyle().SetString("rebase")
 	return lipgloss.JoinHorizontal(
