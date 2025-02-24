@@ -1,6 +1,7 @@
 package undo
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/confirmation"
@@ -27,7 +28,7 @@ func (o Operation) Render() string {
 
 func NewOperation(commands common.UICommands) (operations.Operation, tea.Cmd) {
 	model := confirmation.New("Are you sure you want to undo last change?")
-	model.AddOption("Yes", tea.Batch(commands.Undo(), common.Close))
-	model.AddOption("No", common.Close)
+	model.AddOption("Yes", tea.Batch(commands.Undo(), common.Close), key.NewBinding(key.WithKeys("y")))
+	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))
 	return Operation{Overlay: &model}, model.Init()
 }

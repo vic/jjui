@@ -1,6 +1,7 @@
 package abandon
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/confirmation"
 
@@ -28,8 +29,8 @@ func (m Model) View() string {
 
 func New(commands common.UICommands, revision string) tea.Model {
 	model := confirmation.New("Are you sure you want to abandon this revision?")
-	model.AddOption("Yes", tea.Batch(commands.Abandon(revision), common.Close))
-	model.AddOption("No", common.Close)
+	model.AddOption("Yes", tea.Batch(commands.Abandon(revision), common.Close), key.NewBinding(key.WithKeys("y")))
+	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))
 
 	return Model{
 		confirmation: &model,
