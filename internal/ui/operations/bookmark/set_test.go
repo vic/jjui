@@ -13,8 +13,10 @@ import (
 )
 
 func TestSetBookmarkModel_Update(t *testing.T) {
-	commands := test.NewJJCommands()
-	commands.ExpectSetBookmark(t, "revision", "name")
+	commands := test.NewJJCommands(t)
+	defer commands.Verify()
+
+	commands.ExpectSetBookmark("revision", "name")
 	tm := teatest.NewTestModel(t, NewSetBookmark(common.NewUICommands(commands), "revision"))
 	tm.Type("name")
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
@@ -23,5 +25,4 @@ func TestSetBookmarkModel_Update(t *testing.T) {
 	})
 	tm.Quit()
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
-	commands.Verify(t)
 }

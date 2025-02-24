@@ -24,8 +24,10 @@ func TestCancel(t *testing.T) {
 }
 
 func TestEdit(t *testing.T) {
-	commands := test.NewJJCommands()
-	commands.ExpectSetDescription(t, "revision", "description changed")
+	commands := test.NewJJCommands(t)
+	defer commands.Verify()
+
+	commands.ExpectSetDescription("revision", "description changed")
 	tm := teatest.NewTestModel(t, New(common.NewUICommands(commands), "revision", "description", 20))
 	tm.Type(" changed")
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
@@ -34,5 +36,4 @@ func TestEdit(t *testing.T) {
 	})
 	tm.Quit()
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
-	commands.Verify(t)
 }

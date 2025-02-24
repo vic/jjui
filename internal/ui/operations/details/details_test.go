@@ -18,7 +18,9 @@ const (
 )
 
 func TestModel_Init_ExecutesStatusCommand(t *testing.T) {
-	commands := test.NewJJCommands()
+	commands := test.NewJJCommands(t)
+	defer commands.Verify()
+
 	statusCommand := commands.ExpectStatus(t, Revision)
 	statusCommand.Output = []byte(StatusOutput)
 
@@ -28,15 +30,15 @@ func TestModel_Init_ExecutesStatusCommand(t *testing.T) {
 	})
 	tm.Quit()
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
-	commands.Verify(t)
 }
 
 func TestModel_Update_RestoresSelectedFiles(t *testing.T) {
-	commands := test.NewJJCommands()
-	statusCommand := commands.ExpectStatus(t, Revision)
-	statusCommand.Output = []byte(StatusOutput)
+	commands := test.NewJJCommands(t)
+	defer commands.Verify()
 
-	commands.ExpectRestore(t, Revision, []string{"file.txt"})
+	commands.ExpectStatus(t, Revision).Output = []byte(StatusOutput)
+
+	commands.ExpectRestore(Revision, []string{"file.txt"})
 
 	tm := teatest.NewTestModel(t, test.NewShell(New(Revision, common.NewUICommands(commands))))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
@@ -47,15 +49,16 @@ func TestModel_Update_RestoresSelectedFiles(t *testing.T) {
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("r")})
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
-	commands.Verify(t)
 }
 
 func TestModel_Update_SplitsSelectedFiles(t *testing.T) {
-	commands := test.NewJJCommands()
+	commands := test.NewJJCommands(t)
+	defer commands.Verify()
+
 	statusCommand := commands.ExpectStatus(t, Revision)
 	statusCommand.Output = []byte(StatusOutput)
 
-	commands.ExpectSplit(t, Revision, []string{"file.txt"})
+	commands.ExpectSplit(Revision, []string{"file.txt"})
 
 	tm := teatest.NewTestModel(t, test.NewShell(New(Revision, common.NewUICommands(commands))))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
@@ -66,5 +69,4 @@ func TestModel_Update_SplitsSelectedFiles(t *testing.T) {
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
-	commands.Verify(t)
 }

@@ -1,14 +1,15 @@
 package test
 
 import (
+	"github.com/stretchr/testify/assert"
 	"os/exec"
 	"testing"
 
 	"github.com/idursun/jjui/internal/jj"
-	"github.com/stretchr/testify/assert"
 )
 
 type JJCommands struct {
+	*testing.T
 	expectations map[string]*MockedCommand
 }
 
@@ -17,7 +18,6 @@ type MockedCommand struct {
 	Output []byte
 	Err    error
 	called bool
-	t      *testing.T
 }
 
 func (m *MockedCommand) CombinedOutput() ([]byte, error) {
@@ -35,6 +35,25 @@ func (m *MockedCommand) Args() []string {
 	return m.args
 }
 
+type unexpectedCommand struct {
+	name string
+	t    *testing.T
+}
+
+func (u *unexpectedCommand) CombinedOutput() ([]byte, error) {
+	assert.Failf(u.t, "unexpected call", u.name)
+	return nil, nil
+}
+
+func (u *unexpectedCommand) GetCommand() *exec.Cmd {
+	assert.Failf(u.t, "unexpected call", u.name)
+	return nil
+}
+
+func (u *unexpectedCommand) Args() []string {
+	return []string{}
+}
+
 func (t *JJCommands) GetConfig(key string) ([]byte, error) {
 	// TODO implement me
 	panic("implement me")
@@ -48,10 +67,9 @@ func (t *JJCommands) RebaseCommand(from string, to string, source string, target
 func (t *JJCommands) SetDescription(rev string, description string) jj.Command {
 	expectation := t.expectations["SetDescription"]
 	if expectation == nil {
-		panic("unexpected call to SetDescription")
+		return &unexpectedCommand{name: "SetDescription", t: t.T}
 	}
-
-	assert.Equal(expectation.t, expectation.args, []string{rev, description})
+	assert.Equal(t, expectation.args, []string{rev, description})
 	return expectation
 }
 
@@ -63,9 +81,9 @@ func (t *JJCommands) ListBookmark(revision string) jj.Command {
 func (t *JJCommands) SetBookmark(revision string, name string) jj.Command {
 	expectation := t.expectations["SetBookmark"]
 	if expectation == nil {
-		panic("unexpected call to SetBookmark")
+		return &unexpectedCommand{name: "SetBookmark", t: t.T}
 	}
-	assert.Equal(expectation.t, expectation.args, []string{revision, name})
+	assert.Equal(t, expectation.args, []string{revision, name})
 	return expectation
 }
 
@@ -115,23 +133,30 @@ func (t *JJCommands) New(from string) jj.Command {
 }
 
 func (t *JJCommands) Undo() jj.Command {
-	// TODO implement me
-	panic("implement me")
+	expectation := t.expectations["Undo"]
+	if expectation == nil {
+		return &unexpectedCommand{name: "Undo", t: t.T}
+	}
+	return expectation
+}
+
+func (t *JJCommands) ExpectUndo() *MockedCommand {
+	t.expectations["Undo"] = &MockedCommand{}
+	return &MockedCommand{}
 }
 
 func (t *JJCommands) Split(revision string, files []string) jj.Command {
 	expectation := t.expectations["Split"]
 	if expectation == nil {
-		panic("unexpected call to Split")
+		return &unexpectedCommand{name: "Split", t: t.T}
 	}
-	assert.Equal(expectation.t, expectation.args, append([]string{revision}, files...))
+	assert.Equal(t, expectation.args, append([]string{revision}, files...))
 	return expectation
 }
 
-func (t *JJCommands) ExpectSplit(tt *testing.T, revision string, files []string) *MockedCommand {
+func (t *JJCommands) ExpectSplit(revision string, files []string) *MockedCommand {
 	command := MockedCommand{
 		args: append([]string{revision}, files...),
-		t:    tt,
 	}
 	t.expectations["Split"] = &command
 	return &command
@@ -150,16 +175,15 @@ func (t *JJCommands) Squash(from string, destination string) jj.Command {
 func (t *JJCommands) Status(revision string) jj.Command {
 	expectation := t.expectations["Status"]
 	if expectation == nil {
-		panic("unexpected call to Status")
+		return &unexpectedCommand{name: "Status", t: t.T}
 	}
-	assert.Equal(expectation.t, expectation.args, []string{revision})
+	assert.Equal(t, expectation.args, []string{revision})
 	return expectation
 }
 
 func (t *JJCommands) ExpectStatus(tt *testing.T, revision string) *MockedCommand {
 	command := MockedCommand{
 		args: []string{revision},
-		t:    tt,
 	}
 	t.expectations["Status"] = &command
 	return &command
@@ -168,49 +192,47 @@ func (t *JJCommands) ExpectStatus(tt *testing.T, revision string) *MockedCommand
 func (t *JJCommands) Restore(revision string, files []string) jj.Command {
 	expectation := t.expectations["Restore"]
 	if expectation == nil {
-		panic("unexpected call to Restore")
+		return &unexpectedCommand{name: "Restore", t: t.T}
 	}
-	assert.Equal(expectation.t, expectation.args, append([]string{revision}, files...))
+	assert.Equal(t, expectation.args, append([]string{revision}, files...))
 	return expectation
 }
 
-func (t *JJCommands) ExpectRestore(tt *testing.T, revision string, files []string) *MockedCommand {
+func (t *JJCommands) ExpectRestore(revision string, files []string) *MockedCommand {
 	command := MockedCommand{
 		args: append([]string{revision}, files...),
-		t:    tt,
 	}
 	t.expectations["Restore"] = &command
 	return &command
 }
 
-func (t *JJCommands) ExpectSetDescription(tt *testing.T, rev string, description string) *MockedCommand {
+func (t *JJCommands) ExpectSetDescription(rev string, description string) *MockedCommand {
 	command := MockedCommand{
 		args: []string{rev, description},
-		t:    tt,
 	}
 	t.expectations["SetDescription"] = &command
 	return &command
 }
 
-func (t *JJCommands) ExpectSetBookmark(tt *testing.T, revision string, name string) *MockedCommand {
+func (t *JJCommands) ExpectSetBookmark(revision string, name string) *MockedCommand {
 	command := MockedCommand{
 		args: []string{revision, name},
-		t:    tt,
 	}
 	t.expectations["SetBookmark"] = &command
 	return &command
 }
 
-func (t *JJCommands) Verify(tt *testing.T) {
+func (t *JJCommands) Verify() {
 	for name, expectation := range t.expectations {
 		if !expectation.called {
-			tt.Errorf("expected %s to be called", name)
+			t.Errorf("expected %s to be called", name)
 		}
 	}
 }
 
-func NewJJCommands() *JJCommands {
+func NewJJCommands(t *testing.T) *JJCommands {
 	return &JJCommands{
+		T:            t,
 		expectations: make(map[string]*MockedCommand),
 	}
 }
