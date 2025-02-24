@@ -10,7 +10,6 @@ import (
 
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
-	"github.com/idursun/jjui/internal/ui/confirmation"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/idursun/jjui/internal/ui/operations/abandon"
 	"github.com/idursun/jjui/internal/ui/operations/bookmark"
@@ -64,9 +63,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, 0)
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
-		m.op = &operations.Noop{}
-		return m, nil
-	case confirmation.CloseMsg:
 		m.op = &operations.Noop{}
 		return m, nil
 	case common.SetOperationMsg:

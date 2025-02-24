@@ -8,7 +8,7 @@ import (
 )
 
 type Operation struct {
-	Overlay confirmation.Model
+	Overlay tea.Model
 }
 
 func (o Operation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
@@ -29,5 +29,5 @@ func NewOperation(commands common.UICommands) (operations.Operation, tea.Cmd) {
 	model := confirmation.New("Are you sure you want to undo last change?")
 	model.AddOption("Yes", tea.Batch(commands.Undo(), confirmation.Close))
 	model.AddOption("No", confirmation.Close)
-	return Operation{Overlay: model}, model.Init()
+	return Operation{Overlay: &model}, model.Init()
 }

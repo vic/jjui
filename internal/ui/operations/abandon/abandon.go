@@ -8,7 +8,7 @@ import (
 )
 
 type Model struct {
-	confirmation confirmation.Model
+	confirmation tea.Model
 	common.UICommands
 }
 
@@ -32,7 +32,7 @@ func New(commands common.UICommands, revision string) tea.Model {
 	model.AddOption("No", common.Close)
 
 	return Model{
-		confirmation: model,
+		confirmation: &model,
 		UICommands:   commands,
 	}
 }

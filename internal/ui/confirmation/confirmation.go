@@ -37,11 +37,11 @@ var selectedStyle = lipgloss.NewStyle().
 	PaddingLeft(2).
 	PaddingRight(2)
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -57,14 +57,14 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			selectedOption := m.options[m.selected]
 			return m, selectedOption.cmd
 		case tea.KeyEscape:
-			return m, common.Close
+			return m, Close
 		default:
 		}
 	}
 	return m, nil
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	w := strings.Builder{}
 	w.WriteString(textStyle.Render(m.message))
 	for i, option := range m.options {

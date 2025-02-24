@@ -100,7 +100,7 @@ type Model struct {
 	revision     string
 	files        list.Model
 	height       int
-	confirmation *confirmation.Model
+	confirmation tea.Model
 	common.UICommands
 }
 
@@ -129,7 +129,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if m.confirmation != nil {
 			model, cmd := m.confirmation.Update(msg)
-			m.confirmation = &model
+			m.confirmation = model
 			return m, cmd
 		}
 		switch {
