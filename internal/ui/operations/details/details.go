@@ -59,8 +59,9 @@ func (f item) Description() string { return "" }
 func (f item) FilterValue() string { return f.name }
 
 type itemDelegate struct {
-	selectedHint   string
-	unselectedHint string
+	selectedHint        string
+	unselectedHint      string
+	isVirtuallySelected bool
 }
 
 func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
@@ -80,21 +81,33 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	if index == m.Index() {
 		style = style.Bold(true).Background(common.DarkBlack)
 	}
+
 	title := item.Title()
-	hint := ""
 	if item.selected {
 		title = "✓" + title
-		hint = i.selectedHint
 	} else {
 		title = " " + title
-		hint = i.unselectedHint
 	}
+
+	hint := ""
+	if i.showHint() {
+		hint = i.unselectedHint
+		if item.selected || (i.isVirtuallySelected && index == m.Index()) {
+			hint = i.selectedHint
+			title = "✓" + item.Title()
+		}
+	}
+
 	fmt.Fprint(w, style.PaddingRight(1).Render(title), HintStyle.Render(hint))
 }
 
 func (i itemDelegate) Height() int                         { return 1 }
 func (i itemDelegate) Spacing() int                        { return 0 }
 func (i itemDelegate) Update(tea.Msg, *list.Model) tea.Cmd { return nil }
+
+func (i itemDelegate) showHint() bool {
+	return i.selectedHint != "" || i.unselectedHint != ""
+}
 
 type Model struct {
 	revision     string
@@ -139,10 +152,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			v := m.files.SelectedItem().(item).name
 			return m, m.UICommands.GetDiff(m.revision, v)
 		case key.Matches(msg, split):
-			selectedFiles := m.getSelectedFiles()
+			selectedFiles, isVirtuallySelected := m.getSelectedFiles()
 			m.files.SetDelegate(itemDelegate{
-				selectedHint:   "stays as is",
-				unselectedHint: "moves to the new revision",
+				isVirtuallySelected: isVirtuallySelected,
+				selectedHint:        "stays as is",
+				unselectedHint:      "moves to the new revision",
 			})
 			model := confirmation.New("Are you sure you want to split the selected files?")
 			model.AddOption("Yes", tea.Batch(m.UICommands.Split(m.revision, selectedFiles), common.Close))
@@ -150,10 +164,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.confirmation = &model
 			return m, m.confirmation.Init()
 		case key.Matches(msg, restore):
-			selectedFiles := m.getSelectedFiles()
+			selectedFiles, isVirtuallySelected := m.getSelectedFiles()
 			m.files.SetDelegate(itemDelegate{
-				selectedHint:   "gets restored",
-				unselectedHint: "stays as is",
+				isVirtuallySelected: isVirtuallySelected,
+				selectedHint:        "gets restored",
+				unselectedHint:      "stays as is",
 			})
 			model := confirmation.New("Are you sure you want to restore the selected files?")
 			model.AddOption("Yes", tea.Batch(m.UICommands.Restore(m.revision, selectedFiles), common.Close))
@@ -206,17 +221,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) getSelectedFiles() []string {
+func (m Model) getSelectedFiles() ([]string, bool) {
 	selectedFiles := make([]string, 0)
+	var isVirtuallySelected = false
 	for _, f := range m.files.Items() {
 		if f.(item).selected {
 			selectedFiles = append(selectedFiles, f.(item).name)
+			isVirtuallySelected = false
 		}
 	}
 	if len(selectedFiles) == 0 {
 		selectedFiles = append(selectedFiles, m.files.SelectedItem().(item).name)
+		return selectedFiles, true
 	}
-	return selectedFiles
+	return selectedFiles, isVirtuallySelected
 }
 
 func (m Model) View() string {
