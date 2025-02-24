@@ -27,7 +27,7 @@ func (o Operation) Render() string {
 
 func NewOperation(commands common.UICommands) (operations.Operation, tea.Cmd) {
 	model := confirmation.New("Are you sure you want to undo last change?")
-	model.AddOption("Yes", tea.Batch(commands.Undo(), confirmation.Close))
-	model.AddOption("No", confirmation.Close)
+	model.AddOption("Yes", tea.Batch(commands.Undo(), common.Close))
+	model.AddOption("No", common.Close)
 	return Operation{Overlay: &model}, model.Init()
 }
