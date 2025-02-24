@@ -26,6 +26,13 @@ func Test_Parse_Line(t *testing.T) {
 	}
 }
 
+func Test_Parse_SkipInformationLines(t *testing.T) {
+	p := jj.NewParser(strings.NewReader("information\ninformation\ninformation\n○  yskmz;yskmzrpp"))
+	rows := p.Parse()
+	assert.Equal(t, 1, len(rows))
+	assert.Equal(t, "yskmz", rows[0].Commit.ChangeIdShort)
+}
+
 func Test_Parse_File(t *testing.T) {
 	tests := []struct {
 		logFile     string

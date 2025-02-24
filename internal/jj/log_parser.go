@@ -3,7 +3,6 @@ package jj
 import (
 	"bufio"
 	"io"
-	"log"
 	"slices"
 	"strings"
 	"unicode"
@@ -85,7 +84,9 @@ func (p *Parser) Parse() []GraphRow {
 			previousLine := &ret[len(ret)-1]
 			previousLine.Connections = append(previousLine.Connections, connections)
 		} else {
-			log.Fatalf("failed to parse %s", content)
+			// jj log might print information before the first commit, hence we skip it
+			// e.g. if commits after the working copy are rebased
+			continue
 		}
 	}
 	return ret
