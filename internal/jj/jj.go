@@ -63,7 +63,7 @@ func (jj JJ) SetDescription(rev string, description string) Command {
 }
 
 func (jj JJ) ListBookmark(revision string) Command {
-	return jj.createCommand("jj", "log", "-r", fmt.Sprintf("::%s- & bookmarks()", revision), "--template", "local_bookmarks.map(|x| x.name() ++ '\n')", "--no-graph", "--color", "never")
+	return jj.createCommand("jj", "bookmark", "list", "-r", fmt.Sprintf("::%s-", revision), "--template", "name ++ '\n'", "--color", "never")
 }
 
 func (jj JJ) SetBookmark(revision string, name string) Command {
