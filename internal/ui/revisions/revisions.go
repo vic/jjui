@@ -3,7 +3,6 @@ package revisions
 import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/help"
-	"github.com/idursun/jjui/internal/ui/keymap"
 	"github.com/idursun/jjui/internal/ui/operations/git"
 	"github.com/idursun/jjui/internal/ui/operations/rebase"
 	"slices"
@@ -40,7 +39,6 @@ type Model struct {
 	Height       int
 	revsetModel  revset.Model
 	confirmation *confirmation.Model
-	Keymap       keymap.Keymap
 	common.UICommands
 }
 
@@ -55,88 +53,17 @@ func (m Model) GetKeyMap() help.KeyMap {
 	if op, ok := m.op.(help.KeyMap); ok {
 		return op
 	}
-	return &m.Keymap
+	return &operations.Noop{}
 }
 
 func (m Model) Init() tea.Cmd {
 	return common.Refresh("@")
 }
 
-func (m Model) handleBaseKeys(msg tea.KeyMsg) (Model, tea.Cmd) {
-	layer := m.Keymap.Bindings[m.Keymap.Current].(keymap.BaseLayer)
-	switch {
-	case key.Matches(msg, m.Keymap.Up):
-		if m.cursor > 0 {
-			m.cursor--
-		}
-	case key.Matches(msg, m.Keymap.Down):
-		if m.cursor < len(m.rows)-1 {
-			m.cursor++
-		}
-	case key.Matches(msg, m.Keymap.Cancel):
-		m.Keymap.ResetMode()
-		m.op = &operations.Noop{}
-	case key.Matches(msg, m.Keymap.Details):
-		var cmd tea.Cmd
-		m.op, cmd = details.NewOperation(m.UICommands, m.selectedRevision())
-		return m, cmd
-	case key.Matches(msg, layer.Revset):
-		m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
-		return m, nil
-	case key.Matches(msg, layer.Undo):
-		model := confirmation.New("Are you sure you want to undo last change?")
-		model.AddOption("Yes", tea.Batch(m.Undo(), confirmation.Close))
-		model.AddOption("No", confirmation.Close)
-		m.confirmation = &model
-		return m, m.confirmation.Init()
-	case key.Matches(msg, layer.New):
-		return m, m.NewRevision(m.selectedRevision().GetChangeId())
-	case key.Matches(msg, layer.Edit):
-		return m, m.Edit(m.selectedRevision().GetChangeId())
-	case key.Matches(msg, layer.Diffedit):
-		return m, m.DiffEdit(m.selectedRevision().GetChangeId())
-	case key.Matches(msg, layer.Abandon):
-		var cmd tea.Cmd
-		m.op, cmd = abandon.NewOperation(m.UICommands, m.selectedRevision())
-		return m, cmd
-	case key.Matches(msg, layer.Split):
-		currentRevision := m.selectedRevision().GetChangeId()
-		return m, m.Split(currentRevision, []string{})
-	case key.Matches(msg, layer.Description):
-		var cmd tea.Cmd
-		m.op, cmd = describe.NewOperation(m.UICommands, m.selectedRevision(), m.Width)
-		return m, cmd
-	case key.Matches(msg, layer.Diff):
-		return m, m.GetDiff(m.selectedRevision().GetChangeId(), "")
-	case key.Matches(msg, layer.Refresh):
-		return m, common.Refresh(m.selectedRevision().GetChangeId())
-	case key.Matches(msg, layer.GitMode):
-		m.op = git.NewOperation(m.UICommands)
-		return m, nil
-	case key.Matches(msg, layer.SquashMode):
-		m.op = squash.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort)
-		if m.cursor < len(m.rows)-1 {
-			m.cursor++
-		}
-		return m, nil
-	case key.Matches(msg, layer.RebaseMode):
-		m.op = rebase.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
-		return m, nil
-	case key.Matches(msg, layer.BookmarkMode):
-		m.op = bookmark.NewChooseBookmarkOperation(m.UICommands)
-		return m, nil
-	case key.Matches(msg, layer.Quit), key.Matches(msg, m.Keymap.Cancel):
-		return m, tea.Quit
-	}
-	return m, nil
-}
-
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	m.Keymap.Op = m.op
 	cmds := make([]tea.Cmd, 0)
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
-		m.Keymap.ResetMode()
 		m.op = &operations.Noop{}
 		return m, nil
 	case confirmation.CloseMsg:
@@ -219,11 +146,11 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.Keymap.Up):
+		case key.Matches(msg, operations.Up):
 			if m.cursor > 0 {
 				m.cursor--
 			}
-		case key.Matches(msg, m.Keymap.Down):
+		case key.Matches(msg, operations.Down):
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
 			}
@@ -231,9 +158,49 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			if op, ok := m.op.(operations.HandleKey); ok {
 				cmd = op.HandleKey(msg)
 			} else {
-				switch m.Keymap.Current {
-				case ' ':
-					m, cmd = m.handleBaseKeys(msg)
+				switch {
+				case key.Matches(msg, operations.Cancel):
+					m.op = &operations.Noop{}
+				case key.Matches(msg, operations.Details):
+					m.op, cmd = details.NewOperation(m.UICommands, m.selectedRevision())
+				case key.Matches(msg, operations.Revset):
+					m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
+				case key.Matches(msg, operations.Undo):
+					model := confirmation.New("Are you sure you want to undo last change?")
+					model.AddOption("Yes", tea.Batch(m.Undo(), confirmation.Close))
+					model.AddOption("No", confirmation.Close)
+					m.confirmation = &model
+					cmd = m.confirmation.Init()
+				case key.Matches(msg, operations.New):
+					cmd = m.NewRevision(m.selectedRevision().GetChangeId())
+				case key.Matches(msg, operations.Edit):
+					cmd = m.Edit(m.selectedRevision().GetChangeId())
+				case key.Matches(msg, operations.Diffedit):
+					cmd = m.DiffEdit(m.selectedRevision().GetChangeId())
+				case key.Matches(msg, operations.Abandon):
+					m.op, cmd = abandon.NewOperation(m.UICommands, m.selectedRevision())
+				case key.Matches(msg, operations.Split):
+					currentRevision := m.selectedRevision().GetChangeId()
+					cmd = m.Split(currentRevision, []string{})
+				case key.Matches(msg, operations.Description):
+					m.op, cmd = describe.NewOperation(m.UICommands, m.selectedRevision(), m.Width)
+				case key.Matches(msg, operations.Diff):
+					cmd = m.GetDiff(m.selectedRevision().GetChangeId(), "")
+				case key.Matches(msg, operations.Refresh):
+					cmd = common.Refresh(m.selectedRevision().GetChangeId())
+				case key.Matches(msg, operations.GitMode):
+					m.op = git.NewOperation(m.UICommands)
+				case key.Matches(msg, operations.SquashMode):
+					m.op = squash.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort)
+					if m.cursor < len(m.rows)-1 {
+						m.cursor++
+					}
+				case key.Matches(msg, operations.RebaseMode):
+					m.op = rebase.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
+				case key.Matches(msg, operations.BookmarkMode):
+					m.op = bookmark.NewChooseBookmarkOperation(m.UICommands)
+				case key.Matches(msg, operations.Quit), key.Matches(msg, operations.Cancel):
+					return m, tea.Quit
 				}
 			}
 		}
@@ -317,6 +284,5 @@ func New(jj jj.Commands) Model {
 		cursor:      0,
 		Width:       20,
 		revsetModel: revset.New(string(defaultRevSet)),
-		Keymap:      keymap.NewKeyMap(),
 	}
 }
