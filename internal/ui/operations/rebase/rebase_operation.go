@@ -33,6 +33,7 @@ var (
 	}
 	targetToFlags = map[Target]string{
 		TargetAfter:       "--insert-after",
+		TargetBefore:      "--insert-before",
 		TargetDestination: "--destination",
 	}
 )
@@ -47,10 +48,11 @@ type Operation struct {
 
 var (
 	Revision    = key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "change source to revision"))
-	Branch      = key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "change source to branch"))
+	Branch      = key.NewBinding(key.WithKeys("B"), key.WithHelp("B", "change source to branch"))
 	SourceKey   = key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "change source to descendants"))
 	Destination = key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "change target to destination"))
 	After       = key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "change target to after"))
+	Before      = key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "change target to before"))
 	Apply       = key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply"))
 	Cancel      = key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel"))
 )
@@ -67,6 +69,8 @@ func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 		r.Target = TargetDestination
 	case key.Matches(msg, After):
 		r.Target = TargetAfter
+	case key.Matches(msg, Before):
+		r.Target = TargetBefore
 	case key.Matches(msg, Apply):
 		source := sourceToFlags[r.Source]
 		target := targetToFlags[r.Target]
@@ -88,6 +92,7 @@ func (r *Operation) ShortHelp() []key.Binding {
 		SourceKey,
 		Destination,
 		After,
+		Before,
 	}
 }
 
