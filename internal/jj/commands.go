@@ -21,4 +21,5 @@ type Commands interface {
 	Status(revision string) Command
 	Restore(revision string, files []string) Command
 	Undo() Command
+	Show(revision string) Command
 }

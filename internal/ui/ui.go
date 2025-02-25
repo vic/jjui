@@ -3,6 +3,7 @@ package ui
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/ui/operations"
+	"github.com/idursun/jjui/internal/ui/preview"
 	"github.com/idursun/jjui/internal/ui/revset"
 	"strings"
 
@@ -19,14 +20,15 @@ import (
 )
 
 type Model struct {
-	revisions   revisions.Model
-	revsetModel revset.Model
-	diff        tea.Model
-	help        help.Model
-	status      status.Model
-	output      string
-	width       int
-	height      int
+	revisions    revisions.Model
+	revsetModel  revset.Model
+	previewModel preview.Model
+	diff         tea.Model
+	help         help.Model
+	status       status.Model
+	output       string
+	width        int
+	height       int
 }
 
 func (m Model) Init() tea.Cmd {
@@ -71,11 +73,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		m.revisions.Width = m.width / 2
+		m.previewModel.Width = m.width - m.revisions.Width
 	}
+
+	prevRevision := m.revisions.SelectedRevision()
 	m.revisions, cmd = m.revisions.Update(msg)
+
 	var statusCmd tea.Cmd
 	m.status, statusCmd = m.status.Update(msg)
-	return m, tea.Batch(cmd, statusCmd)
+
+	var previewCmd tea.Cmd
+	m.previewModel, previewCmd = m.previewModel.Update(msg)
+	if prevRevision != nil && (prevRevision.ChangeId != m.revisions.SelectedRevision().ChangeId) {
+		previewCmd = tea.Batch(previewCmd, func() tea.Msg {
+			return common.UpdatePreviewChangeIdMsg{ChangeId: m.revisions.SelectedRevision().ChangeId}
+		})
+	}
+	return m, tea.Batch(cmd, statusCmd, previewCmd)
 }
 
 func (m Model) View() string {
@@ -96,9 +111,14 @@ func (m Model) View() string {
 
 	footer := b.String()
 	footerHeight := lipgloss.Height(footer)
+
 	m.revisions.Width = m.width / 2
 	m.revisions.Height = m.height - footerHeight - lipgloss.Height(topView)
-	centerView := m.revisions.View()
+	revisionsView := m.revisions.View()
+
+	m.previewModel.Height = m.revisions.Height
+	previewView := m.previewModel.View()
+	centerView := lipgloss.JoinHorizontal(lipgloss.Left, revisionsView, previewView)
 	return lipgloss.JoinVertical(0, topView, centerView, footer)
 }
 
@@ -107,10 +127,12 @@ func New(jj jj.JJ) tea.Model {
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
 	defaultRevSet, _ := jj.GetConfig("revsets.log")
+	uiCommands := common.NewUICommands(jj)
 	return Model{
-		revisions:   revisions.New(jj),
-		help:        h,
-		status:      status.New(),
-		revsetModel: revset.New(string(defaultRevSet)),
+		revisions:    revisions.New(uiCommands),
+		previewModel: preview.New(uiCommands),
+		help:         h,
+		status:       status.New(),
+		revsetModel:  revset.New(string(defaultRevSet)),
 	}
 }

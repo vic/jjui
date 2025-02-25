@@ -46,7 +46,14 @@ func (m *Model) IsEditing() bool {
 	return false
 }
 
-func (m Model) selectedRevision() *jj.Commit {
+func (m *Model) IsEditing() bool {
+	if _, ok := m.op.(common.Editable); ok {
+		return true
+	}
+	return false
+}
+
+func (m Model) SelectedRevision() *jj.Commit {
 	if m.cursor >= len(m.rows) {
 		return nil
 	}
@@ -75,7 +82,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, nil
 	case common.UpdateRevSetMsg:
 		m.revsetValue = string(msg)
-		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
+		if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
 			cmds = append(cmds, common.Refresh(selectedRevision.GetChangeId()))
 		} else {
 			cmds = append(cmds, common.Refresh("@"))
@@ -143,35 +150,35 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				case key.Matches(msg, operations.Cancel):
 					m.op = &operations.Noop{}
 				case key.Matches(msg, operations.Details):
-					m.op, cmd = details.NewOperation(m.UICommands, m.selectedRevision())
+					m.op, cmd = details.NewOperation(m.UICommands, m.SelectedRevision())
 				case key.Matches(msg, operations.Undo):
 					m.op, cmd = undo.NewOperation(m.UICommands)
 				case key.Matches(msg, operations.New):
-					cmd = m.NewRevision(m.selectedRevision().GetChangeId())
+					cmd = m.NewRevision(m.SelectedRevision().GetChangeId())
 				case key.Matches(msg, operations.Edit):
-					cmd = m.Edit(m.selectedRevision().GetChangeId())
+					cmd = m.Edit(m.SelectedRevision().GetChangeId())
 				case key.Matches(msg, operations.Diffedit):
-					cmd = m.DiffEdit(m.selectedRevision().GetChangeId())
+					cmd = m.DiffEdit(m.SelectedRevision().GetChangeId())
 				case key.Matches(msg, operations.Abandon):
-					m.op, cmd = abandon.NewOperation(m.UICommands, m.selectedRevision())
+					m.op, cmd = abandon.NewOperation(m.UICommands, m.SelectedRevision())
 				case key.Matches(msg, operations.Split):
-					currentRevision := m.selectedRevision().GetChangeId()
+					currentRevision := m.SelectedRevision().GetChangeId()
 					cmd = m.Split(currentRevision, []string{})
 				case key.Matches(msg, operations.Description):
-					m.op, cmd = describe.NewOperation(m.UICommands, m.selectedRevision(), m.Width)
+					m.op, cmd = describe.NewOperation(m.UICommands, m.SelectedRevision(), m.Width)
 				case key.Matches(msg, operations.Diff):
-					cmd = m.GetDiff(m.selectedRevision().GetChangeId(), "")
+					cmd = m.GetDiff(m.SelectedRevision().GetChangeId(), "")
 				case key.Matches(msg, operations.Refresh):
-					cmd = common.Refresh(m.selectedRevision().GetChangeId())
+					cmd = common.Refresh(m.SelectedRevision().GetChangeId())
 				case key.Matches(msg, operations.GitMode):
 					m.op = git.NewOperation(m.UICommands)
 				case key.Matches(msg, operations.SquashMode):
-					m.op = squash.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort)
+					m.op = squash.NewOperation(m.UICommands, m.SelectedRevision().ChangeIdShort)
 					if m.cursor < len(m.rows)-1 {
 						m.cursor++
 					}
 				case key.Matches(msg, operations.RebaseMode):
-					m.op = rebase.NewOperation(m.UICommands, m.selectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
+					m.op = rebase.NewOperation(m.UICommands, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
 				case key.Matches(msg, operations.BookmarkMode):
 					m.op = bookmark.NewChooseBookmarkOperation(m.UICommands)
 				case key.Matches(msg, operations.Quit), key.Matches(msg, operations.Cancel):
@@ -180,11 +187,11 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			}
 		}
 	}
-	if op, ok := m.op.(operations.TracksSelectedRevision); ok {
-		op.SetSelectedRevision(m.selectedRevision())
-	}
 	if cmd != nil {
 		cmds = append(cmds, cmd)
+	}
+	if op, ok := m.op.(operations.TracksSelectedRevision); ok {
+		op.SetSelectedRevision(m.SelectedRevision())
 	}
 	return m, tea.Batch(cmds...)
 }
@@ -244,17 +251,18 @@ func (m Model) View() string {
 		content = w.String(m.viewRange.start, m.viewRange.end)
 	}
 
+	content = lipgloss.Place(m.Width, m.Height, lipgloss.Left, lipgloss.Top, content)
 	if len(topView) > 0 {
 		return lipgloss.JoinVertical(0, topView, content)
 	}
 	return content
 }
 
-func New(jj jj.Commands) Model {
+func New(uiCommands common.UICommands) Model {
 	v := viewRange{start: 0, end: 0}
 	return Model{
 		status:     common.Loading,
-		UICommands: common.NewUICommands(jj),
+		UICommands: uiCommands,
 		rows:       nil,
 		viewRange:  &v,
 		op:         &operations.Noop{},

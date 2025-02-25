@@ -140,6 +140,13 @@ func (c UICommands) Status(revision string) tea.Cmd {
 	}
 }
 
+func (c UICommands) Show(revision string) tea.Cmd {
+	return func() tea.Msg {
+		output, _ := c.jj.Show(revision).CombinedOutput()
+		return UpdatePreviewContentMsg{Content: string(output)}
+	}
+}
+
 func NewUICommands(jj jj.Commands) UICommands {
 	return UICommands{jj}
 }

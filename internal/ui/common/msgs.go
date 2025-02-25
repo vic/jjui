@@ -1,11 +1,10 @@
 package common
 
 import (
-	"github.com/idursun/jjui/internal/ui/operations"
-	"strings"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/ui/operations"
+	"strings"
 )
 
 type (
@@ -42,6 +41,12 @@ type (
 	CommandCompletedMsg struct {
 		Output string
 		Err    error
+	}
+	UpdatePreviewChangeIdMsg struct {
+		ChangeId string
+	}
+	UpdatePreviewContentMsg struct {
+		Content string
 	}
 )
 
@@ -93,7 +98,7 @@ func RunCommand(c jj.Command, continuations ...tea.Cmd) tea.Cmd {
 		func() tea.Msg {
 			_, err := c.CombinedOutput()
 			return CommandCompletedMsg{
-				// Output: string(output),
+				// Content: string(output),
 				Err: err,
 			}
 		})

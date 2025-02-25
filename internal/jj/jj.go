@@ -48,7 +48,7 @@ func (jj JJ) GetConfig(key string) ([]byte, error) {
 	return output, err
 }
 
-// source can be -r for revision and -b for branch
+// RebaseCommand source can be -r for revision and -b for branch
 // target can be -d for onto, -a after, or -b before
 func (jj JJ) RebaseCommand(from string, to string, source string, target string) Command {
 	return jj.createCommand("jj", "rebase", source, from, target, to)
@@ -129,4 +129,8 @@ func (jj JJ) Restore(revision string, files []string) Command {
 	args := []string{"restore", "-c", revision}
 	args = append(args, files...)
 	return jj.createCommand("jj", args...)
+}
+
+func (jj JJ) Show(revision string) Command {
+	return jj.createCommand("jj", "show", "-r", revision, "--color", "always")
 }
