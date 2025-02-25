@@ -95,7 +95,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	prevRevision := m.revisions.(*revisions.Model).SelectedRevision()
 	m.revisions, cmd = m.revisions.Update(msg)
 
 	var statusCmd tea.Cmd
@@ -103,12 +102,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var previewCmd tea.Cmd
 	m.previewModel, previewCmd = m.previewModel.Update(msg)
-	curRevision := m.revisions.(*revisions.Model).SelectedRevision()
-	if m.previewVisible && prevRevision != nil && (prevRevision.ChangeId != curRevision.ChangeId) {
-		previewCmd = tea.Batch(previewCmd, func() tea.Msg {
-			return common.UpdatePreviewChangeIdMsg{ChangeId: curRevision.ChangeId}
-		})
-	}
 	return m, tea.Batch(cmd, statusCmd, previewCmd)
 }
 

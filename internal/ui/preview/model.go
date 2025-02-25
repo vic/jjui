@@ -47,16 +47,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.UpdatePreviewContentMsg:
 		content := lipgloss.NewStyle().MaxWidth(m.Width() - 4).Render(msg.Content)
 		m.view.SetContent(content)
-	case RefreshPreviewContentMsg:
-		if m.tag == msg.Tag {
-			return m, m.commands.Show(msg.Revision)
-		}
-	case common.UpdatePreviewChangeIdMsg:
+	case common.SelectionChangedMsg:
 		m.tag++
 		tag := m.tag
 		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
 			return RefreshPreviewContentMsg{Tag: tag, Revision: msg.ChangeId}
 		})
+	case RefreshPreviewContentMsg:
+		if m.tag == msg.Tag {
+			return m, m.commands.Show(msg.Revision)
+		}
 	default:
 		var cmd tea.Cmd
 		m.view, cmd = m.view.Update(msg)

@@ -89,6 +89,7 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, 0)
+	preSelectedRevision := m.SelectedRevision()
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
 		m.op = &operations.Noop{}
@@ -206,6 +207,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	if op, ok := m.op.(operations.TracksSelectedRevision); ok {
 		op.SetSelectedRevision(m.SelectedRevision())
+	}
+	curSelected := m.SelectedRevision()
+	if preSelectedRevision != curSelected {
+		cmds = append(cmds, func() tea.Msg {
+			return common.SelectionChangedMsg{ChangeId: curSelected.GetChangeId()}
+		})
 	}
 	return m, tea.Batch(cmds...)
 }

@@ -42,11 +42,11 @@ type (
 		Output string
 		Err    error
 	}
-	UpdatePreviewChangeIdMsg struct {
-		ChangeId string
-	}
 	UpdatePreviewContentMsg struct {
 		Content string
+	}
+	SelectionChangedMsg struct {
+		ChangeId string
 	}
 )
 
