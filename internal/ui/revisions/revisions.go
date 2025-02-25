@@ -8,6 +8,9 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations/undo"
 	"slices"
 
+	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/operations"
@@ -16,11 +19,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations/describe"
 	"github.com/idursun/jjui/internal/ui/operations/details"
 	"github.com/idursun/jjui/internal/ui/operations/squash"
-	"github.com/idursun/jjui/internal/ui/revisions/revset"
-
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type viewRange struct {
@@ -33,11 +31,11 @@ type Model struct {
 	status      common.Status
 	error       error
 	op          operations.Operation
+	revsetValue string
 	viewRange   *viewRange
 	cursor      int
 	Width       int
 	Height      int
-	revsetModel revset.Model
 	common.UICommands
 }
 
@@ -69,7 +67,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.op = msg.Operation
 		return m, nil
 	case common.UpdateRevSetMsg:
-		m.revsetModel.Value = string(msg)
+		m.revsetValue = string(msg)
 		if selectedRevision := m.selectedRevision(); selectedRevision != nil {
 			cmds = append(cmds, common.Refresh(selectedRevision.GetChangeId()))
 		} else {
@@ -78,7 +76,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case common.RefreshMsg:
 		cmds = append(cmds,
 			tea.Sequence(
-				m.FetchRevisions(m.revsetModel.Value),
+				m.FetchRevisions(m.revsetValue),
 				common.SelectRevision(msg.SelectedRevision),
 			))
 	case common.SelectRevisionMsg:
@@ -118,14 +116,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 	}
 
-	if m.revsetModel.Editing {
-		var cmd tea.Cmd
-		if m.revsetModel, cmd = m.revsetModel.Update(msg); cmd != nil {
-			cmds = append(cmds, cmd)
-		}
-		return m, tea.Batch(cmds...)
-	}
-
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -147,8 +137,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 					m.op = &operations.Noop{}
 				case key.Matches(msg, operations.Details):
 					m.op, cmd = details.NewOperation(m.UICommands, m.selectedRevision())
-				case key.Matches(msg, operations.Revset):
-					m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
 				case key.Matches(msg, operations.Undo):
 					m.op, cmd = undo.NewOperation(m.UICommands)
 				case key.Matches(msg, operations.New):
@@ -195,7 +183,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	topView := m.revsetModel.View()
 	content := ""
 
 	if m.status == common.Loading {
@@ -206,6 +193,7 @@ func (m Model) View() string {
 		content = fmt.Sprintf("error: %v", m.error)
 	}
 
+	topView := ""
 	if m.status == common.Ready {
 		if m.op.RenderPosition() == operations.RenderPositionTop {
 			topView = lipgloss.JoinVertical(0, topView, m.op.Render())
@@ -249,20 +237,21 @@ func (m Model) View() string {
 		content = w.String(m.viewRange.start, m.viewRange.end)
 	}
 
-	return lipgloss.JoinVertical(0, topView, content)
+	if len(topView) > 0 {
+		return lipgloss.JoinVertical(0, topView, content)
+	}
+	return content
 }
 
 func New(jj jj.Commands) Model {
 	v := viewRange{start: 0, end: 0}
-	defaultRevSet, _ := jj.GetConfig("revsets.log")
 	return Model{
-		status:      common.Loading,
-		UICommands:  common.NewUICommands(jj),
-		rows:        nil,
-		viewRange:   &v,
-		op:          &operations.Noop{},
-		cursor:      0,
-		Width:       20,
-		revsetModel: revset.New(string(defaultRevSet)),
+		status:     common.Loading,
+		UICommands: common.NewUICommands(jj),
+		rows:       nil,
+		viewRange:  &v,
+		op:         &operations.Noop{},
+		cursor:     0,
+		Width:      20,
 	}
 }

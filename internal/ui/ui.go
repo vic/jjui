@@ -1,6 +1,9 @@
 package ui
 
 import (
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/idursun/jjui/internal/ui/operations"
+	"github.com/idursun/jjui/internal/ui/revset"
 	"strings"
 
 	"github.com/idursun/jjui/internal/jj"
@@ -16,13 +19,14 @@ import (
 )
 
 type Model struct {
-	revisions revisions.Model
-	diff      tea.Model
-	help      help.Model
-	status    status.Model
-	output    string
-	width     int
-	height    int
+	revisions   revisions.Model
+	revsetModel revset.Model
+	diff        tea.Model
+	help        help.Model
+	status      status.Model
+	output      string
+	width       int
+	height      int
 }
 
 func (m Model) Init() tea.Cmd {
@@ -41,7 +45,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
+	if m.revsetModel.Editing {
+		var cmd tea.Cmd
+		if m.revsetModel, cmd = m.revsetModel.Update(msg); cmd != nil {
+			return m, cmd
+		}
+	}
+
 	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, operations.Revset):
+			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
+		}
 	case common.ShowDiffMsg:
 		m.diff = diff.New(string(msg), m.width, m.height)
 		return m, m.diff.Init()
@@ -66,6 +82,8 @@ func (m Model) View() string {
 		return m.diff.View()
 	}
 
+	topView := m.revsetModel.View()
+
 	var b strings.Builder
 	b.WriteString(m.help.View(m.revisions.GetKeyMap()))
 	b.WriteString("\n")
@@ -73,18 +91,21 @@ func (m Model) View() string {
 
 	footer := b.String()
 	footerHeight := lipgloss.Height(footer)
-	m.revisions.Width = m.width
-	m.revisions.Height = m.height - footerHeight
-	return lipgloss.JoinVertical(0, m.revisions.View(), footer)
+	m.revisions.Width = m.width / 2
+	m.revisions.Height = m.height - footerHeight - lipgloss.Height(topView)
+	centerView := m.revisions.View()
+	return lipgloss.JoinVertical(0, topView, centerView, footer)
 }
 
 func New(jj jj.JJ) tea.Model {
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
+	defaultRevSet, _ := jj.GetConfig("revsets.log")
 	return Model{
-		revisions: revisions.New(jj),
-		help:      h,
-		status:    status.New(),
+		revisions:   revisions.New(jj),
+		help:        h,
+		status:      status.New(),
+		revsetModel: revset.New(string(defaultRevSet)),
 	}
 }
