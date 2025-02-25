@@ -19,6 +19,7 @@ type Model struct {
 	view     viewport.Model
 	width    int
 	height   int
+	content  string
 	commands common.UICommands
 }
 
@@ -31,10 +32,14 @@ func (m *Model) Height() int {
 }
 
 func (m *Model) SetWidth(w int) {
+	content := lipgloss.NewStyle().MaxWidth(w - 2).Render(m.content)
+	m.view.SetContent(content)
+	m.view.Width = w
 	m.width = w
 }
 
 func (m *Model) SetHeight(h int) {
+	m.view.Height = h - 1
 	m.height = h
 }
 
@@ -45,8 +50,10 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.UpdatePreviewContentMsg:
+		m.content = msg.Content
 		content := lipgloss.NewStyle().MaxWidth(m.Width() - 4).Render(msg.Content)
 		m.view.SetContent(content)
+		m.view.GotoTop()
 	case common.SelectionChangedMsg:
 		m.tag++
 		tag := m.tag
@@ -66,8 +73,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	m.view.Width = m.Width() - 1
-	m.view.Height = m.Height() - 2
 	return m.view.View()
 }
 
