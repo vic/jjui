@@ -82,10 +82,10 @@ func (s SegmentedRenderer) RenderMarkers(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
-	var w strings.Builder
 	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionDescription {
-		w.WriteString(s.op.Render())
+		return s.op.Render()
 	}
+	var w strings.Builder
 	if commit.Empty {
 		w.WriteString(s.Palette.Empty.Render("(empty)"))
 		w.WriteString(" ")
