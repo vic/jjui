@@ -12,6 +12,10 @@ type EditDescriptionOperation struct {
 	selected *jj.Commit
 }
 
+func (e EditDescriptionOperation) IsEditing() bool {
+	return true
+}
+
 func (e EditDescriptionOperation) Init() tea.Cmd {
 	return e.Overlay.Init()
 }

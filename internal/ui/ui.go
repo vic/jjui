@@ -52,6 +52,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	if r, ok := m.revisions.(common.Editable); ok && r.IsEditing() {
+		m.revisions, cmd = m.revisions.Update(msg)
+		return m, cmd
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {

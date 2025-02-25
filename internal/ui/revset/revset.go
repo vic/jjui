@@ -96,6 +96,10 @@ type Model struct {
 	keymap        keymap
 }
 
+func (m Model) IsEditing() bool {
+	return m.Editing
+}
+
 var (
 	promptStyle = common.DefaultPalette.CommitShortStyle
 	cursorStyle = common.DefaultPalette.Empty

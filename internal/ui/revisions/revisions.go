@@ -39,6 +39,13 @@ type Model struct {
 	common.UICommands
 }
 
+func (m *Model) IsEditing() bool {
+	if _, ok := m.op.(common.Editable); ok {
+		return true
+	}
+	return false
+}
+
 func (m Model) selectedRevision() *jj.Commit {
 	if m.cursor >= len(m.rows) {
 		return nil
