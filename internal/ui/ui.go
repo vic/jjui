@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/idursun/jjui/internal/ui/preview"
@@ -30,6 +31,8 @@ type Model struct {
 	previewVisible bool
 	diff           tea.Model
 	help           help.Model
+	state          common.State
+	error          error
 	status         status.Model
 	output         string
 	width          int
@@ -67,6 +70,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, operations.Cancel) && m.state == common.Error:
+			m.state = common.Ready
+			m.error = nil
 		case key.Matches(msg, operations.Revset):
 			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
 		case key.Matches(msg, TogglePreview):
@@ -78,6 +84,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.diff.Init()
 	case common.CommandCompletedMsg:
 		m.output = msg.Output
+	case common.UpdateRevisionsFailedMsg:
+		m.state = common.Error
+		m.error = msg
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -106,15 +115,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if m.height == 0 {
-		return "loading"
-	}
-
 	if m.diff != nil {
 		return m.diff.View()
 	}
 
 	topView := m.revsetModel.View()
+
+	if m.state == common.Error {
+		topView += fmt.Sprintf("\nerror: %v\n", m.error)
+	}
+
 	topViewHeight := lipgloss.Height(topView)
 
 	var b strings.Builder
@@ -156,6 +166,7 @@ func New(jj jj.JJ) tea.Model {
 	revisionsModel := revisions.New(uiCommands)
 	previewModel := preview.New(uiCommands)
 	return Model{
+		state:        common.Loading,
 		revisions:    &revisionsModel,
 		previewModel: &previewModel,
 		help:         h,

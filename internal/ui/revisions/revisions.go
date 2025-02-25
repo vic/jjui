@@ -1,7 +1,6 @@
 package revisions
 
 import (
-	"fmt"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/idursun/jjui/internal/ui/operations/git"
 	"github.com/idursun/jjui/internal/ui/operations/rebase"
@@ -28,8 +27,6 @@ type viewRange struct {
 
 type Model struct {
 	rows        []jj.GraphRow
-	status      common.Status
-	error       error
 	op          operations.Operation
 	revsetValue string
 	viewRange   *viewRange
@@ -126,14 +123,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.UpdateRevisionsMsg:
 		if msg != nil {
 			m.rows = msg
-			m.status = common.Ready
 			m.cursor = 0
-		}
-	case common.UpdateRevisionsFailedMsg:
-		if msg != nil {
-			m.rows = nil
-			m.status = common.Error
-			m.error = msg
 		}
 	}
 
@@ -219,60 +209,53 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) View() string {
 	content := ""
-
-	if m.status == common.Loading {
-		content = "loading"
-	}
-
-	if m.status == common.Error {
-		content = fmt.Sprintf("error: %v", m.error)
-	}
-
 	topView := ""
-	if m.status == common.Ready {
-		if m.op.RenderPosition() == operations.RenderPositionTop {
-			topView = lipgloss.JoinVertical(0, topView, m.op.Render())
-		}
-
-		h := m.Height() - lipgloss.Height(topView)
-		viewHeight := m.viewRange.end - m.viewRange.start
-		if viewHeight != h {
-			m.viewRange.end = m.viewRange.start + h
-		}
-
-		var w jj.GraphWriter
-		selectedLineStart := -1
-		selectedLineEnd := -1
-		for i, row := range m.rows {
-			nodeRenderer := SegmentedRenderer{
-				Palette:       common.DefaultPalette,
-				op:            m.op,
-				IsHighlighted: i == m.cursor,
-			}
-
-			if i == m.cursor {
-				selectedLineStart = w.LineCount()
-			}
-			w.RenderRow(row, nodeRenderer)
-			if i == m.cursor {
-				selectedLineEnd = w.LineCount()
-			}
-			if selectedLineEnd > 0 && w.LineCount() > h && w.LineCount() > m.viewRange.end {
-				break
-			}
-		}
-
-		if selectedLineStart <= m.viewRange.start {
-			m.viewRange.start = selectedLineStart
-			m.viewRange.end = selectedLineStart + h
-		} else if selectedLineEnd > m.viewRange.end {
-			m.viewRange.end = selectedLineEnd
-			m.viewRange.start = selectedLineEnd - h
-		}
-
-		content = w.String(m.viewRange.start, m.viewRange.end)
-		content = lipgloss.PlaceHorizontal(m.Width(), lipgloss.Left, content)
+	if len(m.rows) == 0 {
+		return ""
 	}
+
+	if m.op.RenderPosition() == operations.RenderPositionTop {
+		topView = lipgloss.JoinVertical(0, topView, m.op.Render())
+	}
+
+	h := m.Height() - lipgloss.Height(topView)
+	viewHeight := m.viewRange.end - m.viewRange.start
+	if viewHeight != h {
+		m.viewRange.end = m.viewRange.start + h
+	}
+
+	var w jj.GraphWriter
+	selectedLineStart := -1
+	selectedLineEnd := -1
+	for i, row := range m.rows {
+		nodeRenderer := SegmentedRenderer{
+			Palette:       common.DefaultPalette,
+			op:            m.op,
+			IsHighlighted: i == m.cursor,
+		}
+
+		if i == m.cursor {
+			selectedLineStart = w.LineCount()
+		}
+		w.RenderRow(row, nodeRenderer)
+		if i == m.cursor {
+			selectedLineEnd = w.LineCount()
+		}
+		if selectedLineEnd > 0 && w.LineCount() > h && w.LineCount() > m.viewRange.end {
+			break
+		}
+	}
+
+	if selectedLineStart <= m.viewRange.start {
+		m.viewRange.start = selectedLineStart
+		m.viewRange.end = selectedLineStart + h
+	} else if selectedLineEnd > m.viewRange.end {
+		m.viewRange.end = selectedLineEnd
+		m.viewRange.start = selectedLineEnd - h
+	}
+
+	content = w.String(m.viewRange.start, m.viewRange.end)
+	content = lipgloss.PlaceHorizontal(m.Width(), lipgloss.Left, content)
 
 	if len(topView) > 0 {
 		return lipgloss.JoinVertical(0, topView, content)
@@ -283,7 +266,6 @@ func (m *Model) View() string {
 func New(uiCommands common.UICommands) Model {
 	v := viewRange{start: 0, end: 0}
 	return Model{
-		status:     common.Loading,
 		UICommands: uiCommands,
 		rows:       nil,
 		viewRange:  &v,

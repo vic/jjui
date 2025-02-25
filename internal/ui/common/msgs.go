@@ -50,10 +50,10 @@ type (
 	}
 )
 
-type Status int
+type State int
 
 const (
-	Loading Status = iota
+	Loading State = iota
 	Ready
 	Error
 )
