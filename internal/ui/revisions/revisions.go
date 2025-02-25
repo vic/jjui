@@ -34,8 +34,8 @@ type Model struct {
 	revsetValue string
 	viewRange   *viewRange
 	cursor      int
-	Width       int
-	Height      int
+	width       int
+	height      int
 	common.UICommands
 }
 
@@ -46,32 +46,48 @@ func (m *Model) IsEditing() bool {
 	return false
 }
 
-func (m *Model) IsEditing() bool {
-	if _, ok := m.op.(common.Editable); ok {
-		return true
-	}
-	return false
+func (m *Model) Width() int {
+	return m.width
 }
 
-func (m Model) SelectedRevision() *jj.Commit {
+func (m *Model) Height() int {
+	return m.height
+}
+
+func (m *Model) SetWidth(w int) {
+	m.width = w
+}
+
+func (m *Model) SetHeight(h int) {
+	m.height = h
+}
+
+func (m *Model) ShortHelp() []key.Binding {
+	if op, ok := m.op.(help.KeyMap); ok {
+		return op.ShortHelp()
+	}
+	return (&operations.Noop{}).ShortHelp()
+}
+
+func (m *Model) FullHelp() [][]key.Binding {
+	if op, ok := m.op.(help.KeyMap); ok {
+		return op.FullHelp()
+	}
+	return [][]key.Binding{m.ShortHelp()}
+}
+
+func (m *Model) SelectedRevision() *jj.Commit {
 	if m.cursor >= len(m.rows) {
 		return nil
 	}
 	return m.rows[m.cursor].Commit
 }
 
-func (m Model) GetKeyMap() help.KeyMap {
-	if op, ok := m.op.(help.KeyMap); ok {
-		return op
-	}
-	return &operations.Noop{}
-}
-
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return common.Refresh("@")
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, 0)
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
@@ -118,8 +134,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.status = common.Error
 			m.error = msg
 		}
-	case tea.WindowSizeMsg:
-		m.Width = msg.Width
 	}
 
 	if op, ok := m.op.(operations.OperationWithOverlay); ok {
@@ -165,7 +179,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 					currentRevision := m.SelectedRevision().GetChangeId()
 					cmd = m.Split(currentRevision, []string{})
 				case key.Matches(msg, operations.Description):
-					m.op, cmd = describe.NewOperation(m.UICommands, m.SelectedRevision(), m.Width)
+					m.op, cmd = describe.NewOperation(m.UICommands, m.SelectedRevision(), m.Width())
 				case key.Matches(msg, operations.Diff):
 					cmd = m.GetDiff(m.SelectedRevision().GetChangeId(), "")
 				case key.Matches(msg, operations.Refresh):
@@ -196,7 +210,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	content := ""
 
 	if m.status == common.Loading {
@@ -212,9 +226,10 @@ func (m Model) View() string {
 		if m.op.RenderPosition() == operations.RenderPositionTop {
 			topView = lipgloss.JoinVertical(0, topView, m.op.Render())
 		}
-		h := m.Height - lipgloss.Height(topView)
 
-		if m.viewRange.end-m.viewRange.start > h {
+		h := m.Height() - lipgloss.Height(topView)
+		viewHeight := m.viewRange.end - m.viewRange.start
+		if viewHeight != h {
 			m.viewRange.end = m.viewRange.start + h
 		}
 
@@ -249,9 +264,9 @@ func (m Model) View() string {
 		}
 
 		content = w.String(m.viewRange.start, m.viewRange.end)
+		content = lipgloss.PlaceHorizontal(m.Width(), lipgloss.Left, content)
 	}
 
-	content = lipgloss.Place(m.Width, m.Height, lipgloss.Left, lipgloss.Top, content)
 	if len(topView) > 0 {
 		return lipgloss.JoinVertical(0, topView, content)
 	}
@@ -267,6 +282,7 @@ func New(uiCommands common.UICommands) Model {
 		viewRange:  &v,
 		op:         &operations.Noop{},
 		cursor:     0,
-		Width:      20,
+		width:      20,
+		height:     10,
 	}
 }

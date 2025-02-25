@@ -17,19 +17,35 @@ type RefreshPreviewContentMsg struct {
 type Model struct {
 	tag      int
 	view     viewport.Model
-	Width    int
-	Height   int
+	width    int
+	height   int
 	commands common.UICommands
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Width() int {
+	return m.width
+}
+
+func (m *Model) Height() int {
+	return m.height
+}
+
+func (m *Model) SetWidth(w int) {
+	m.width = w
+}
+
+func (m *Model) SetHeight(h int) {
+	m.height = h
+}
+
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.UpdatePreviewContentMsg:
-		content := lipgloss.NewStyle().MaxWidth(m.Width - 2).Render(msg.Content)
+		content := lipgloss.NewStyle().MaxWidth(m.Width() - 4).Render(msg.Content)
 		m.view.SetContent(content)
 	case RefreshPreviewContentMsg:
 		if m.tag == msg.Tag {
@@ -37,8 +53,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		}
 	case common.UpdatePreviewChangeIdMsg:
 		m.tag++
+		tag := m.tag
 		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
-			return RefreshPreviewContentMsg{Tag: m.tag, Revision: msg.ChangeId}
+			return RefreshPreviewContentMsg{Tag: tag, Revision: msg.ChangeId}
 		})
 	default:
 		var cmd tea.Cmd
@@ -48,10 +65,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
-	m.view.Width = m.Width - 2
-	m.view.Height = m.Height - 2
-	return lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Render(m.view.View())
+func (m *Model) View() string {
+	m.view.Width = m.Width() - 1
+	m.view.Height = m.Height() - 2
+	return m.view.View()
 }
 
 func New(commands common.UICommands) Model {
