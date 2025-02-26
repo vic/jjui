@@ -13,6 +13,7 @@ type (
 	SelectRevisionMsg        string
 	SetOperationMsg          struct{ Operation operations.Operation }
 	ShowDiffMsg              string
+	ShowDiffContentMsg       string
 	UpdateRevSetMsg          string
 	UpdateRevisionsMsg       []jj.GraphRow
 	UpdateRevisionsFailedMsg error
@@ -46,7 +47,8 @@ type (
 		Content string
 	}
 	SelectionChangedMsg struct {
-		ChangeId string
+		Revision string
+		File     string
 	}
 )
 

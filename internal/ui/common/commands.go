@@ -88,6 +88,13 @@ func (c UICommands) GetDiff(revision string, fileName string) tea.Cmd {
 	}
 }
 
+func (c UICommands) GetDiffContent(revision string, fileName string) tea.Cmd {
+	return func() tea.Msg {
+		output, _ := c.jj.Diff(revision, fileName).CombinedOutput()
+		return UpdatePreviewContentMsg{Content: string(output)}
+	}
+}
+
 func (c UICommands) Restore(revision string, files []string) tea.Cmd {
 	return RunCommand(
 		c.jj.Restore(revision, files),

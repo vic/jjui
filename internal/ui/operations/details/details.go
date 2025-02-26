@@ -185,7 +185,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		default:
 			var cmd tea.Cmd
+
+			prevItem := m.files.SelectedItem().(item)
 			m.files, cmd = m.files.Update(msg)
+			curItem := m.files.SelectedItem().(item)
+			if prevItem != curItem {
+				return m, tea.Batch(cmd, func() tea.Msg {
+					return common.SelectionChangedMsg{Revision: m.revision, File: curItem.name}
+				})
+			}
 			return m, cmd
 		}
 	case confirmation.CloseMsg:

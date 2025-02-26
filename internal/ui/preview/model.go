@@ -12,6 +12,7 @@ import (
 type RefreshPreviewContentMsg struct {
 	Tag      int
 	Revision string
+	File     string
 }
 
 type Model struct {
@@ -58,11 +59,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.tag++
 		tag := m.tag
 		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
-			return RefreshPreviewContentMsg{Tag: tag, Revision: msg.ChangeId}
+			return RefreshPreviewContentMsg{Tag: tag, Revision: msg.Revision, File: msg.File}
 		})
 	case RefreshPreviewContentMsg:
 		if m.tag == msg.Tag {
-			return m, m.commands.Show(msg.Revision)
+			if msg.File != "" {
+				return m, m.commands.GetDiffContent(msg.Revision, msg.File)
+			} else {
+				return m, m.commands.Show(msg.Revision)
+
+			}
 		}
 	default:
 		var cmd tea.Cmd

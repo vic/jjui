@@ -201,7 +201,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	curSelected := m.SelectedRevision()
 	if preSelectedRevision != curSelected {
 		cmds = append(cmds, func() tea.Msg {
-			return common.SelectionChangedMsg{ChangeId: curSelected.GetChangeId()}
+			return common.SelectionChangedMsg{Revision: curSelected.GetChangeId()}
 		})
 	}
 	return m, tea.Batch(cmds...)
