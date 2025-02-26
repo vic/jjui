@@ -25,6 +25,8 @@ type viewRange struct {
 	end   int
 }
 
+var normalStyle = lipgloss.NewStyle()
+
 type Model struct {
 	rows        []jj.GraphRow
 	op          operations.Operation
@@ -261,7 +263,7 @@ func (m *Model) View() string {
 	if topViewHeight > 0 {
 		return lipgloss.JoinVertical(0, topView, content)
 	}
-	return content
+	return normalStyle.MaxWidth(m.width).Render(content)
 }
 
 func New(uiCommands common.UICommands) Model {
