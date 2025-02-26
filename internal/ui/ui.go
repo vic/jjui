@@ -8,8 +8,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/revset"
 	"strings"
 
-	"github.com/idursun/jjui/internal/jj"
-
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/diff"
 	"github.com/idursun/jjui/internal/ui/revisions"
@@ -39,6 +37,7 @@ type Model struct {
 	output         string
 	width          int
 	height         int
+	context        *common.AppContext
 }
 
 func (m Model) Init() tea.Cmd {
@@ -165,16 +164,16 @@ func (m Model) View() string {
 	return lipgloss.JoinVertical(0, topView, centerView, footer)
 }
 
-func New(jj jj.JJ) tea.Model {
+func New(c *common.AppContext) tea.Model {
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
-	defaultRevSet, _ := jj.GetConfig("revsets.log")
-	uiCommands := common.NewUICommands(jj)
-	revisionsModel := revisions.New(uiCommands)
-	previewModel := preview.New(uiCommands)
+	defaultRevSet, _ := c.JJ.GetConfig("revsets.log")
+	revisionsModel := revisions.New(c)
+	previewModel := preview.New(c)
 	statusModel := status.New()
 	return Model{
+		context:      c,
 		state:        common.Loading,
 		revisions:    &revisionsModel,
 		previewModel: &previewModel,

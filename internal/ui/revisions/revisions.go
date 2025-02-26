@@ -35,7 +35,7 @@ type Model struct {
 	cursor      int
 	width       int
 	height      int
-	common.UICommands
+	context     *common.AppContext
 }
 
 func (m *Model) IsEditing() bool {
@@ -92,7 +92,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
 		m.op = &operations.Noop{}
-		return m, nil
+		m.context.SetSelectedItem(common.SelectedRevision{ChangeId: m.SelectedRevision().ChangeId})
+		return m, common.SelectionChanged
 	case common.SetOperationMsg:
 		m.op = msg.Operation
 		return m, nil
@@ -106,7 +107,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.RefreshMsg:
 		cmds = append(cmds,
 			tea.Sequence(
-				m.FetchRevisions(m.revsetValue),
+				m.context.UICommands.FetchRevisions(m.revsetValue),
 				common.SelectRevision(msg.SelectedRevision),
 			))
 	case common.SelectRevisionMsg:
@@ -157,37 +158,37 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case key.Matches(msg, operations.Cancel):
 					m.op = &operations.Noop{}
 				case key.Matches(msg, operations.Details):
-					m.op, cmd = details.NewOperation(m.UICommands, m.SelectedRevision())
+					m.op, cmd = details.NewOperation(m.context, m.SelectedRevision())
 				case key.Matches(msg, operations.Undo):
-					m.op, cmd = undo.NewOperation(m.UICommands)
+					m.op, cmd = undo.NewOperation(m.context.UICommands)
 				case key.Matches(msg, operations.New):
-					cmd = m.NewRevision(m.SelectedRevision().GetChangeId())
+					cmd = m.context.UICommands.NewRevision(m.SelectedRevision().GetChangeId())
 				case key.Matches(msg, operations.Edit):
-					cmd = m.Edit(m.SelectedRevision().GetChangeId())
+					cmd = m.context.UICommands.Edit(m.SelectedRevision().GetChangeId())
 				case key.Matches(msg, operations.Diffedit):
-					cmd = m.DiffEdit(m.SelectedRevision().GetChangeId())
+					cmd = m.context.UICommands.DiffEdit(m.SelectedRevision().GetChangeId())
 				case key.Matches(msg, operations.Abandon):
-					m.op, cmd = abandon.NewOperation(m.UICommands, m.SelectedRevision())
+					m.op, cmd = abandon.NewOperation(m.context.UICommands, m.SelectedRevision())
 				case key.Matches(msg, operations.Split):
 					currentRevision := m.SelectedRevision().GetChangeId()
-					cmd = m.Split(currentRevision, []string{})
+					cmd = m.context.UICommands.Split(currentRevision, []string{})
 				case key.Matches(msg, operations.Description):
-					m.op, cmd = describe.NewOperation(m.UICommands, m.SelectedRevision(), m.Width())
+					m.op, cmd = describe.NewOperation(m.context.UICommands, m.SelectedRevision(), m.Width())
 				case key.Matches(msg, operations.Diff):
-					cmd = m.GetDiff(m.SelectedRevision().GetChangeId(), "")
+					cmd = m.context.UICommands.GetDiff(m.SelectedRevision().GetChangeId(), "")
 				case key.Matches(msg, operations.Refresh):
 					cmd = common.Refresh(m.SelectedRevision().GetChangeId())
 				case key.Matches(msg, operations.GitMode):
-					m.op = git.NewOperation(m.UICommands)
+					m.op = git.NewOperation(m.context.UICommands)
 				case key.Matches(msg, operations.SquashMode):
-					m.op = squash.NewOperation(m.UICommands, m.SelectedRevision().ChangeIdShort)
+					m.op = squash.NewOperation(m.context.UICommands, m.SelectedRevision().ChangeIdShort)
 					if m.cursor < len(m.rows)-1 {
 						m.cursor++
 					}
 				case key.Matches(msg, operations.RebaseMode):
-					m.op = rebase.NewOperation(m.UICommands, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
+					m.op = rebase.NewOperation(m.context.UICommands, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
 				case key.Matches(msg, operations.BookmarkMode):
-					m.op = bookmark.NewChooseBookmarkOperation(m.UICommands)
+					m.op = bookmark.NewChooseBookmarkOperation(m.context.UICommands)
 				case key.Matches(msg, operations.Quit), key.Matches(msg, operations.Cancel):
 					return m, tea.Quit
 				}
@@ -203,8 +204,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	curSelected := m.SelectedRevision()
 	if preSelectedRevision != curSelected {
 		cmds = append(cmds, func() tea.Msg {
-			return common.SelectionChangedMsg{Revision: curSelected.GetChangeId()}
+			return common.SelectionChangedMsg{}
 		})
+		m.context.SetSelectedItem(common.SelectedRevision{ChangeId: curSelected.ChangeId})
 	}
 	return m, tea.Batch(cmds...)
 }
@@ -266,15 +268,15 @@ func (m *Model) View() string {
 	return normalStyle.MaxWidth(m.width).Render(content)
 }
 
-func New(uiCommands common.UICommands) Model {
+func New(c *common.AppContext) Model {
 	v := viewRange{start: 0, end: 0}
 	return Model{
-		UICommands: uiCommands,
-		rows:       nil,
-		viewRange:  &v,
-		op:         &operations.Noop{},
-		cursor:     0,
-		width:      20,
-		height:     10,
+		context:   c,
+		rows:      nil,
+		viewRange: &v,
+		op:        &operations.Noop{},
+		cursor:    0,
+		width:     20,
+		height:    10,
 	}
 }

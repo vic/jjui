@@ -47,10 +47,7 @@ type (
 	UpdatePreviewContentMsg struct {
 		Content string
 	}
-	SelectionChangedMsg struct {
-		Revision string
-		File     string
-	}
+	SelectionChangedMsg struct{}
 )
 
 type State int
@@ -63,6 +60,10 @@ const (
 
 func Close() tea.Msg {
 	return CloseViewMsg{}
+}
+
+func SelectionChanged() tea.Msg {
+	return SelectionChangedMsg{}
 }
 
 func Refresh(selectedRevision string) tea.Cmd {

@@ -114,10 +114,10 @@ type Model struct {
 	files        list.Model
 	height       int
 	confirmation tea.Model
-	common.UICommands
+	context      *common.AppContext
 }
 
-func New(revision string, commands common.UICommands) tea.Model {
+func New(context *common.AppContext, revision string) tea.Model {
 	l := list.New(nil, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)
 	l.SetShowTitle(false)
@@ -127,14 +127,14 @@ func New(revision string, commands common.UICommands) tea.Model {
 	l.KeyMap.CursorUp = up
 	l.KeyMap.CursorDown = down
 	return Model{
-		revision:   revision,
-		files:      l,
-		UICommands: commands,
+		revision: revision,
+		files:    l,
+		context:  context,
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.Status(m.revision), tea.WindowSize())
+	return tea.Batch(m.context.UICommands.Status(m.revision), tea.WindowSize())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -150,7 +150,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, common.Close
 		case key.Matches(msg, diff):
 			v := m.files.SelectedItem().(item).name
-			return m, m.UICommands.GetDiff(m.revision, v)
+			return m, m.context.UICommands.GetDiff(m.revision, v)
 		case key.Matches(msg, split):
 			selectedFiles, isVirtuallySelected := m.getSelectedFiles()
 			m.files.SetDelegate(itemDelegate{
@@ -159,7 +159,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "moves to the new revision",
 			})
 			model := confirmation.New("Are you sure you want to split the selected files?")
-			model.AddOption("Yes", tea.Batch(m.UICommands.Split(m.revision, selectedFiles), common.Close), key.NewBinding(key.WithKeys("y")))
+			model.AddOption("Yes", tea.Batch(m.context.UICommands.Split(m.revision, selectedFiles), common.Close), key.NewBinding(key.WithKeys("y")))
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
@@ -171,7 +171,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "stays as is",
 			})
 			model := confirmation.New("Are you sure you want to restore the selected files?")
-			model.AddOption("Yes", tea.Batch(m.UICommands.Restore(m.revision, selectedFiles), common.Close), key.NewBinding(key.WithKeys("y")))
+			model.AddOption("Yes", tea.Batch(m.context.UICommands.Restore(m.revision, selectedFiles), common.Close), key.NewBinding(key.WithKeys("y")))
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
@@ -185,14 +185,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		default:
 			var cmd tea.Cmd
-
 			prevItem := m.files.SelectedItem().(item)
 			m.files, cmd = m.files.Update(msg)
 			curItem := m.files.SelectedItem().(item)
 			if prevItem != curItem {
-				return m, tea.Batch(cmd, func() tea.Msg {
-					return common.SelectionChangedMsg{Revision: m.revision, File: curItem.name}
-				})
+				m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: curItem.name})
+				return m, common.SelectionChanged
 			}
 			return m, cmd
 		}
@@ -201,7 +199,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.files.SetDelegate(itemDelegate{})
 		return m, nil
 	case common.RefreshMsg:
-		return m, m.Status(m.revision)
+		return m, m.context.UICommands.Status(m.revision)
 	case common.UpdateCommitStatusMsg:
 		items := make([]list.Item, 0)
 		for _, file := range msg {
@@ -223,6 +221,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			})
 		}
 		m.files.SetItems(items)
+		m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: m.files.SelectedItem().(item).name})
+		return m, common.SelectionChanged
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 	}

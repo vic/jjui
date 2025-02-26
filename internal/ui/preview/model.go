@@ -11,19 +11,17 @@ import (
 )
 
 type RefreshPreviewContentMsg struct {
-	Tag      int
-	Revision string
-	File     string
+	Tag int
 }
 
 type Model struct {
-	tag      int
-	view     viewport.Model
-	help     help.Model
-	width    int
-	height   int
-	content  string
-	commands common.UICommands
+	tag     int
+	view    viewport.Model
+	help    help.Model
+	width   int
+	height  int
+	content string
+	context *common.AppContext
 }
 
 func (m *Model) ShortHelp() []key.Binding {
@@ -68,19 +66,19 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		content := lipgloss.NewStyle().MaxWidth(m.Width() - 4).Render(msg.Content)
 		m.view.SetContent(content)
 		m.view.GotoTop()
-	case common.SelectionChangedMsg:
+	case common.SelectionChangedMsg, common.RefreshMsg:
 		m.tag++
 		tag := m.tag
 		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
-			return RefreshPreviewContentMsg{Tag: tag, Revision: msg.Revision, File: msg.File}
+			return RefreshPreviewContentMsg{Tag: tag}
 		})
 	case RefreshPreviewContentMsg:
 		if m.tag == msg.Tag {
-			if msg.File != "" {
-				return m, m.commands.GetDiffContent(msg.Revision, msg.File)
-			} else {
-				return m, m.commands.Show(msg.Revision)
-
+			switch msg := m.context.SelectedItem.(type) {
+			case common.SelectedFile:
+				return m, m.context.UICommands.GetDiffContent(msg.ChangeId, msg.File)
+			case common.SelectedRevision:
+				return m, m.context.UICommands.Show(msg.ChangeId)
 			}
 		}
 	default:
@@ -95,7 +93,7 @@ func (m *Model) View() string {
 	return m.view.View()
 }
 
-func New(commands common.UICommands) Model {
+func New(context *common.AppContext) Model {
 	view := viewport.New(0, 0)
 	view.Style = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 	view.KeyMap.Up = key.NewBinding(key.WithDisabled())
@@ -105,8 +103,8 @@ func New(commands common.UICommands) Model {
 	//view.KeyMap.PageUp = key.NewBinding(key.WithKeys("ctrl+u", "K"))
 	//view.KeyMap.PageDown = key.NewBinding(key.WithKeys("ctrl+f", "J"))
 	return Model{
-		commands: commands,
-		view:     view,
-		help:     help.New(),
+		context: context,
+		view:    view,
+		help:    help.New(),
 	}
 }

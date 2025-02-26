@@ -42,9 +42,9 @@ func (s Operation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionAfter
 }
 
-func NewOperation(commands common.UICommands, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewOperation(context *common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := Operation{
-		Overlay: New(selected.ChangeId, commands),
+		Overlay: New(context, selected.ChangeId),
 	}
 	return op, op.Overlay.Init()
 }
