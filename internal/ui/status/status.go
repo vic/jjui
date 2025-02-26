@@ -14,25 +14,39 @@ type Model struct {
 	running bool
 	output  string
 	error   error
+	width   int
 }
+
+func (m *Model) Width() int {
+	return m.width
+}
+
+func (m *Model) Height() int {
+	return 1
+}
+
+func (m *Model) SetWidth(w int) {
+	m.width = w
+}
+
+func (m *Model) SetHeight(int) {}
 
 var (
 	successStyle = lipgloss.NewStyle().Foreground(common.Green)
 	errorStyle   = lipgloss.NewStyle().Foreground(common.Red)
 )
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.CommandRunningMsg:
 		m.command = string(msg)
 		m.running = true
 		return m, m.spinner.Tick
 	case common.CommandCompletedMsg:
-		// m.command = ""
 		m.running = false
 		m.output = msg.Output
 		m.error = msg.Err
@@ -44,7 +58,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	s := ""
 	if !m.running {
 		if m.error != nil {
@@ -55,7 +69,8 @@ func (m Model) View() string {
 	} else {
 		s = m.spinner.View()
 	}
-	ret := s + " " + m.command
+	ret := lipgloss.NewStyle().Background(common.DarkBlack).Width(m.width).
+		Render(s + " " + m.command)
 	if m.error != nil {
 		ret += " " + errorStyle.Render(m.output)
 	}

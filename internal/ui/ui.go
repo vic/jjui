@@ -33,7 +33,7 @@ type Model struct {
 	help           help.Model
 	state          common.State
 	error          error
-	status         status.Model
+	status         tea.Model
 	output         string
 	width          int
 	height         int
@@ -102,6 +102,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.SetWidth(m.width / 2)
 			p.SetHeight(m.height - 4)
 		}
+		if s, ok := m.status.(common.Sizable); ok {
+			s.SetWidth(m.width)
+		}
 	}
 
 	m.revisions, cmd = m.revisions.Update(msg)
@@ -130,8 +133,8 @@ func (m Model) View() string {
 	var b strings.Builder
 	if h, ok := m.revisions.(help.KeyMap); ok {
 		b.WriteString(m.help.View(h))
+		b.WriteString("\n")
 	}
-	b.WriteString("\n")
 	b.WriteString(m.status.View())
 
 	footer := b.String()
@@ -165,12 +168,13 @@ func New(jj jj.JJ) tea.Model {
 	uiCommands := common.NewUICommands(jj)
 	revisionsModel := revisions.New(uiCommands)
 	previewModel := preview.New(uiCommands)
+	statusModel := status.New()
 	return Model{
 		state:        common.Loading,
 		revisions:    &revisionsModel,
 		previewModel: &previewModel,
 		help:         h,
-		status:       status.New(),
+		status:       &statusModel,
 		revsetModel:  revset.New(string(defaultRevSet)),
 	}
 }

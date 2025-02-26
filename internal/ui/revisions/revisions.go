@@ -208,17 +208,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	content := ""
-	topView := ""
 	if len(m.rows) == 0 {
 		return ""
 	}
+	topView := ""
+	topViewHeight := 0
 
 	if m.op.RenderPosition() == operations.RenderPositionTop {
 		topView = lipgloss.JoinVertical(0, topView, m.op.Render())
+		topViewHeight = lipgloss.Height(topView)
 	}
 
-	h := m.Height() - lipgloss.Height(topView)
+	h := m.height - topViewHeight
 	viewHeight := m.viewRange.end - m.viewRange.start
 	if viewHeight != h {
 		m.viewRange.end = m.viewRange.start + h
@@ -254,10 +255,10 @@ func (m *Model) View() string {
 		m.viewRange.start = selectedLineEnd - h
 	}
 
-	content = w.String(m.viewRange.start, m.viewRange.end)
+	content := w.String(m.viewRange.start, m.viewRange.end)
 	content = lipgloss.PlaceHorizontal(m.Width(), lipgloss.Left, content)
 
-	if len(topView) > 0 {
+	if topViewHeight > 0 {
 		return lipgloss.JoinVertical(0, topView, content)
 	}
 	return content

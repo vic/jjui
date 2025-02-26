@@ -40,7 +40,7 @@ func (m *Model) SetWidth(w int) {
 }
 
 func (m *Model) SetHeight(h int) {
-	m.view.Height = h - 1
+	m.view.Height = h
 	m.height = h
 }
 
