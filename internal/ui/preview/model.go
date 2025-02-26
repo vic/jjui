@@ -1,6 +1,7 @@
 package preview
 
 import (
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,10 +19,22 @@ type RefreshPreviewContentMsg struct {
 type Model struct {
 	tag      int
 	view     viewport.Model
+	help     help.Model
 	width    int
 	height   int
 	content  string
 	commands common.UICommands
+}
+
+func (m *Model) ShortHelp() []key.Binding {
+	return []key.Binding{
+		m.view.KeyMap.HalfPageUp,
+		m.view.KeyMap.HalfPageDown,
+	}
+}
+
+func (m *Model) FullHelp() [][]key.Binding {
+	return [][]key.Binding{m.ShortHelp()}
 }
 
 func (m *Model) Width() int {
@@ -94,5 +107,6 @@ func New(commands common.UICommands) Model {
 	return Model{
 		commands: commands,
 		view:     view,
+		help:     help.New(),
 	}
 }

@@ -22,12 +22,14 @@ import (
 
 var (
 	TogglePreview = key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "toggle preview"))
+	ToggleHelp    = key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "toggle help"))
 )
 
 type Model struct {
 	revisions      tea.Model
 	revsetModel    revset.Model
 	previewModel   tea.Model
+	helpVisible    bool
 	previewVisible bool
 	diff           tea.Model
 	help           help.Model
@@ -75,10 +77,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.error = nil
 		case key.Matches(msg, operations.Revset):
 			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
+		case key.Matches(msg, ToggleHelp):
+			return m, common.ToggleHelp
 		case key.Matches(msg, TogglePreview):
 			m.previewVisible = !m.previewVisible
-			//TODO: update preview
 		}
+	case common.ToggleHelpMsg:
+		m.helpVisible = !m.helpVisible
 	case common.ShowDiffMsg:
 		m.diff = diff.New(string(msg), m.width, m.height)
 		return m, m.diff.Init()
@@ -131,7 +136,7 @@ func (m Model) View() string {
 	topViewHeight := lipgloss.Height(topView)
 
 	var b strings.Builder
-	if h, ok := m.revisions.(help.KeyMap); ok {
+	if h, ok := m.revisions.(help.KeyMap); ok && m.helpVisible {
 		b.WriteString(m.help.View(h))
 		b.WriteString("\n")
 	}
@@ -174,6 +179,7 @@ func New(jj jj.JJ) tea.Model {
 		revisions:    &revisionsModel,
 		previewModel: &previewModel,
 		help:         h,
+		helpVisible:  true,
 		status:       &statusModel,
 		revsetModel:  revset.New(string(defaultRevSet)),
 	}

@@ -9,6 +9,7 @@ import (
 
 type (
 	CloseViewMsg             struct{}
+	ToggleHelpMsg            struct{}
 	RefreshMsg               struct{ SelectedRevision string }
 	SelectRevisionMsg        string
 	SetOperationMsg          struct{ Operation operations.Operation }
@@ -70,6 +71,10 @@ func Refresh(selectedRevision string) tea.Cmd {
 	}
 }
 
+func ToggleHelp() tea.Msg {
+	return ToggleHelpMsg{}
+}
+
 func UpdateRevSet(revset string) tea.Cmd {
 	return func() tea.Msg {
 		return UpdateRevSetMsg(revset)
@@ -98,10 +103,10 @@ func RunCommand(c jj.Command, continuations ...tea.Cmd) tea.Cmd {
 	commands := make([]tea.Cmd, 0)
 	commands = append(commands,
 		func() tea.Msg {
-			_, err := c.CombinedOutput()
+			output, err := c.CombinedOutput()
 			return CommandCompletedMsg{
-				// Content: string(output),
-				Err: err,
+				Output: string(output),
+				Err:    err,
 			}
 		})
 	commands = append(commands, continuations...)
