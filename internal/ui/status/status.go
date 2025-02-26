@@ -1,11 +1,11 @@
 package status
 
 import (
-	"github.com/charmbracelet/lipgloss"
-	"github.com/idursun/jjui/internal/ui/common"
-
+	"fmt"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/ui/common"
 )
 
 type Model struct {
@@ -32,8 +32,9 @@ func (m *Model) SetWidth(w int) {
 func (m *Model) SetHeight(int) {}
 
 var (
-	successStyle = lipgloss.NewStyle().Foreground(common.Green)
-	errorStyle   = lipgloss.NewStyle().Foreground(common.Red)
+	normalStyle  = lipgloss.NewStyle()
+	successStyle = lipgloss.NewStyle().Inherit(normalStyle).Foreground(common.Green)
+	errorStyle   = lipgloss.NewStyle().Inherit(normalStyle).Foreground(common.Red)
 )
 
 func (m *Model) Init() tea.Cmd {
@@ -59,20 +60,20 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	s := ""
+	s := normalStyle.Render(" ")
 	if !m.running {
 		if m.error != nil {
-			s = errorStyle.Render("✗")
+			s = errorStyle.Render("✗ ")
 		} else if m.command != "" {
-			s = successStyle.Render("✓")
+			s = successStyle.Render("✓ ")
 		}
 	} else {
-		s = m.spinner.View()
+		s = normalStyle.Render(m.spinner.View())
 	}
-	ret := lipgloss.NewStyle().Background(common.DarkBlack).Width(m.width).
-		Render(s + " " + m.command)
+	ret := normalStyle.Width(m.width - 2).SetString(m.command).Render()
+	ret = lipgloss.JoinHorizontal(lipgloss.Left, s, ret)
 	if m.error != nil {
-		ret += " " + errorStyle.Render(m.output)
+		ret += " " + errorStyle.Render(fmt.Sprintf("\n%v\n%s", m.error, m.output))
 	}
 	return ret
 }
