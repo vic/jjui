@@ -58,6 +58,9 @@ func (w *GraphWriter) String(start, end int) string {
 	if start < 0 {
 		start = 0
 	}
+	if end < start {
+		end = start
+	}
 	for end > len(lines) {
 		lines = append(lines, "")
 	}
