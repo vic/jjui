@@ -107,12 +107,12 @@ func (m *Model) View() string {
 func New(context common.AppContext) Model {
 	view := viewport.New(0, 0)
 	view.Style = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
-	view.KeyMap.Up = key.NewBinding(key.WithDisabled())
-	view.KeyMap.Down = key.NewBinding(key.WithKeys("J", "ctrl+n"))
+	view.KeyMap.Up = key.NewBinding(key.WithKeys("ctrl+p"))
+	view.KeyMap.Down = key.NewBinding(key.WithKeys("ctrl+n"))
 	view.KeyMap.HalfPageDown = key.NewBinding(key.WithKeys("ctrl+d"))
 	view.KeyMap.HalfPageUp = key.NewBinding(key.WithKeys("ctrl+u"))
-	//view.KeyMap.PageUp = key.NewBinding(key.WithKeys("ctrl+u", "K"))
-	//view.KeyMap.PageDown = key.NewBinding(key.WithKeys("ctrl+f", "J"))
+	view.KeyMap.PageUp = key.NewBinding(key.WithDisabled())
+	view.KeyMap.PageDown = key.NewBinding(key.WithDisabled())
 	return Model{
 		context: context,
 		view:    view,
