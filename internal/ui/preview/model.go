@@ -23,6 +23,8 @@ type Model struct {
 	context common.AppContext
 }
 
+const DebounceTime = 500 * time.Millisecond
+
 var (
 	tab = key.NewBinding(key.WithKeys("tab"))
 )
@@ -85,7 +87,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.SelectionChangedMsg, common.RefreshMsg:
 		m.tag++
 		tag := m.tag
-		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return m, tea.Tick(DebounceTime, func(t time.Time) tea.Msg {
 			return refreshPreviewContentMsg{Tag: tag}
 		})
 	case focusMsg:
