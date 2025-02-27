@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/ui/helppage"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/idursun/jjui/internal/ui/preview"
 	"github.com/idursun/jjui/internal/ui/revset"
@@ -29,8 +30,8 @@ type Model struct {
 	revisions      tea.Model
 	revsetModel    revset.Model
 	previewModel   tea.Model
-	helpVisible    bool
 	previewVisible bool
+	helpPage       tea.Model
 	diff           tea.Model
 	help           help.Model
 	state          common.State
@@ -81,6 +82,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, operations.Cancel) && m.state == common.Error:
 			m.state = common.Ready
 			m.error = nil
+		case key.Matches(msg, operations.Cancel) && m.helpPage != nil:
+			m.helpPage = nil
 		case key.Matches(msg, operations.Revset):
 			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
 		case key.Matches(msg, ToggleHelp):
@@ -93,7 +96,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(preview.Focus, common.SelectionChanged)
 		}
 	case common.ToggleHelpMsg:
-		m.helpVisible = !m.helpVisible
+		if m.helpPage == nil {
+			m.helpPage = &helppage.Model{}
+			if p, ok := m.helpPage.(common.Sizable); ok {
+				p.SetHeight(m.height - 4)
+				p.SetWidth(m.width)
+			}
+		} else {
+			m.helpPage = nil
+		}
+		return m, nil
 	case common.ShowDiffMsg:
 		m.diff = diff.New(string(msg), m.width, m.height)
 		return m, m.diff.Init()
@@ -148,7 +160,7 @@ func (m Model) View() string {
 	topViewHeight := lipgloss.Height(topView)
 
 	var b strings.Builder
-	if h, ok := m.revisions.(help.KeyMap); ok && m.helpVisible {
+	if h, ok := m.revisions.(help.KeyMap); ok {
 		b.WriteString(m.help.View(h))
 		b.WriteString("\n")
 	}
@@ -156,6 +168,10 @@ func (m Model) View() string {
 
 	footer := b.String()
 	footerHeight := lipgloss.Height(footer)
+
+	if m.helpPage != nil {
+		return lipgloss.JoinVertical(0, topView, m.helpPage.View(), footer)
+	}
 
 	if r, ok := m.revisions.(common.Sizable); ok {
 		r.SetWidth(m.width)
@@ -195,7 +211,6 @@ func New(c common.AppContext) tea.Model {
 		revisions:    &revisionsModel,
 		previewModel: &previewModel,
 		help:         h,
-		helpVisible:  true,
 		status:       &statusModel,
 		revsetModel:  revset.New(string(defaultRevSet)),
 	}
