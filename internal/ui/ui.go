@@ -23,7 +23,7 @@ import (
 var (
 	TogglePreview = key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "toggle preview"))
 	ToggleHelp    = key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "toggle help"))
-	Switch        = key.NewBinding(key.WithKeys("tab"), key.WithHelp("tab", "switch to preview"))
+	PreviewFocus  = key.NewBinding(key.WithKeys("tab"), key.WithHelp("tab", "switch to preview"))
 )
 
 type Model struct {
@@ -60,20 +60,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.revsetModel.Editing {
-		var cmd tea.Cmd
 		if m.revsetModel, cmd = m.revsetModel.Update(msg); cmd != nil {
 			return m, cmd
 		}
 	}
 
+	var cmds []tea.Cmd
+	m.status, cmd = m.status.Update(msg)
+	cmds = append(cmds, cmd)
+
 	if r, ok := m.revisions.(common.Focusable); ok && r.IsFocused() {
 		m.revisions, cmd = m.revisions.Update(msg)
-		return m, cmd
+		cmds = append(cmds, cmd)
+		return m, tea.Batch(cmds...)
 	}
 
 	if r, ok := m.previewModel.(common.Focusable); ok && r.IsFocused() {
 		m.previewModel, cmd = m.previewModel.Update(msg)
-		return m, cmd
+		cmds = append(cmds, cmd)
+		return m, tea.Batch(cmds...)
 	}
 
 	switch msg := msg.(type) {
@@ -84,16 +89,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.error = nil
 		case key.Matches(msg, operations.Cancel) && m.helpPage != nil:
 			m.helpPage = nil
+			m.error = nil
 		case key.Matches(msg, operations.Revset):
 			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
 		case key.Matches(msg, ToggleHelp):
-			return m, common.ToggleHelp
+			cmds = append(cmds, common.ToggleHelp)
+			return m, tea.Batch(cmds...)
 		case key.Matches(msg, TogglePreview):
 			m.previewVisible = !m.previewVisible
-			return m, common.SelectionChanged
-		case key.Matches(msg, Switch):
+			cmds = append(cmds, common.SelectionChanged)
+			return m, tea.Batch(cmds...)
+		case key.Matches(msg, PreviewFocus):
 			m.previewVisible = true
-			return m, tea.Batch(preview.Focus, common.SelectionChanged)
+			cmds = append(cmds, preview.Focus, common.SelectionChanged)
+			return m, tea.Batch(cmds...)
 		}
 	case common.ToggleHelpMsg:
 		if m.helpPage == nil {
@@ -108,7 +117,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case common.ShowDiffMsg:
 		m.diff = diff.New(string(msg), m.width, m.height)
-		return m, m.diff.Init()
+		cmds = append(cmds, m.diff.Init())
+		return m, tea.Batch(cmds...)
 	case common.CommandCompletedMsg:
 		m.output = msg.Output
 	case common.UpdateRevisionsFailedMsg:
@@ -135,15 +145,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	m.revisions, cmd = m.revisions.Update(msg)
+	cmds = append(cmds, cmd)
 
-	var statusCmd tea.Cmd
-	m.status, statusCmd = m.status.Update(msg)
-
-	var previewCmd tea.Cmd
 	if m.previewVisible {
-		m.previewModel, previewCmd = m.previewModel.Update(msg)
+		m.previewModel, cmd = m.previewModel.Update(msg)
+		cmds = append(cmds, cmd)
 	}
-	return m, tea.Batch(cmd, statusCmd, previewCmd)
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
