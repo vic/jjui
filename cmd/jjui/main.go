@@ -6,7 +6,6 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui"
 )
 
@@ -26,7 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	context := common.NewAppContext(jj.JJ{Location: location})
+	context := common.NewAppContext(location)
 
 	p := tea.NewProgram(ui.New(context), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {

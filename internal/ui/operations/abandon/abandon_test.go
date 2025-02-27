@@ -1,4 +1,4 @@
-package undo
+package abandon
 
 import (
 	"bytes"
@@ -10,35 +10,35 @@ import (
 	"time"
 )
 
-func TestConfirm(t *testing.T) {
+const revision = "revision"
+
+func Test_Accept(t *testing.T) {
 	c := test.NewTestContext(t)
-	c.Expect(jj.Undo())
+	c.Expect(jj.Abandon(revision))
 	defer c.Verify()
 
-	operation, _ := NewOperation(c)
-	tm := teatest.NewTestModel(t, test.OperationHost{Operation: operation})
+	model := test.NewShell(New(c, revision))
+	tm := teatest.NewTestModel(t, model)
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
-		return bytes.Contains(bts, []byte("undo"))
+		return bytes.Contains(bts, []byte("abandon"))
 	})
+
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+		return bytes.Contains(bts, []byte("closed"))
+	})
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
 }
 
-func TestCancel(t *testing.T) {
+func Test_Cancel(t *testing.T) {
 	c := test.NewTestContext(t)
 	defer c.Verify()
 
-	operation, _ := NewOperation(c)
-	model := test.OperationHost{Operation: operation}
-
+	model := test.NewShell(New(c, revision))
 	tm := teatest.NewTestModel(t, model)
-	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
-		return bytes.Contains(bts, []byte("undo"))
-	})
 	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("closed"))
 	})
-	tm.Quit()
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
 }

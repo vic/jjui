@@ -2,6 +2,7 @@ package bookmark
 
 import (
 	"bytes"
+	"github.com/idursun/jjui/internal/jj"
 	"testing"
 	"time"
 
@@ -9,15 +10,14 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
-	"github.com/idursun/jjui/internal/ui/common"
 )
 
 func TestSetBookmarkModel_Update(t *testing.T) {
-	commands := test.NewJJCommands(t)
-	defer commands.Verify()
+	c := test.NewTestContext(t)
+	defer c.Verify()
 
-	commands.ExpectSetBookmark("revision", "name")
-	tm := teatest.NewTestModel(t, NewSetBookmark(common.NewUICommands(commands), "revision"))
+	c.Expect(jj.BookmarkSet("revision", "name"))
+	tm := teatest.NewTestModel(t, NewSetBookmark(c, "revision"))
 	tm.Type("name")
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {

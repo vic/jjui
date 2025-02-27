@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/idursun/jjui/internal/ui/preview"
 	"github.com/idursun/jjui/internal/ui/revset"
@@ -37,7 +38,7 @@ type Model struct {
 	output         string
 	width          int
 	height         int
-	context        *common.AppContext
+	context        common.AppContext
 }
 
 func (m Model) Init() tea.Cmd {
@@ -167,12 +168,12 @@ func (m Model) View() string {
 	return lipgloss.JoinVertical(0, topView, centerView, footer)
 }
 
-func New(c *common.AppContext) tea.Model {
+func New(c common.AppContext) tea.Model {
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
 	h.ShortSeparator = " "
-	defaultRevSet, _ := c.JJ.GetConfig("revsets.log")
+	defaultRevSet, _ := c.RunCommandImmediate(jj.ConfigGet("revsets.log"))
 	revisionsModel := revisions.New(c)
 	previewModel := preview.New(c)
 	statusModel := status.New()

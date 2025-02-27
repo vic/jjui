@@ -26,10 +26,10 @@ func (a Operation) Render() string {
 	return a.Overlay.View()
 }
 
-func NewOperation(commands common.UICommands, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := Operation{
 		selected: selected,
-		Overlay:  New(commands, selected.GetChangeId()),
+		Overlay:  New(context, selected.GetChangeId()),
 	}
 	return op, op.Overlay.Init()
 }

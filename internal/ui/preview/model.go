@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"time"
 )
@@ -21,7 +22,7 @@ type Model struct {
 	width   int
 	height  int
 	content string
-	context *common.AppContext
+	context common.AppContext
 }
 
 func (m *Model) ShortHelp() []key.Binding {
@@ -74,11 +75,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		})
 	case RefreshPreviewContentMsg:
 		if m.tag == msg.Tag {
-			switch msg := m.context.SelectedItem.(type) {
+			switch msg := m.context.SelectedItem().(type) {
 			case common.SelectedFile:
-				return m, m.context.UICommands.GetDiffContent(msg.ChangeId, msg.File)
+				return m, func() tea.Msg {
+					output, _ := m.context.RunCommandImmediate(jj.Diff(msg.ChangeId, msg.File))
+					return common.UpdatePreviewContentMsg{Content: string(output)}
+				}
 			case common.SelectedRevision:
-				return m, m.context.UICommands.Show(msg.ChangeId)
+				return m, func() tea.Msg {
+					output, _ := m.context.RunCommandImmediate(jj.Show(msg.ChangeId))
+					return common.UpdatePreviewContentMsg{Content: string(output)}
+				}
 			}
 		}
 	default:
@@ -93,7 +100,7 @@ func (m *Model) View() string {
 	return m.view.View()
 }
 
-func New(context *common.AppContext) Model {
+func New(context common.AppContext) Model {
 	view := viewport.New(0, 0)
 	view.Style = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 	view.KeyMap.Up = key.NewBinding(key.WithDisabled())

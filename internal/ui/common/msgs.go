@@ -94,25 +94,9 @@ func SetOperation(op operations.Operation) tea.Cmd {
 	}
 }
 
-func CommandRunning(command string) tea.Cmd {
+func CommandRunning(args []string) tea.Cmd {
 	return func() tea.Msg {
+		command := "jj " + strings.Join(args, " ")
 		return CommandRunningMsg(command)
 	}
-}
-
-func RunCommand(c jj.Command, continuations ...tea.Cmd) tea.Cmd {
-	commands := make([]tea.Cmd, 0)
-	commands = append(commands,
-		func() tea.Msg {
-			output, err := c.CombinedOutput()
-			return CommandCompletedMsg{
-				Output: string(output),
-				Err:    err,
-			}
-		})
-	commands = append(commands, continuations...)
-	return tea.Batch(
-		CommandRunning(strings.Join(c.Args(), " ")),
-		tea.Sequence(commands...),
-	)
 }

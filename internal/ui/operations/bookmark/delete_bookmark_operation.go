@@ -41,9 +41,9 @@ func (d DeleteBookmarkOperation) Render() string {
 	return d.Overlay.View()
 }
 
-func NewDeleteBookmarkOperation(commands common.UICommands, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewDeleteBookmarkOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := DeleteBookmarkOperation{
-		Overlay: NewDeleteBookmark(commands, selected.GetChangeId(), selected.Bookmarks),
+		Overlay: NewDeleteBookmark(context, selected.GetChangeId(), selected.Bookmarks),
 	}
 	return op, op.Overlay.Init()
 }

@@ -34,10 +34,10 @@ func (e EditDescriptionOperation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionDescription
 }
 
-func NewOperation(commands common.UICommands, selected *jj.Commit, width int) (operations.Operation, tea.Cmd) {
+func NewOperation(context common.AppContext, selected *jj.Commit, width int) (operations.Operation, tea.Cmd) {
 	op := EditDescriptionOperation{
 		selected: selected,
-		Overlay:  New(commands, selected.GetChangeId(), selected.Description, width),
+		Overlay:  New(context, selected.GetChangeId(), selected.Description, width),
 	}
 	return op, op.Overlay.Init()
 }

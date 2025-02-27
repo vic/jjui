@@ -9,9 +9,9 @@ import (
 )
 
 type Operation struct {
-	Commands common.UICommands
-	From     string
-	Current  *jj.Commit
+	context common.AppContext
+	From    string
+	Current *jj.Commit
 }
 
 var (
@@ -22,7 +22,7 @@ var (
 func (s *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, Apply):
-		return tea.Batch(common.Close, s.Commands.Squash(s.From, s.Current.ChangeIdShort))
+		return tea.Batch(common.Close, s.context.RunInteractiveCommand(jj.Squash(s.From, s.Current.ChangeIdShort), common.Refresh(s.Current.ChangeIdShort)))
 	case key.Matches(msg, Cancel):
 		return common.Close
 	}
@@ -52,9 +52,9 @@ func (s *Operation) FullHelp() [][]key.Binding {
 	return [][]key.Binding{s.ShortHelp()}
 }
 
-func NewOperation(commands common.UICommands, from string) *Operation {
+func NewOperation(context common.AppContext, from string) *Operation {
 	return &Operation{
-		Commands: commands,
-		From:     from,
+		context: context,
+		From:    from,
 	}
 }

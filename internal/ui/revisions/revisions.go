@@ -1,6 +1,7 @@
 package revisions
 
 import (
+	"bytes"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/idursun/jjui/internal/ui/operations/git"
 	"github.com/idursun/jjui/internal/ui/operations/rebase"
@@ -35,7 +36,7 @@ type Model struct {
 	cursor      int
 	width       int
 	height      int
-	context     *common.AppContext
+	context     common.AppContext
 }
 
 func (m *Model) IsEditing() bool {
@@ -107,7 +108,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.RefreshMsg:
 		cmds = append(cmds,
 			tea.Sequence(
-				m.context.UICommands.FetchRevisions(m.revsetValue),
+				m.load(m.revsetValue),
 				common.SelectRevision(msg.SelectedRevision),
 			))
 	case common.SelectRevisionMsg:
@@ -160,35 +161,39 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case key.Matches(msg, operations.Details):
 					m.op, cmd = details.NewOperation(m.context, m.SelectedRevision())
 				case key.Matches(msg, operations.Undo):
-					m.op, cmd = undo.NewOperation(m.context.UICommands)
+					m.op, cmd = undo.NewOperation(m.context)
 				case key.Matches(msg, operations.New):
-					cmd = m.context.UICommands.NewRevision(m.SelectedRevision().GetChangeId())
+					cmd = m.context.RunCommand(jj.New(m.SelectedRevision().GetChangeId()), common.Refresh("@"))
 				case key.Matches(msg, operations.Edit):
-					cmd = m.context.UICommands.Edit(m.SelectedRevision().GetChangeId())
+					cmd = m.context.RunCommand(jj.Edit(m.SelectedRevision().GetChangeId()), common.Refresh("@"))
 				case key.Matches(msg, operations.Diffedit):
-					cmd = m.context.UICommands.DiffEdit(m.SelectedRevision().GetChangeId())
+					changeId := m.SelectedRevision().GetChangeId()
+					cmd = m.context.RunInteractiveCommand(jj.DiffEdit(changeId), common.Refresh(changeId))
 				case key.Matches(msg, operations.Abandon):
-					m.op, cmd = abandon.NewOperation(m.context.UICommands, m.SelectedRevision())
+					m.op, cmd = abandon.NewOperation(m.context, m.SelectedRevision())
 				case key.Matches(msg, operations.Split):
 					currentRevision := m.SelectedRevision().GetChangeId()
-					cmd = m.context.UICommands.Split(currentRevision, []string{})
+					return m, m.context.RunInteractiveCommand(jj.Split(currentRevision, []string{}), common.Refresh(currentRevision))
 				case key.Matches(msg, operations.Description):
-					m.op, cmd = describe.NewOperation(m.context.UICommands, m.SelectedRevision(), m.Width())
+					m.op, cmd = describe.NewOperation(m.context, m.SelectedRevision(), m.Width())
 				case key.Matches(msg, operations.Diff):
-					cmd = m.context.UICommands.GetDiff(m.SelectedRevision().GetChangeId(), "")
+					return m, func() tea.Msg {
+						output, _ := m.context.RunCommandImmediate(jj.Diff(m.SelectedRevision().GetChangeId(), ""))
+						return common.ShowDiffMsg(output)
+					}
 				case key.Matches(msg, operations.Refresh):
 					cmd = common.Refresh(m.SelectedRevision().GetChangeId())
 				case key.Matches(msg, operations.GitMode):
-					m.op = git.NewOperation(m.context.UICommands)
+					m.op = git.NewOperation(m.context)
 				case key.Matches(msg, operations.SquashMode):
-					m.op = squash.NewOperation(m.context.UICommands, m.SelectedRevision().ChangeIdShort)
+					m.op = squash.NewOperation(m.context, m.SelectedRevision().ChangeIdShort)
 					if m.cursor < len(m.rows)-1 {
 						m.cursor++
 					}
 				case key.Matches(msg, operations.RebaseMode):
-					m.op = rebase.NewOperation(m.context.UICommands, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
+					m.op = rebase.NewOperation(m.context, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
 				case key.Matches(msg, operations.BookmarkMode):
-					m.op = bookmark.NewChooseBookmarkOperation(m.context.UICommands)
+					m.op = bookmark.NewChooseBookmarkOperation(m.context)
 				case key.Matches(msg, operations.Quit), key.Matches(msg, operations.Cancel):
 					return m, tea.Quit
 				}
@@ -219,7 +224,7 @@ func (m *Model) View() string {
 	topViewHeight := 0
 
 	if m.op.RenderPosition() == operations.RenderPositionTop {
-		topView = lipgloss.JoinVertical(0, topView, m.op.Render())
+		topView = m.op.Render()
 		topViewHeight = lipgloss.Height(topView)
 	}
 
@@ -268,7 +273,19 @@ func (m *Model) View() string {
 	return normalStyle.MaxWidth(m.width).Render(content)
 }
 
-func New(c *common.AppContext) Model {
+func (m *Model) load(revset string) tea.Cmd {
+	return func() tea.Msg {
+		output, err := m.context.RunCommandImmediate(jj.Log(revset))
+		if err != nil {
+			return common.UpdateRevisionsFailedMsg(err)
+		}
+		p := jj.NewParser(bytes.NewReader(output))
+		graphLines := p.Parse()
+		return common.UpdateRevisionsMsg(graphLines)
+	}
+}
+
+func New(c common.AppContext) Model {
 	v := viewRange{start: 0, end: 0}
 	return Model{
 		context:   c,

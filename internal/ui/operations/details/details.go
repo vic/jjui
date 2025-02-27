@@ -2,7 +2,9 @@ package details
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/jj"
 	"io"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -114,10 +116,10 @@ type Model struct {
 	files        list.Model
 	height       int
 	confirmation tea.Model
-	context      *common.AppContext
+	context      common.AppContext
 }
 
-func New(context *common.AppContext, revision string) tea.Model {
+func New(context common.AppContext, revision string) tea.Model {
 	l := list.New(nil, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)
 	l.SetShowTitle(false)
@@ -134,7 +136,7 @@ func New(context *common.AppContext, revision string) tea.Model {
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.context.UICommands.Status(m.revision), tea.WindowSize())
+	return tea.Batch(m.load(m.revision), tea.WindowSize())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -150,7 +152,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, common.Close
 		case key.Matches(msg, diff):
 			v := m.files.SelectedItem().(item).name
-			return m, m.context.UICommands.GetDiff(m.revision, v)
+			return m, func() tea.Msg {
+				output, _ := m.context.RunCommandImmediate(jj.Diff(m.revision, v))
+				return common.ShowDiffMsg(output)
+			}
 		case key.Matches(msg, split):
 			selectedFiles, isVirtuallySelected := m.getSelectedFiles()
 			m.files.SetDelegate(itemDelegate{
@@ -159,7 +164,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "moves to the new revision",
 			})
 			model := confirmation.New("Are you sure you want to split the selected files?")
-			model.AddOption("Yes", tea.Batch(m.context.UICommands.Split(m.revision, selectedFiles), common.Close), key.NewBinding(key.WithKeys("y")))
+
+			model.AddOption("Yes", tea.Batch(common.Close, m.context.RunInteractiveCommand(jj.Split(m.revision, selectedFiles), common.Refresh(m.revision))), key.NewBinding(key.WithKeys("y")))
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
@@ -171,7 +177,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "stays as is",
 			})
 			model := confirmation.New("Are you sure you want to restore the selected files?")
-			model.AddOption("Yes", tea.Batch(m.context.UICommands.Restore(m.revision, selectedFiles), common.Close), key.NewBinding(key.WithKeys("y")))
+			model.AddOption("Yes", tea.Batch(m.context.RunCommand(jj.Restore(m.revision, selectedFiles), common.Refresh(m.revision)), common.Close), key.NewBinding(key.WithKeys("y")))
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
@@ -199,7 +205,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.files.SetDelegate(itemDelegate{})
 		return m, nil
 	case common.RefreshMsg:
-		return m, m.context.UICommands.Status(m.revision)
+		return m, m.load(m.revision)
 	case common.UpdateCommitStatusMsg:
 		items := make([]list.Item, 0)
 		for _, file := range msg {
@@ -221,7 +227,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			})
 		}
 		m.files.SetItems(items)
-		m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: m.files.SelectedItem().(item).name})
+		if len(items) > 0 {
+			m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: m.files.SelectedItem().(item).name})
+		}
 		return m, common.SelectionChanged
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
@@ -255,4 +263,20 @@ func (m Model) View() string {
 	m.files.SetHeight(min(m.height-5-ch, len(m.files.Items())))
 	filesView := m.files.View()
 	return lipgloss.JoinVertical(lipgloss.Top, filesView, confirmationView)
+}
+
+func (m Model) load(revision string) tea.Cmd {
+	output, err := m.context.RunCommandImmediate(jj.Status(revision))
+	if err == nil {
+		return func() tea.Msg {
+			summary := strings.Split(strings.TrimSpace(string(output)), "\n")
+			return common.UpdateCommitStatusMsg(summary)
+		}
+	}
+	return func() tea.Msg {
+		return common.CommandCompletedMsg{
+			Output: string(output),
+			Err:    err,
+		}
+	}
 }

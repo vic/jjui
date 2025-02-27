@@ -3,9 +3,11 @@ package test
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/confirmation"
 )
 
 type model struct {
+	closed        bool
 	embeddedModel tea.Model
 }
 
@@ -14,16 +16,21 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var shellCmd tea.Cmd
-	if _, ok := msg.(common.CloseViewMsg); ok {
-		shellCmd = tea.Quit
+	switch msg := msg.(type) {
+	case common.CloseViewMsg, confirmation.CloseMsg:
+		m.closed = true
+		return m, tea.Quit
+	default:
+		var cmd tea.Cmd
+		m.embeddedModel, cmd = m.embeddedModel.Update(msg)
+		return m, cmd
 	}
-	var cmd tea.Cmd
-	m.embeddedModel, cmd = m.embeddedModel.Update(msg)
-	return m, tea.Sequence(cmd, shellCmd)
 }
 
 func (m model) View() string {
+	if m.closed {
+		return "closed"
+	}
 	return m.embeddedModel.View()
 }
 

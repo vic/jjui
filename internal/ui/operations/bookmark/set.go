@@ -3,13 +3,14 @@ package bookmark
 import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 )
 
 type SetBookmarkModel struct {
+	context  common.AppContext
 	revision string
 	name     textarea.Model
-	common.UICommands
 }
 
 func (m SetBookmarkModel) Init() tea.Cmd {
@@ -23,7 +24,7 @@ func (m SetBookmarkModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			return m, common.Close
 		case "enter":
-			return m, m.SetBookmark(m.revision, m.name.Value())
+			return m, m.context.RunCommand(jj.BookmarkSet(m.revision, m.name.Value()), common.Close, common.Refresh(m.revision))
 		}
 	case tea.WindowSizeMsg:
 		m.name.SetWidth(msg.Width)
@@ -37,7 +38,7 @@ func (m SetBookmarkModel) View() string {
 	return m.name.View()
 }
 
-func NewSetBookmark(commands common.UICommands, revision string) tea.Model {
+func NewSetBookmark(context common.AppContext, revision string) tea.Model {
 	t := textarea.New()
 	t.SetValue("")
 	t.Focus()
@@ -46,8 +47,8 @@ func NewSetBookmark(commands common.UICommands, revision string) tea.Model {
 	t.CharLimit = 120
 	t.ShowLineNumbers = false
 	return SetBookmarkModel{
-		name:       t,
-		revision:   revision,
-		UICommands: commands,
+		name:     t,
+		revision: revision,
+		context:  context,
 	}
 }

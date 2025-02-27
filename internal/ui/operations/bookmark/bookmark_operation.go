@@ -10,7 +10,7 @@ import (
 
 type ChooseBookmarkOperation struct {
 	selected *jj.Commit
-	Commands common.UICommands
+	context  common.AppContext
 }
 
 func (c *ChooseBookmarkOperation) SetSelectedRevision(commit *jj.Commit) {
@@ -20,13 +20,13 @@ func (c *ChooseBookmarkOperation) SetSelectedRevision(commit *jj.Commit) {
 func (c *ChooseBookmarkOperation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, Move):
-		operation, cmd := NewMoveBookmarkOperation(c.Commands, c.selected)
+		operation, cmd := NewMoveBookmarkOperation(c.context, c.selected)
 		return tea.Sequence(common.SetOperation(operation), cmd)
 	case key.Matches(msg, Set):
-		operation, cmd := NewSetBookmarkOperation(c.Commands, c.selected)
+		operation, cmd := NewSetBookmarkOperation(c.context, c.selected)
 		return tea.Sequence(common.SetOperation(operation), cmd)
 	case key.Matches(msg, Delete):
-		operation, cmd := NewDeleteBookmarkOperation(c.Commands, c.selected)
+		operation, cmd := NewDeleteBookmarkOperation(c.context, c.selected)
 		return tea.Sequence(common.SetOperation(operation), cmd)
 	case key.Matches(msg, Cancel):
 		return common.Close
@@ -62,8 +62,8 @@ func (c *ChooseBookmarkOperation) Render() string {
 	return ""
 }
 
-func NewChooseBookmarkOperation(commands common.UICommands) operations.Operation {
+func NewChooseBookmarkOperation(context common.AppContext) operations.Operation {
 	return &ChooseBookmarkOperation{
-		Commands: commands,
+		context: context,
 	}
 }

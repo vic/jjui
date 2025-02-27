@@ -6,6 +6,7 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/operations"
+	"strings"
 )
 
 var (
@@ -13,6 +14,7 @@ var (
 )
 
 type MoveBookmarkOperation struct {
+	context common.AppContext
 	Overlay tea.Model
 }
 
@@ -41,9 +43,28 @@ func (m MoveBookmarkOperation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionAfter
 }
 
-func NewMoveBookmarkOperation(commands common.UICommands, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewMoveBookmarkOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := MoveBookmarkOperation{
-		Overlay: New(commands, selected.GetChangeId()),
+		context: context,
+		Overlay: New(context, selected.GetChangeId()),
 	}
-	return op, tea.Batch(commands.FetchBookmarks(selected.GetChangeId()), op.Overlay.Init())
+	return op, tea.Batch(op.load(selected.GetChangeId()), op.Overlay.Init())
+}
+
+func (m MoveBookmarkOperation) load(revision string) tea.Cmd {
+	return func() tea.Msg {
+		output, _ := m.context.RunCommandImmediate(jj.BookmarkList(revision))
+		var bookmarks []string
+		lines := strings.Split(string(output), "\n")
+		for _, line := range lines {
+			if line == "" {
+				continue
+			}
+			bookmarks = append(bookmarks, line)
+		}
+		return common.UpdateBookmarksMsg{
+			Bookmarks: bookmarks,
+			Revision:  revision,
+		}
+	}
 }

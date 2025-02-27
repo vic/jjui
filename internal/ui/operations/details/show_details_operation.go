@@ -42,7 +42,7 @@ func (s Operation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionAfter
 }
 
-func NewOperation(context *common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := Operation{
 		Overlay: New(context, selected.ChangeId),
 	}

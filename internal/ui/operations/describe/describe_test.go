@@ -2,6 +2,7 @@ package describe
 
 import (
 	"bytes"
+	"github.com/idursun/jjui/internal/jj"
 	"testing"
 	"time"
 
@@ -9,31 +10,30 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
-	"github.com/idursun/jjui/internal/ui/common"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCancel(t *testing.T) {
-	model := New(common.NewUICommands(&test.JJCommands{}), "revision", "description", 20)
-	var cmd tea.Cmd
-	model, cmd = model.Update(tea.KeyMsg{Type: tea.KeyEsc})
-	assert.NotNil(t, cmd)
-	msg := cmd()
-	assert.Equal(t, common.CloseViewMsg{}, msg)
-	assert.Equal(t, "revision", model.(Model).revision)
+	c := test.NewTestContext(t)
+	defer c.Verify()
+
+	shell := test.NewShell(New(c, "revision", "description", 20))
+	tm := teatest.NewTestModel(t, shell, teatest.WithInitialTermSize(100, 100))
+	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
 }
 
 func TestEdit(t *testing.T) {
-	commands := test.NewJJCommands(t)
-	defer commands.Verify()
+	c := test.NewTestContext(t)
+	c.Expect(jj.Describe("revision", "description changed"))
+	defer c.Verify()
 
-	commands.ExpectSetDescription("revision", "description changed")
-	tm := teatest.NewTestModel(t, New(common.NewUICommands(commands), "revision", "description", 20))
+	shell := test.NewShell(New(c, "revision", "description", 30))
+
+	tm := teatest.NewTestModel(t, shell, teatest.WithInitialTermSize(100, 100))
 	tm.Type(" changed")
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("changed"))
 	})
-	tm.Quit()
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
 }

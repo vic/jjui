@@ -2,6 +2,7 @@ package details
 
 import (
 	"bytes"
+	"github.com/idursun/jjui/internal/jj"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
-	"github.com/idursun/jjui/internal/ui/common"
 )
 
 const (
@@ -18,29 +18,23 @@ const (
 )
 
 func TestModel_Init_ExecutesStatusCommand(t *testing.T) {
-	commands := test.NewJJCommands(t)
-	defer commands.Verify()
+	context := test.NewTestContext(t)
+	context.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
+	defer context.Verify()
 
-	statusCommand := commands.ExpectStatus(t, Revision)
-	statusCommand.Output = []byte(StatusOutput)
-
-	tm := teatest.NewTestModel(t, New(Revision, common.NewUICommands(commands)))
+	tm := teatest.NewTestModel(t, New(context, Revision))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("file.txt"))
 	})
-	tm.Quit()
-	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
 }
 
 func TestModel_Update_RestoresSelectedFiles(t *testing.T) {
-	commands := test.NewJJCommands(t)
-	defer commands.Verify()
+	c := test.NewTestContext(t)
+	c.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
+	c.Expect(jj.Restore(Revision, []string{"file.txt"}))
+	defer c.Verify()
 
-	commands.ExpectStatus(t, Revision).Output = []byte(StatusOutput)
-
-	commands.ExpectRestore(Revision, []string{"file.txt"})
-
-	tm := teatest.NewTestModel(t, test.NewShell(New(Revision, common.NewUICommands(commands))))
+	tm := teatest.NewTestModel(t, test.NewShell(New(c, Revision)))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("file.txt"))
 	})
@@ -52,15 +46,12 @@ func TestModel_Update_RestoresSelectedFiles(t *testing.T) {
 }
 
 func TestModel_Update_SplitsSelectedFiles(t *testing.T) {
-	commands := test.NewJJCommands(t)
-	defer commands.Verify()
+	c := test.NewTestContext(t)
+	c.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
+	c.Expect(jj.Split(Revision, []string{"file.txt"}))
+	defer c.Verify()
 
-	statusCommand := commands.ExpectStatus(t, Revision)
-	statusCommand.Output = []byte(StatusOutput)
-
-	commands.ExpectSplit(Revision, []string{"file.txt"})
-
-	tm := teatest.NewTestModel(t, test.NewShell(New(Revision, common.NewUICommands(commands))))
+	tm := teatest.NewTestModel(t, test.NewShell(New(c, Revision)))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("file.txt"))
 	})

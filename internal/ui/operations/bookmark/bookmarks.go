@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"io"
@@ -21,7 +22,7 @@ type Model struct {
 	revision string
 	list     list.Model
 	op       operations.Operation
-	common.UICommands
+	context  common.AppContext
 }
 
 type item string
@@ -63,9 +64,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			bookmark := m.list.SelectedItem().(item)
 			switch m.op.(type) {
 			case MoveBookmarkOperation:
-				return m, m.MoveBookmark(m.revision, string(bookmark))
+				return m, m.context.RunCommand(jj.BookmarkMove(m.revision, string(bookmark)), common.Refresh(m.revision), common.Close)
 			case DeleteBookmarkOperation:
-				return m, m.DeleteBookmark(m.revision, string(bookmark))
+				return m, m.context.RunCommand(jj.BookmarkDelete(string(bookmark)), common.Refresh(m.revision), common.Close)
 			}
 		}
 	case common.UpdateBookmarksMsg:
@@ -95,7 +96,7 @@ func (m Model) View() string {
 	return m.list.View()
 }
 
-func New(commands common.UICommands, revision string) tea.Model {
+func New(context common.AppContext, revision string) tea.Model {
 	l := list.New(nil, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)
 	l.SetShowPagination(false)
@@ -106,14 +107,14 @@ func New(commands common.UICommands, revision string) tea.Model {
 	l.Styles.Title = lipgloss.NewStyle().Bold(true).Foreground(common.White)
 	l.Styles.TitleBar = lipgloss.NewStyle()
 	return Model{
-		revision:   revision,
-		op:         MoveBookmarkOperation{},
-		list:       l,
-		UICommands: commands,
+		revision: revision,
+		op:       MoveBookmarkOperation{},
+		list:     l,
+		context:  context,
 	}
 }
 
-func NewDeleteBookmark(commands common.UICommands, revision string, bookmarks []string) tea.Model {
+func NewDeleteBookmark(context common.AppContext, revision string, bookmarks []string) tea.Model {
 	items := convertToItems(bookmarks)
 	l := list.New(items, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)
@@ -125,9 +126,9 @@ func NewDeleteBookmark(commands common.UICommands, revision string, bookmarks []
 	l.Styles.Title = lipgloss.NewStyle().Bold(true).Foreground(common.White)
 	l.Styles.TitleBar = lipgloss.NewStyle()
 	return Model{
-		revision:   revision,
-		op:         DeleteBookmarkOperation{},
-		list:       l,
-		UICommands: commands,
+		revision: revision,
+		op:       DeleteBookmarkOperation{},
+		list:     l,
+		context:  context,
 	}
 }

@@ -39,11 +39,11 @@ var (
 )
 
 type Operation struct {
-	From     string
-	To       *jj.Commit
-	Source   Source
-	Target   Target
-	Commands common.UICommands
+	context common.AppContext
+	From    string
+	To      *jj.Commit
+	Source  Source
+	Target  Target
 }
 
 var (
@@ -74,7 +74,7 @@ func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	case key.Matches(msg, Apply):
 		source := sourceToFlags[r.Source]
 		target := targetToFlags[r.Target]
-		return tea.Batch(r.Commands.Rebase(r.From, r.To.ChangeIdShort, source, target), common.Close)
+		return r.context.RunCommand(jj.Rebase(r.From, r.To.ChangeIdShort, source, target), common.Refresh(r.To.ChangeIdShort), common.Close)
 	case key.Matches(msg, Cancel):
 		return common.Close
 	}
@@ -147,11 +147,11 @@ func (r *Operation) Render() string {
 	)
 }
 
-func NewOperation(commands common.UICommands, from string, source Source, target Target) *Operation {
+func NewOperation(context common.AppContext, from string, source Source, target Target) *Operation {
 	return &Operation{
-		Commands: commands,
-		From:     from,
-		Source:   source,
-		Target:   target,
+		context: context,
+		From:    from,
+		Source:  source,
+		Target:  target,
 	}
 }

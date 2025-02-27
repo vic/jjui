@@ -3,13 +3,14 @@ package describe
 import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 )
 
 type Model struct {
+	context     common.AppContext
 	revision    string
 	description textarea.Model
-	common.UICommands
 }
 
 func (m Model) Init() tea.Cmd {
@@ -23,7 +24,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			return m, common.Close
 		case "enter":
-			return m, m.SetDescription(m.revision, m.description.Value())
+			return m, m.context.RunCommand(jj.Describe(m.revision, m.description.Value()), common.Close, common.Refresh(m.revision))
 		}
 	case tea.WindowSizeMsg:
 		m.description.SetWidth(msg.Width)
@@ -37,7 +38,7 @@ func (m Model) View() string {
 	return m.description.View()
 }
 
-func New(commands common.UICommands, revision string, description string, width int) tea.Model {
+func New(context common.AppContext, revision string, description string, width int) tea.Model {
 	t := textarea.New()
 	t.SetValue(description)
 	t.Focus()
@@ -48,6 +49,6 @@ func New(commands common.UICommands, revision string, description string, width 
 	return Model{
 		description: t,
 		revision:    revision,
-		UICommands:  commands,
+		context:     context,
 	}
 }
