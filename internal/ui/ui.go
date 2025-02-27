@@ -80,6 +80,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, common.ToggleHelp
 		case key.Matches(msg, TogglePreview):
 			m.previewVisible = !m.previewVisible
+			return m, common.SelectionChanged
 		}
 	case common.ToggleHelpMsg:
 		m.helpVisible = !m.helpVisible
@@ -117,7 +118,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.status, statusCmd = m.status.Update(msg)
 
 	var previewCmd tea.Cmd
-	m.previewModel, previewCmd = m.previewModel.Update(msg)
+	if m.previewVisible {
+		m.previewModel, previewCmd = m.previewModel.Update(msg)
+	}
 	return m, tea.Batch(cmd, statusCmd, previewCmd)
 }
 
