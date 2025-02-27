@@ -22,6 +22,7 @@ import (
 var (
 	TogglePreview = key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "toggle preview"))
 	ToggleHelp    = key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "toggle help"))
+	Switch        = key.NewBinding(key.WithKeys("tab"), key.WithHelp("tab", "switch to preview"))
 )
 
 type Model struct {
@@ -64,8 +65,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if r, ok := m.revisions.(common.Editable); ok && r.IsEditing() {
+	if r, ok := m.revisions.(common.Focusable); ok && r.IsFocused() {
 		m.revisions, cmd = m.revisions.Update(msg)
+		return m, cmd
+	}
+
+	if r, ok := m.previewModel.(common.Focusable); ok && r.IsFocused() {
+		m.previewModel, cmd = m.previewModel.Update(msg)
 		return m, cmd
 	}
 
@@ -82,6 +88,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, TogglePreview):
 			m.previewVisible = !m.previewVisible
 			return m, common.SelectionChanged
+		case key.Matches(msg, Switch):
+			m.previewVisible = true
+			return m, tea.Batch(preview.Focus, common.SelectionChanged)
 		}
 	case common.ToggleHelpMsg:
 		m.helpVisible = !m.helpVisible
@@ -152,6 +161,9 @@ func (m Model) View() string {
 		r.SetWidth(m.width)
 		if m.previewVisible {
 			r.SetWidth(m.width / 2)
+			if p, ok := m.previewModel.(common.Focusable); ok && p.IsFocused() {
+				r.SetWidth(4)
+			}
 		}
 		r.SetHeight(m.height - footerHeight - topViewHeight)
 	}

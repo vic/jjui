@@ -44,8 +44,8 @@ type updateRevisionsMsg struct {
 	selectedRevision string
 }
 
-func (m *Model) IsEditing() bool {
-	if _, ok := m.op.(common.Editable); ok {
+func (m *Model) IsFocused() bool {
+	if _, ok := m.op.(common.Focusable); ok {
 		return true
 	}
 	return false

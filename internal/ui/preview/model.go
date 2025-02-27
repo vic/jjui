@@ -8,7 +8,23 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/operations"
 	"time"
+)
+
+type Model struct {
+	tag     int
+	focused bool
+	view    viewport.Model
+	help    help.Model
+	width   int
+	height  int
+	content string
+	context common.AppContext
+}
+
+var (
+	tab = key.NewBinding(key.WithKeys("tab"))
 )
 
 type refreshPreviewContentMsg struct {
@@ -18,15 +34,10 @@ type refreshPreviewContentMsg struct {
 type updatePreviewContentMsg struct {
 	Content string
 }
+type focusMsg struct{}
 
-type Model struct {
-	tag     int
-	view    viewport.Model
-	help    help.Model
-	width   int
-	height  int
-	content string
-	context common.AppContext
+func (m *Model) IsFocused() bool {
+	return m.focused
 }
 
 func (m *Model) ShortHelp() []key.Binding {
@@ -77,6 +88,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
 			return refreshPreviewContentMsg{Tag: tag}
 		})
+	case focusMsg:
+		m.focused = true
+		m.view.KeyMap = viewport.DefaultKeyMap()
+		return m, nil
 	case refreshPreviewContentMsg:
 		if m.tag == msg.Tag {
 			switch msg := m.context.SelectedItem().(type) {
@@ -92,27 +107,42 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-	default:
-		var cmd tea.Cmd
-		m.view, cmd = m.view.Update(msg)
-		return m, cmd
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, operations.Cancel), key.Matches(msg, tab):
+			m.focused = false
+			m.view.KeyMap = unfocusedKeyMap()
+			return m, nil
+		}
 	}
-	return m, nil
+	var cmd tea.Cmd
+	m.view, cmd = m.view.Update(msg)
+	return m, cmd
 }
 
 func (m *Model) View() string {
 	return m.view.View()
 }
 
+func Focus() tea.Msg {
+	return focusMsg{}
+}
+
+func unfocusedKeyMap() viewport.KeyMap {
+	return viewport.KeyMap{
+		PageDown:     key.NewBinding(key.WithDisabled()),
+		PageUp:       key.NewBinding(key.WithDisabled()),
+		HalfPageUp:   key.NewBinding(key.WithKeys("ctrl+u")),
+		HalfPageDown: key.NewBinding(key.WithKeys("ctrl+d")),
+		Up:           key.NewBinding(key.WithKeys("ctrl+p")),
+		Down:         key.NewBinding(key.WithKeys("ctrl+n")),
+	}
+}
+
 func New(context common.AppContext) Model {
 	view := viewport.New(0, 0)
 	view.Style = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
-	view.KeyMap.Up = key.NewBinding(key.WithKeys("ctrl+p"))
-	view.KeyMap.Down = key.NewBinding(key.WithKeys("ctrl+n"))
-	view.KeyMap.HalfPageDown = key.NewBinding(key.WithKeys("ctrl+d"))
-	view.KeyMap.HalfPageUp = key.NewBinding(key.WithKeys("ctrl+u"))
-	view.KeyMap.PageUp = key.NewBinding(key.WithDisabled())
-	view.KeyMap.PageDown = key.NewBinding(key.WithDisabled())
+	view.KeyMap = unfocusedKeyMap()
 	return Model{
 		context: context,
 		view:    view,

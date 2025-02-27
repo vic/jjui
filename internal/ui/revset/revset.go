@@ -96,7 +96,7 @@ type Model struct {
 	keymap        keymap
 }
 
-func (m Model) IsEditing() bool {
+func (m Model) IsFocused() bool {
 	return m.Editing
 }
 

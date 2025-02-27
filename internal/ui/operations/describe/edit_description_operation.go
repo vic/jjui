@@ -12,7 +12,7 @@ type EditDescriptionOperation struct {
 	selected *jj.Commit
 }
 
-func (e EditDescriptionOperation) IsEditing() bool {
+func (e EditDescriptionOperation) IsFocused() bool {
 	return true
 }
 
