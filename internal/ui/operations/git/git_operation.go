@@ -12,6 +12,10 @@ type Operation struct {
 	context common.AppContext
 }
 
+func (o *Operation) IsFocused() bool {
+	return true
+}
+
 func (o *Operation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionNil
 }
