@@ -22,7 +22,7 @@ var (
 func (s *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, Apply):
-		return tea.Batch(common.Close, s.context.RunInteractiveCommand(jj.Squash(s.From, s.Current.ChangeIdShort), common.Refresh(s.Current.ChangeIdShort)))
+		return tea.Batch(common.Close, s.context.RunInteractiveCommand(jj.Squash(s.From, s.Current.ChangeIdShort), common.Refresh))
 	case key.Matches(msg, Cancel):
 		return common.Close
 	}

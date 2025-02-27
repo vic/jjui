@@ -74,7 +74,7 @@ func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	case key.Matches(msg, Apply):
 		source := sourceToFlags[r.Source]
 		target := targetToFlags[r.Target]
-		return r.context.RunCommand(jj.Rebase(r.From, r.To.ChangeIdShort, source, target), common.Refresh(r.To.ChangeIdShort), common.Close)
+		return r.context.RunCommand(jj.Rebase(r.From, r.To.ChangeIdShort, source, target), common.RefreshAndSelect(r.From), common.Close)
 	case key.Matches(msg, Cancel):
 		return common.Close
 	}

@@ -166,7 +166,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			})
 			model := confirmation.New("Are you sure you want to split the selected files?")
 
-			model.AddOption("Yes", tea.Batch(common.Close, m.context.RunInteractiveCommand(jj.Split(m.revision, selectedFiles), common.Refresh(m.revision))), key.NewBinding(key.WithKeys("y")))
+			model.AddOption("Yes", tea.Batch(common.Close, m.context.RunInteractiveCommand(jj.Split(m.revision, selectedFiles), common.Refresh)), key.NewBinding(key.WithKeys("y")))
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
@@ -178,7 +178,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "stays as is",
 			})
 			model := confirmation.New("Are you sure you want to restore the selected files?")
-			model.AddOption("Yes", tea.Batch(m.context.RunCommand(jj.Restore(m.revision, selectedFiles), common.Refresh(m.revision)), common.Close), key.NewBinding(key.WithKeys("y")))
+			model.AddOption("Yes", m.context.RunCommand(jj.Restore(m.revision, selectedFiles), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()

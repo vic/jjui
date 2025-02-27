@@ -7,10 +7,11 @@ import (
 )
 
 type (
-	CloseViewMsg             struct{}
-	ToggleHelpMsg            struct{}
-	RefreshMsg               struct{ SelectedRevision string }
-	SelectRevisionMsg        string
+	CloseViewMsg  struct{}
+	ToggleHelpMsg struct{}
+	RefreshMsg    struct {
+		SelectedRevision string
+	}
 	SetOperationMsg          struct{ Operation operations.Operation }
 	ShowDiffMsg              string
 	UpdateRevisionsFailedMsg error
@@ -42,20 +43,18 @@ func SelectionChanged() tea.Msg {
 	return SelectionChangedMsg{}
 }
 
-func Refresh(selectedRevision string) tea.Cmd {
+func RefreshAndSelect(selectedRevision string) tea.Cmd {
 	return func() tea.Msg {
 		return RefreshMsg{SelectedRevision: selectedRevision}
 	}
 }
 
-func ToggleHelp() tea.Msg {
-	return ToggleHelpMsg{}
+func Refresh() tea.Msg {
+	return RefreshMsg{}
 }
 
-func SelectRevision(revision string) tea.Cmd {
-	return func() tea.Msg {
-		return SelectRevisionMsg(revision)
-	}
+func ToggleHelp() tea.Msg {
+	return ToggleHelpMsg{}
 }
 
 func SetOperation(op operations.Operation) tea.Cmd {

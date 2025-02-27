@@ -64,9 +64,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			bookmark := m.list.SelectedItem().(item)
 			switch m.op.(type) {
 			case MoveBookmarkOperation:
-				return m, m.context.RunCommand(jj.BookmarkMove(m.revision, string(bookmark)), common.Refresh(m.revision), common.Close)
+				return m, m.context.RunCommand(jj.BookmarkMove(m.revision, string(bookmark)), common.Refresh, common.Close)
 			case DeleteBookmarkOperation:
-				return m, m.context.RunCommand(jj.BookmarkDelete(string(bookmark)), common.Refresh(m.revision), common.Close)
+				return m, m.context.RunCommand(jj.BookmarkDelete(string(bookmark)), common.Refresh, common.Close)
 			}
 		}
 	case common.UpdateBookmarksMsg:

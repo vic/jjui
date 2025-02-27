@@ -39,7 +39,10 @@ type Model struct {
 	context     common.AppContext
 }
 
-type updateRevisionsMsg []jj.GraphRow
+type updateRevisionsMsg struct {
+	rows             []jj.GraphRow
+	selectedRevision string
+}
 
 func (m *Model) IsEditing() bool {
 	if _, ok := m.op.(common.Editable); ok {
@@ -86,7 +89,7 @@ func (m *Model) SelectedRevision() *jj.Commit {
 }
 
 func (m *Model) Init() tea.Cmd {
-	return common.Refresh("@")
+	return common.Refresh
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -103,33 +106,26 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case revset.UpdateRevSetMsg:
 		m.revsetValue = string(msg)
 		if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
-			cmds = append(cmds, common.Refresh(selectedRevision.GetChangeId()))
+			cmds = append(cmds, common.Refresh)
 		} else {
-			cmds = append(cmds, common.Refresh("@"))
+			cmds = append(cmds, common.Refresh)
 		}
 	case common.RefreshMsg:
-		cmds = append(cmds,
-			tea.Sequence(
-				m.load(m.revsetValue),
-				common.SelectRevision(msg.SelectedRevision),
-			))
-	case common.SelectRevisionMsg:
-		r := string(msg)
-		idx := slices.IndexFunc(m.rows, func(row jj.GraphRow) bool {
-			if r == "@" {
-				return row.Commit.IsWorkingCopy
-			}
-			return row.Commit.GetChangeId() == r
-		})
-		if idx != -1 {
-			m.cursor = idx
-		} else {
-			m.cursor = 0
-		}
+		return m, m.load(m.revsetValue, msg.SelectedRevision)
 	case updateRevisionsMsg:
-		if msg != nil {
-			m.rows = msg
-			m.cursor = 0
+		if msg.rows != nil {
+			currentSelectedRevision := msg.selectedRevision
+			if cur := m.SelectedRevision(); currentSelectedRevision == "" && cur != nil {
+				currentSelectedRevision = cur.GetChangeId()
+			}
+			m.rows = msg.rows
+			m.cursor = m.selectRevision(currentSelectedRevision)
+			if m.cursor == -1 {
+				m.cursor = m.selectRevision("@")
+			}
+			if m.cursor == -1 {
+				m.cursor = 0
+			}
 		}
 	}
 
@@ -165,17 +161,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case key.Matches(msg, operations.Undo):
 					m.op, cmd = undo.NewOperation(m.context)
 				case key.Matches(msg, operations.New):
-					cmd = m.context.RunCommand(jj.New(m.SelectedRevision().GetChangeId()), common.Refresh("@"))
+					cmd = m.context.RunCommand(jj.New(m.SelectedRevision().GetChangeId()), common.RefreshAndSelect("@"))
 				case key.Matches(msg, operations.Edit):
-					cmd = m.context.RunCommand(jj.Edit(m.SelectedRevision().GetChangeId()), common.Refresh("@"))
+					cmd = m.context.RunCommand(jj.Edit(m.SelectedRevision().GetChangeId()), common.Refresh)
 				case key.Matches(msg, operations.Diffedit):
 					changeId := m.SelectedRevision().GetChangeId()
-					cmd = m.context.RunInteractiveCommand(jj.DiffEdit(changeId), common.Refresh(changeId))
+					cmd = m.context.RunInteractiveCommand(jj.DiffEdit(changeId), common.Refresh)
 				case key.Matches(msg, operations.Abandon):
 					m.op, cmd = abandon.NewOperation(m.context, m.SelectedRevision())
 				case key.Matches(msg, operations.Split):
 					currentRevision := m.SelectedRevision().GetChangeId()
-					return m, m.context.RunInteractiveCommand(jj.Split(currentRevision, []string{}), common.Refresh(currentRevision))
+					return m, m.context.RunInteractiveCommand(jj.Split(currentRevision, []string{}), common.Refresh)
 				case key.Matches(msg, operations.Description):
 					m.op, cmd = describe.NewOperation(m.context, m.SelectedRevision(), m.Width())
 				case key.Matches(msg, operations.Diff):
@@ -184,7 +180,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						return common.ShowDiffMsg(output)
 					}
 				case key.Matches(msg, operations.Refresh):
-					cmd = common.Refresh(m.SelectedRevision().GetChangeId())
+					cmd = common.Refresh
 				case key.Matches(msg, operations.GitMode):
 					m.op = git.NewOperation(m.context)
 				case key.Matches(msg, operations.SquashMode):
@@ -275,7 +271,7 @@ func (m *Model) View() string {
 	return normalStyle.MaxWidth(m.width).Render(content)
 }
 
-func (m *Model) load(revset string) tea.Cmd {
+func (m *Model) load(revset string, selectedRevision string) tea.Cmd {
 	return func() tea.Msg {
 		output, err := m.context.RunCommandImmediate(jj.Log(revset))
 		if err != nil {
@@ -283,8 +279,18 @@ func (m *Model) load(revset string) tea.Cmd {
 		}
 		p := jj.NewParser(bytes.NewReader(output))
 		graphLines := p.Parse()
-		return updateRevisionsMsg(graphLines)
+		return updateRevisionsMsg{graphLines, selectedRevision}
 	}
+}
+
+func (m *Model) selectRevision(revision string) int {
+	idx := slices.IndexFunc(m.rows, func(row jj.GraphRow) bool {
+		if revision == "@" {
+			return row.Commit.IsWorkingCopy
+		}
+		return row.Commit.GetChangeId() == revision || row.Commit.ChangeIdShort == revision
+	})
+	return idx
 }
 
 func New(c common.AppContext) Model {

@@ -24,7 +24,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			return m, common.Close
 		case "enter":
-			return m, m.context.RunCommand(jj.Describe(m.revision, m.description.Value()), common.Close, common.Refresh(m.revision))
+			return m, m.context.RunCommand(jj.Describe(m.revision, m.description.Value()), common.Close, common.Refresh)
 		}
 	case tea.WindowSizeMsg:
 		m.description.SetWidth(msg.Width)

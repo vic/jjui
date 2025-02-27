@@ -29,11 +29,9 @@ var (
 func (o *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, Fetch):
-		changeId := o.context.SelectedItem().(common.SelectedRevision).ChangeId
-		return o.context.RunCommand(jj.GitFetch(), common.Refresh(changeId), common.Close)
+		return o.context.RunCommand(jj.GitFetch(), common.Refresh, common.Close)
 	case key.Matches(msg, Push):
-		changeId := o.context.SelectedItem().(common.SelectedRevision).ChangeId
-		return o.context.RunCommand(jj.GitPush(), common.Refresh(changeId), common.Close)
+		return o.context.RunCommand(jj.GitPush(), common.Refresh, common.Close)
 	case key.Matches(msg, Cancel):
 		return common.Close
 	}

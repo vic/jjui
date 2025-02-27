@@ -30,7 +30,7 @@ func (m Model) View() string {
 
 func New(context common.AppContext, revision string) tea.Model {
 	model := confirmation.New("Are you sure you want to abandon this revision?")
-	model.AddOption("Yes", tea.Batch(context.RunCommand(jj.Abandon(revision), common.Refresh("@")), common.Close), key.NewBinding(key.WithKeys("y")))
+	model.AddOption("Yes", context.RunCommand(jj.Abandon(revision), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))
 
 	return Model{
