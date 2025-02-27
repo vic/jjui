@@ -168,6 +168,7 @@ func New(c *common.AppContext) tea.Model {
 	h := help.New()
 	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
 	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
+	h.ShortSeparator = " "
 	defaultRevSet, _ := c.JJ.GetConfig("revsets.log")
 	revisionsModel := revisions.New(c)
 	previewModel := preview.New(c)
