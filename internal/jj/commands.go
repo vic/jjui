@@ -78,7 +78,7 @@ func Squash(from string, destination string) CommandArgs {
 }
 
 func BookmarkList(revision string) CommandArgs {
-	return []string{"bookmark", "list", "-r", fmt.Sprintf("::%s-", revision), "--template", "name ++ '\n'", "--color", "never"}
+	return []string{"bookmark", "list", "-r", fmt.Sprintf("::%s-", revision), "--template", "name ++ if(remote, '@') ++ remote ++ '\n'", "--color", "never"}
 }
 
 func BookmarkMove(revision string, bookmark string) CommandArgs {

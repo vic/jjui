@@ -60,6 +60,9 @@ func (m MoveBookmarkOperation) load(revision string) tea.Cmd {
 			if line == "" {
 				continue
 			}
+			if strings.Contains(line, "@") {
+				continue
+			}
 			bookmarks = append(bookmarks, line)
 		}
 		return common.UpdateBookmarksMsg{
