@@ -161,7 +161,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			if m.Value == "" {
 				m.Value = m.defaultRevSet
 			}
-			return m, tea.Batch(common.Close, common.UpdateRevSet(m.Value))
+			return m, tea.Batch(common.Close, updateRevSet(m.Value))
 		}
 	case EditRevSetMsg:
 		m.Editing = true
@@ -216,4 +216,12 @@ func (m Model) View() string {
 	}
 
 	return fmt.Sprintf("%s: %s", promptStyle.Render("revset"), cursorStyle.Render(revset))
+}
+
+type UpdateRevSetMsg string
+
+func updateRevSet(revset string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateRevSetMsg(revset)
+	}
 }

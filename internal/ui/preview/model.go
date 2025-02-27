@@ -11,8 +11,12 @@ import (
 	"time"
 )
 
-type RefreshPreviewContentMsg struct {
+type refreshPreviewContentMsg struct {
 	Tag int
+}
+
+type updatePreviewContentMsg struct {
+	Content string
 }
 
 type Model struct {
@@ -62,7 +66,7 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case common.UpdatePreviewContentMsg:
+	case updatePreviewContentMsg:
 		m.content = msg.Content
 		content := lipgloss.NewStyle().MaxWidth(m.Width() - 4).Render(msg.Content)
 		m.view.SetContent(content)
@@ -71,20 +75,20 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.tag++
 		tag := m.tag
 		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
-			return RefreshPreviewContentMsg{Tag: tag}
+			return refreshPreviewContentMsg{Tag: tag}
 		})
-	case RefreshPreviewContentMsg:
+	case refreshPreviewContentMsg:
 		if m.tag == msg.Tag {
 			switch msg := m.context.SelectedItem().(type) {
 			case common.SelectedFile:
 				return m, func() tea.Msg {
 					output, _ := m.context.RunCommandImmediate(jj.Diff(msg.ChangeId, msg.File))
-					return common.UpdatePreviewContentMsg{Content: string(output)}
+					return updatePreviewContentMsg{Content: string(output)}
 				}
 			case common.SelectedRevision:
 				return m, func() tea.Msg {
 					output, _ := m.context.RunCommandImmediate(jj.Show(msg.ChangeId))
-					return common.UpdatePreviewContentMsg{Content: string(output)}
+					return updatePreviewContentMsg{Content: string(output)}
 				}
 			}
 		}

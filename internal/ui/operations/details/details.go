@@ -118,6 +118,7 @@ type Model struct {
 	confirmation tea.Model
 	context      common.AppContext
 }
+type updateCommitStatusMsg []string
 
 func New(context common.AppContext, revision string) tea.Model {
 	l := list.New(nil, itemDelegate{}, 0, 0)
@@ -206,7 +207,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case common.RefreshMsg:
 		return m, m.load(m.revision)
-	case common.UpdateCommitStatusMsg:
+	case updateCommitStatusMsg:
 		items := make([]list.Item, 0)
 		for _, file := range msg {
 			if file == "" {
@@ -270,7 +271,7 @@ func (m Model) load(revision string) tea.Cmd {
 	if err == nil {
 		return func() tea.Msg {
 			summary := strings.Split(strings.TrimSpace(string(output)), "\n")
-			return common.UpdateCommitStatusMsg(summary)
+			return updateCommitStatusMsg(summary)
 		}
 	}
 	return func() tea.Msg {

@@ -2,7 +2,6 @@ package common
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"strings"
 )
@@ -14,38 +13,15 @@ type (
 	SelectRevisionMsg        string
 	SetOperationMsg          struct{ Operation operations.Operation }
 	ShowDiffMsg              string
-	ShowDiffContentMsg       string
-	UpdateRevSetMsg          string
-	UpdateRevisionsMsg       []jj.GraphRow
 	UpdateRevisionsFailedMsg error
 	UpdateBookmarksMsg       struct {
 		Bookmarks []string
 		Revision  string
 	}
-	UpdateCommitStatusMsg []string
-	CommandRunningMsg     string
-	AbandonMsg            string
-	SetDescriptionMsg     struct {
-		Revision    string
-		Description string
-	}
-	SetBookmarkMsg struct {
-		Revision string
-		Bookmark string
-	}
-	MoveBookmarkMsg struct {
-		Revision string
-		Bookmark string
-	}
-	DeleteBookmarkMsg struct {
-		Bookmark string
-	}
+	CommandRunningMsg   string
 	CommandCompletedMsg struct {
 		Output string
 		Err    error
-	}
-	UpdatePreviewContentMsg struct {
-		Content string
 	}
 	SelectionChangedMsg struct{}
 )
@@ -74,12 +50,6 @@ func Refresh(selectedRevision string) tea.Cmd {
 
 func ToggleHelp() tea.Msg {
 	return ToggleHelpMsg{}
-}
-
-func UpdateRevSet(revset string) tea.Cmd {
-	return func() tea.Msg {
-		return UpdateRevSetMsg(revset)
-	}
 }
 
 func SelectRevision(revision string) tea.Cmd {

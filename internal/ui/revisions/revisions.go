@@ -3,11 +3,6 @@ package revisions
 import (
 	"bytes"
 	"github.com/charmbracelet/bubbles/help"
-	"github.com/idursun/jjui/internal/ui/operations/git"
-	"github.com/idursun/jjui/internal/ui/operations/rebase"
-	"github.com/idursun/jjui/internal/ui/operations/undo"
-	"slices"
-
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -18,7 +13,12 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations/bookmark"
 	"github.com/idursun/jjui/internal/ui/operations/describe"
 	"github.com/idursun/jjui/internal/ui/operations/details"
+	"github.com/idursun/jjui/internal/ui/operations/git"
+	"github.com/idursun/jjui/internal/ui/operations/rebase"
 	"github.com/idursun/jjui/internal/ui/operations/squash"
+	"github.com/idursun/jjui/internal/ui/operations/undo"
+	"github.com/idursun/jjui/internal/ui/revset"
+	"slices"
 )
 
 type viewRange struct {
@@ -38,6 +38,8 @@ type Model struct {
 	height      int
 	context     common.AppContext
 }
+
+type updateRevisionsMsg []jj.GraphRow
 
 func (m *Model) IsEditing() bool {
 	if _, ok := m.op.(common.Editable); ok {
@@ -98,7 +100,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.SetOperationMsg:
 		m.op = msg.Operation
 		return m, nil
-	case common.UpdateRevSetMsg:
+	case revset.UpdateRevSetMsg:
 		m.revsetValue = string(msg)
 		if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
 			cmds = append(cmds, common.Refresh(selectedRevision.GetChangeId()))
@@ -124,7 +126,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.cursor = 0
 		}
-	case common.UpdateRevisionsMsg:
+	case updateRevisionsMsg:
 		if msg != nil {
 			m.rows = msg
 			m.cursor = 0
@@ -281,7 +283,7 @@ func (m *Model) load(revset string) tea.Cmd {
 		}
 		p := jj.NewParser(bytes.NewReader(output))
 		graphLines := p.Parse()
-		return common.UpdateRevisionsMsg(graphLines)
+		return updateRevisionsMsg(graphLines)
 	}
 }
 
