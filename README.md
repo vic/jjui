@@ -56,15 +56,25 @@ You can move bookmarks to the revision you selected.
 
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_bookmarks.gif)
 
+### Split
+You can split revisions.
+
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_split.gif)
+
+### Preview
+You can open the preview window by pressing `p`. Preview window displays output of the `jj show` command of the selected revision. If the currenlty selected item is a file, then `jj diff` output is displayed. 
+
+While the preview window is showing, you can press; `ctrl+n` to scroll one line down, `ctrl+p` to scroll one line up, `ctrl+n` to scroll half page down, `ctrl+u` to scroll half page up. 
+
+Additionally, you can press `tab` to focus in and out of the preview window. Once in the focus mode, you can use normal (e.g. `j`, `k`, `d`, `u`) navigation keys as they are not bound to the revision tree view. 
+
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_preview.gif)
+
 ### Diffs
 You can see diffs of revisions.
 
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_diff.gif)
 
-### Split
-You can split revisions.
-
-![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_split.gif)
 Additionally,
 
 * Create a _new_ revision
