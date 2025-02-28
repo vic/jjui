@@ -100,8 +100,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, common.SelectionChanged)
 			return m, tea.Batch(cmds...)
 		case key.Matches(msg, PreviewFocus):
+			if !m.previewVisible {
+				cmds = append(cmds, common.SelectionChanged)
+			}
 			m.previewVisible = true
-			cmds = append(cmds, preview.Focus, common.SelectionChanged)
+			cmds = append(cmds, preview.Focus)
 			return m, tea.Batch(cmds...)
 		}
 	case common.ToggleHelpMsg:
