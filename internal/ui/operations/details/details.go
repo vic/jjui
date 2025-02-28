@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/idursun/jjui/internal/jj"
 	"io"
+	"path"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -18,6 +19,7 @@ var (
 	AddedStyle    = lipgloss.NewStyle().Foreground(common.Green)
 	DeletedStyle  = lipgloss.NewStyle().Foreground(common.Red)
 	ModifiedStyle = lipgloss.NewStyle().Foreground(common.Cyan)
+	RenamedStyle  = lipgloss.NewStyle().Foreground(common.Cyan)
 	HintStyle     = lipgloss.NewStyle().Foreground(common.DarkBlack).PaddingLeft(1)
 )
 
@@ -27,6 +29,7 @@ var (
 	Added    status = 0
 	Deleted  status = 1
 	Modified status = 2
+	Renamed  status = 3
 )
 
 var (
@@ -42,6 +45,7 @@ var (
 type item struct {
 	status   status
 	name     string
+	fileName string
 	selected bool
 }
 
@@ -54,6 +58,8 @@ func (f item) Title() string {
 		status = "D"
 	case Modified:
 		status = "M"
+	case Renamed:
+		status = "R"
 	}
 	return fmt.Sprintf("%s %s", status, f.name)
 }
@@ -79,6 +85,8 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		style = DeletedStyle
 	case Modified:
 		style = ModifiedStyle
+	case Renamed:
+		style = RenamedStyle
 	}
 	if index == m.Index() {
 		style = style.Bold(true).Background(common.DarkBlack)
@@ -152,7 +160,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, cancel):
 			return m, common.Close
 		case key.Matches(msg, diff):
-			v := m.files.SelectedItem().(item).name
+			v := m.files.SelectedItem().(item).fileName
 			return m, func() tea.Msg {
 				output, _ := m.context.RunCommandImmediate(jj.Diff(m.revision, v))
 				return common.ShowDiffMsg(output)
@@ -196,7 +204,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.files, cmd = m.files.Update(msg)
 			curItem := m.files.SelectedItem().(item)
 			if prevItem != curItem {
-				m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: curItem.name})
+				m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: curItem.fileName})
 				return m, common.SelectionChanged
 			}
 			return m, cmd
@@ -208,28 +216,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.RefreshMsg:
 		return m, m.load(m.revision)
 	case updateCommitStatusMsg:
-		items := make([]list.Item, 0)
-		for _, file := range msg {
-			if file == "" {
-				continue
-			}
-			var status status
-			switch file[0] {
-			case 'A':
-				status = Added
-			case 'D':
-				status = Deleted
-			case 'M':
-				status = Modified
-			}
-			items = append(items, item{
-				status: status,
-				name:   file[2:],
-			})
-		}
+		items := m.parseFiles(msg)
 		m.files.SetItems(items)
 		if len(items) > 0 {
-			m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: m.files.SelectedItem().(item).name})
+			m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: m.files.SelectedItem().(item).fileName})
 		}
 		return m, common.SelectionChanged
 	case tea.WindowSizeMsg:
@@ -238,17 +228,59 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m Model) parseFiles(content []string) []list.Item {
+	items := make([]list.Item, 0)
+	for _, file := range content {
+		if file == "" {
+			continue
+		}
+		var status status
+		switch file[0] {
+		case 'A':
+			status = Added
+		case 'D':
+			status = Deleted
+		case 'M':
+			status = Modified
+		case 'R':
+			status = Renamed
+		}
+		fileName := file[2:]
+
+		actualFileName := fileName
+		if status == Renamed && strings.Contains(actualFileName, "{") {
+			for strings.Index(actualFileName, "{") != -1 {
+				start := strings.Index(actualFileName, "{")
+				end := strings.Index(actualFileName, "}")
+				if end == -1 {
+					break
+				}
+				replacement := actualFileName[start+1 : end]
+				parts := strings.Split(replacement, " => ")
+				replacement = parts[1]
+				actualFileName = path.Clean(actualFileName[:start] + replacement + actualFileName[end+1:])
+			}
+		}
+		items = append(items, item{
+			status:   status,
+			name:     fileName,
+			fileName: actualFileName,
+		})
+	}
+	return items
+}
+
 func (m Model) getSelectedFiles() ([]string, bool) {
 	selectedFiles := make([]string, 0)
 	var isVirtuallySelected = false
 	for _, f := range m.files.Items() {
 		if f.(item).selected {
-			selectedFiles = append(selectedFiles, f.(item).name)
+			selectedFiles = append(selectedFiles, f.(item).fileName)
 			isVirtuallySelected = false
 		}
 	}
 	if len(selectedFiles) == 0 {
-		selectedFiles = append(selectedFiles, m.files.SelectedItem().(item).name)
+		selectedFiles = append(selectedFiles, m.files.SelectedItem().(item).fileName)
 		return selectedFiles, true
 	}
 	return selectedFiles, isVirtuallySelected

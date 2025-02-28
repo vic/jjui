@@ -61,3 +61,21 @@ func TestModel_Update_SplitsSelectedFiles(t *testing.T) {
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
 }
+
+func TestModel_Update_HandlesMovedFiles(t *testing.T) {
+	c := test.NewTestContext(t)
+	c.Expect(jj.Status(Revision)).SetOutput([]byte("R internal/ui/{revisions => }/file.go\nR {file => sub/newfile}\n"))
+	c.Expect(jj.Restore(Revision, []string{"internal/ui/file.go", "sub/newfile"}))
+	defer c.Verify()
+
+	tm := teatest.NewTestModel(t, test.NewShell(New(c, Revision)))
+	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+		return bytes.Contains(bts, []byte("file.go"))
+	})
+
+	tm.Send(tea.KeyMsg{Type: tea.KeySpace})
+	tm.Send(tea.KeyMsg{Type: tea.KeySpace})
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("r")})
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
+}
