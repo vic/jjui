@@ -2,13 +2,14 @@ package ui
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/helppage"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/idursun/jjui/internal/ui/preview"
 	"github.com/idursun/jjui/internal/ui/revset"
-	"strings"
 
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/diff"
@@ -60,9 +61,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.revsetModel.Editing {
-		if m.revsetModel, cmd = m.revsetModel.Update(msg); cmd != nil {
-			return m, cmd
-		}
+		m.revsetModel, cmd = m.revsetModel.Update(msg)
+		return m, cmd
 	}
 
 	var cmds []tea.Cmd
