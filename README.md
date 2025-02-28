@@ -11,17 +11,17 @@ Currently, you can:
 ### Change revset with auto-complete
 You can change revset while enjoying auto-complete and signature help while typing.
 
-![GIF](./docs/jjui_revset.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_revset.gif)
 
 ### Rebase
 You can rebase a revision or a branch onto another revision in the revision tree.
 
-![GIF](./docs/jjui_rebase.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_rebase.gif)
 
 ### Squash
 You can squash revisions into one revision, by pressing `S`. The following revision will be automatically selected. However, you can change the selection by using `j` and `k`.
 
-![GIF](./docs/jjui_squash.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_squash.gif)
 
 ### Show revision details
 
@@ -29,42 +29,42 @@ Pressing `l` (as in going right into details of a revision) will open the detail
 
 You can use `d` to show the diff of the each highlighted file.
 
-![GIF](./docs/jjui_details_diff.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_details_diff.gif)
 
 #### Splitting files in a revision
 You can use `s` to split the revision based on the files you have selected. You can select by pressing `space`. If no file is selected, currently highlighted file will be split.
 
-![GIF](./docs/jjui_details_split.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_details_split.gif)
 
 ### Restoring files in a revision
 You can use `r` to restore the selected file (i.e. discard the changes).
 
-![GIF](./docs/jjui_details_restore.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_details_restore.gif)
 
 ### Description
 You can edit or update description of a revision.
 
-![GIF](./docs/jjui_description.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_description.gif)
 
 ### Abandon
 You can abandon a revision.
 
-![GIF](./docs/jjui_abandon.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_abandon.gif)
 
 ### Bookmarks
 You can move bookmarks to the revision you selected.
 
-![GIF](./docs/jjui_bookmarks.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_bookmarks.gif)
 
 ### Diffs
 You can see diffs of revisions.
 
-![GIF](./docs/jjui_diff.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_diff.gif)
 
 ### Split
 You can split revisions.
 
-![GIF](./docs/jjui_split.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_split.gif)
 Additionally,
 
 * Create a _new_ revision
