@@ -103,3 +103,7 @@ func Show(revision string) CommandArgs {
 func Rebase(from string, to string, source string, target string) CommandArgs {
 	return []string{"rebase", source, from, target, to}
 }
+
+func Evolog(revision string) CommandArgs {
+	return []string{"evolog", "-r", revision, "--color", "never", "--template", TEMPLATE, "--config", "ui.graph.style=curved"}
+}

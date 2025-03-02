@@ -21,6 +21,7 @@ var (
 	BookmarkMode  = key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "bookmark"))
 	GitMode       = key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "git"))
 	Description   = key.NewBinding(key.WithKeys("D"), key.WithHelp("D", "description"))
+	Evolog        = key.NewBinding(key.WithKeys("O"), key.WithHelp("O", "evolog"))
 	Diff          = key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff"))
 	New           = key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new revision"))
 	Revset        = key.NewBinding(key.WithKeys("L"), key.WithHelp("L", "edit revset"))
@@ -32,7 +33,7 @@ var (
 )
 
 func (n *Noop) ShortHelp() []key.Binding {
-	return []key.Binding{Up, Down, Quit, Refresh, PreviewToggle, Revset, Details, RebaseMode, SquashMode, BookmarkMode, GitMode, Help}
+	return []key.Binding{Up, Down, Quit, Refresh, PreviewToggle, Revset, Details, Evolog, RebaseMode, SquashMode, BookmarkMode, GitMode, Help}
 }
 
 func (n *Noop) FullHelp() [][]key.Binding {

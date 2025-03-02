@@ -3,6 +3,7 @@ package details
 import (
 	"fmt"
 	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/ui/operations"
 	"io"
 	"path"
 	"strings"
@@ -33,13 +34,10 @@ var (
 )
 
 var (
-	cancel  = key.NewBinding(key.WithKeys("esc", "h"), key.WithHelp("esc/h", "cancel"))
-	mark    = key.NewBinding(key.WithKeys("m", " "), key.WithHelp("m/space", "mark"))
-	restore = key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "restore"))
-	split   = key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "split"))
-	up      = key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("k/up", "up"))
-	down    = key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("j/down", "down"))
-	diff    = key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff"))
+	Cancel  = key.NewBinding(key.WithKeys("esc", "h"), key.WithHelp("esc/h", "cancel"))
+	Mark    = key.NewBinding(key.WithKeys("m", " "), key.WithHelp("m/space", "mark"))
+	Restore = key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "restore"))
+	Split   = key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "split"))
 )
 
 type item struct {
@@ -135,8 +133,8 @@ func New(context common.AppContext, revision string) tea.Model {
 	l.SetShowStatusBar(false)
 	l.SetShowPagination(false)
 	l.SetShowHelp(false)
-	l.KeyMap.CursorUp = up
-	l.KeyMap.CursorDown = down
+	l.KeyMap.CursorUp = operations.Up
+	l.KeyMap.CursorDown = operations.Down
 	return Model{
 		revision: revision,
 		files:    l,
@@ -157,15 +155,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 		switch {
-		case key.Matches(msg, cancel):
+		case key.Matches(msg, Cancel):
 			return m, common.Close
-		case key.Matches(msg, diff):
+		case key.Matches(msg, operations.Diff):
 			v := m.files.SelectedItem().(item).fileName
 			return m, func() tea.Msg {
 				output, _ := m.context.RunCommandImmediate(jj.Diff(m.revision, v))
 				return common.ShowDiffMsg(output)
 			}
-		case key.Matches(msg, split):
+		case key.Matches(msg, Split):
 			selectedFiles, isVirtuallySelected := m.getSelectedFiles()
 			m.files.SetDelegate(itemDelegate{
 				isVirtuallySelected: isVirtuallySelected,
@@ -178,7 +176,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
-		case key.Matches(msg, restore):
+		case key.Matches(msg, Restore):
 			selectedFiles, isVirtuallySelected := m.getSelectedFiles()
 			m.files.SetDelegate(itemDelegate{
 				isVirtuallySelected: isVirtuallySelected,
@@ -190,7 +188,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
-		case key.Matches(msg, mark):
+		case key.Matches(msg, Mark):
 			if item, ok := m.files.SelectedItem().(item); ok {
 				item.selected = !item.selected
 				oldIndex := m.files.Index()

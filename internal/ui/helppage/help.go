@@ -8,6 +8,7 @@ import (
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/idursun/jjui/internal/ui/operations/bookmark"
+	"github.com/idursun/jjui/internal/ui/operations/details"
 	"github.com/idursun/jjui/internal/ui/operations/git"
 	"github.com/idursun/jjui/internal/ui/operations/rebase"
 	"github.com/idursun/jjui/internal/ui/operations/squash"
@@ -113,12 +114,19 @@ func (h *Model) View() string {
 		printHelp(operations.Split),
 		printHelp(operations.Abandon),
 		printHelp(operations.Undo),
+		printHelp(operations.Details),
 		"",
 		printHeader("Revset"),
 		printHelp(operations.Revset),
 	)
 
 	rightView := lipgloss.JoinVertical(lipgloss.Left,
+		printMode(operations.Details, "Details"),
+		printHelp(details.Mark),
+		printHelp(details.Restore),
+		printHelp(details.Split),
+		printHelp(operations.Diff),
+		"",
 		printMode(operations.GitMode, "Git"),
 		printHelp(git.Push),
 		printHelp(git.Fetch),
@@ -138,6 +146,9 @@ func (h *Model) View() string {
 		"",
 		printMode(operations.SquashMode, "Squash"),
 		printHelp(squash.Apply),
+		"",
+		printMode(operations.Evolog, "Evolog"),
+		printHelp(operations.Diff),
 	)
 
 	content := lipgloss.JoinHorizontal(lipgloss.Left, leftView, "  ", rightView)

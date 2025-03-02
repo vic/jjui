@@ -13,6 +13,7 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations/bookmark"
 	"github.com/idursun/jjui/internal/ui/operations/describe"
 	"github.com/idursun/jjui/internal/ui/operations/details"
+	"github.com/idursun/jjui/internal/ui/operations/evolog"
 	"github.com/idursun/jjui/internal/ui/operations/git"
 	"github.com/idursun/jjui/internal/ui/operations/rebase"
 	"github.com/idursun/jjui/internal/ui/operations/squash"
@@ -174,6 +175,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, m.context.RunInteractiveCommand(jj.Split(currentRevision, []string{}), common.Refresh)
 				case key.Matches(msg, operations.Description):
 					m.op, cmd = describe.NewOperation(m.context, m.SelectedRevision(), m.Width())
+				case key.Matches(msg, operations.Evolog):
+					m.op, cmd = evolog.NewOperation(m.context, m.SelectedRevision().GetChangeId(), m.width, m.height)
 				case key.Matches(msg, operations.Diff):
 					return m, func() tea.Msg {
 						output, _ := m.context.RunCommandImmediate(jj.Diff(m.SelectedRevision().GetChangeId(), ""))
@@ -234,9 +237,9 @@ func (m *Model) View() string {
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range m.rows {
-		nodeRenderer := SegmentedRenderer{
+		nodeRenderer := common.SegmentedRenderer{
 			Palette:       common.DefaultPalette,
-			op:            m.op,
+			Op:            m.op,
 			IsHighlighted: i == m.cursor,
 		}
 

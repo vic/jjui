@@ -1,31 +1,29 @@
-package revisions
+package common
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/idursun/jjui/internal/ui/operations"
-
 	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/operations"
 )
 
 type SegmentedRenderer struct {
-	Palette       common.Palette
+	Palette       Palette
 	IsHighlighted bool
-	op            operations.Operation
+	Op            operations.Operation
 }
 
 func (s SegmentedRenderer) RenderBefore(*jj.Commit) string {
-	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionBefore {
-		return s.op.Render()
+	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionBefore {
+		return s.Op.Render()
 	}
 	return ""
 }
 
 func (s SegmentedRenderer) RenderAfter(*jj.Commit) string {
-	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionAfter {
-		return s.op.Render()
+	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionAfter {
+		return s.Op.Render()
 	}
 	return ""
 }
@@ -35,8 +33,8 @@ func (s SegmentedRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.
 	opMarker := ""
 	if s.IsHighlighted {
 		style = s.Palette.Selected
-		if s.op.RenderPosition() == operations.RenderPositionGlyph {
-			opMarker = s.op.Render()
+		if s.Op.RenderPosition() == operations.RenderPositionGlyph {
+			opMarker = s.Op.Render()
 		}
 	}
 	return style.Render(string(connection) + opMarker)
@@ -55,6 +53,10 @@ func (s SegmentedRenderer) RenderChangeId(commit *jj.Commit) string {
 	return fmt.Sprintf("%s%s %s", s.Palette.CommitShortStyle.Render(commit.ChangeIdShort), s.Palette.CommitIdRestStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):]), hidden)
 }
 
+func (s SegmentedRenderer) RenderCommitId(commit *jj.Commit) string {
+	return s.Palette.CommitShortStyle.Render(commit.CommitIdShort) + s.Palette.CommitIdRestStyle.Render(commit.CommitId[len(commit.ChangeIdShort):])
+}
+
 func (s SegmentedRenderer) RenderAuthor(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return s.Palette.Empty.Render("root()")
@@ -68,8 +70,8 @@ func (s SegmentedRenderer) RenderDate(commit *jj.Commit) string {
 
 func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
 	var w strings.Builder
-	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionBookmark {
-		w.WriteString(s.op.Render())
+	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionBookmark {
+		w.WriteString(s.Op.Render())
 	}
 	if len(commit.Bookmarks) > 0 {
 		w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
@@ -84,13 +86,9 @@ func (s SegmentedRenderer) RenderMarkers(commit *jj.Commit) string {
 	return ""
 }
 
-func (s SegmentedRenderer) RenderCommitId(commit *jj.Commit) string {
-	return s.Palette.CommitShortStyle.Render(commit.CommitId)
-}
-
 func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
-	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionDescription {
-		return s.op.Render()
+	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionDescription {
+		return s.Op.Render()
 	}
 	var w strings.Builder
 	if commit.Empty {

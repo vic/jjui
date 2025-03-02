@@ -14,13 +14,13 @@ type Operation struct {
 
 func (s Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
-		up,
-		down,
-		cancel,
-		diff,
-		mark,
-		split,
-		restore,
+		operations.Up,
+		operations.Down,
+		operations.Cancel,
+		operations.Diff,
+		Mark,
+		Split,
+		Restore,
 	}
 }
 
