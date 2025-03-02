@@ -33,7 +33,7 @@ var (
 )
 
 func (n *Noop) ShortHelp() []key.Binding {
-	return []key.Binding{Up, Down, Quit, Refresh, PreviewToggle, Revset, Details, Evolog, RebaseMode, SquashMode, BookmarkMode, GitMode, Help}
+	return []key.Binding{Up, Down, Quit, Help, Refresh, PreviewToggle, Revset, Details, Evolog, RebaseMode, SquashMode, BookmarkMode, GitMode}
 }
 
 func (n *Noop) FullHelp() [][]key.Binding {
