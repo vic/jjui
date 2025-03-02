@@ -18,6 +18,8 @@ You can rebase a revision or a branch onto another revision in the revision tree
 
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_rebase.gif)
 
+See [Rebase](https://github.com/idursun/jjui/wiki/Rebase) for detailed information.
+
 ### Squash
 You can squash revisions into one revision, by pressing `S`. The following revision will be automatically selected. However, you can change the selection by using `j` and `k`.
 
@@ -27,19 +29,14 @@ You can squash revisions into one revision, by pressing `S`. The following revis
 
 Pressing `l` (as in going right into details of a revision) will open the details view of the revision you selected.
 
-You can use `d` to show the diff of the each highlighted file.
+In this mode, you can:
+- Split selected files using `s`
+- Restore selected files using `r`
+- View diffs of the highlighted by pressing `d`
 
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_details_diff.gif)
 
-#### Splitting files in a revision
-You can use `s` to split the revision based on the files you have selected. You can select by pressing `space`. If no file is selected, currently highlighted file will be split.
-
-![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_details_split.gif)
-
-### Restoring files in a revision
-You can use `r` to restore the selected file (i.e. discard the changes).
-
-![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_details_restore.gif)
+For detailed information, see [Details](https://github.com/idursun/jjui/wiki/Details) wiki page.
 
 ### Description
 You can edit or update description of a revision.
@@ -67,6 +64,8 @@ You can open the preview window by pressing `p`. Preview window displays output 
 While the preview window is showing, you can press; `ctrl+n` to scroll one line down, `ctrl+p` to scroll one line up, `ctrl+n` to scroll half page down, `ctrl+u` to scroll half page up. 
 
 Additionally, you can press `tab` to focus in and out of the preview window. Once in the focus mode, you can use normal (e.g. `j`, `k`, `d`, `u`) navigation keys as they are not bound to the revision tree view. 
+
+For detailed information, see [Preview](https://github.com/idursun/jjui/wiki/Preview) wiki page.
 
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_preview.gif)
 
