@@ -102,6 +102,10 @@ func (w *GraphWriter) RenderRow(row GraphRow, renderer RowRenderer) {
 		fmt.Fprintf(w, " ")
 		fmt.Fprint(w, markers)
 	}
+	if commitId := renderer.RenderCommitId(row.Commit); commitId != "" {
+		fmt.Fprintf(w, " ")
+		fmt.Fprint(w, commitId)
+	}
 	fmt.Fprintln(w)
 
 	if row.Commit.IsRoot() {

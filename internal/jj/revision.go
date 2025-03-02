@@ -16,6 +16,8 @@ type Commit struct {
 	Conflict      bool
 	Empty         bool
 	Hidden        bool
+	CommitIdShort string
+	CommitId      string
 }
 
 func (c Commit) IsRoot() bool {
@@ -24,7 +26,7 @@ func (c Commit) IsRoot() bool {
 
 func (c Commit) GetChangeId() string {
 	if c.Hidden {
-		return "~" + c.ChangeId
+		return c.CommitId
 	}
 	return c.ChangeId
 }

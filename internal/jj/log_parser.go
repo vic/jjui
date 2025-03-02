@@ -125,7 +125,13 @@ func (p *Parser) parseCommit(content string) Commit {
 		commit.Timestamp = parts[9]
 	}
 	if len(parts) > 10 {
-		commit.Description = parts[10]
+		commit.CommitIdShort = parts[10]
+	}
+	if len(parts) > 11 {
+		commit.CommitId = parts[11]
+	}
+	if len(parts) > 12 {
+		commit.Description = parts[12]
 	}
 	if commit.IsRoot() {
 		commit.Conflict = false

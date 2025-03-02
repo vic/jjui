@@ -2,8 +2,9 @@ package revisions
 
 import (
 	"fmt"
-	"github.com/idursun/jjui/internal/ui/operations"
 	"strings"
+
+	"github.com/idursun/jjui/internal/ui/operations"
 
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
@@ -70,7 +71,9 @@ func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
 	if s.IsHighlighted && s.op.RenderPosition() == operations.RenderPositionBookmark {
 		w.WriteString(s.op.Render())
 	}
-	w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
+	if len(commit.Bookmarks) > 0 {
+		w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
+	}
 	return w.String()
 }
 
@@ -79,6 +82,10 @@ func (s SegmentedRenderer) RenderMarkers(commit *jj.Commit) string {
 		return s.Palette.ConflictStyle.Render("conflict")
 	}
 	return ""
+}
+
+func (s SegmentedRenderer) RenderCommitId(commit *jj.Commit) string {
+	return s.Palette.CommitShortStyle.Render(commit.CommitId)
 }
 
 func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {

@@ -2,10 +2,9 @@ package jj
 
 import "fmt"
 
-type Commands interface {
-}
+type Commands interface{}
 
-const TEMPLATE = `separate(";", change_id.shortest(1), change_id.shortest(8), coalesce(bookmarks.join(","), "."), current_working_copy, immutable, conflict, empty, hidden, author.email(), author.timestamp().ago(), description.first_line())`
+const TEMPLATE = `separate(";", change_id.shortest(1), change_id.shortest(8), coalesce(bookmarks.join(","), "."), current_working_copy, immutable, conflict, empty, hidden, author.email(), author.timestamp().ago(), commit_id.shortest(1), commit_id.shortest(8), description.first_line())`
 
 type CommandArgs []string
 

@@ -100,6 +100,10 @@ func (t TestRenderer) RenderChangeId(commit *jj.Commit) string {
 	return commit.ChangeId
 }
 
+func (t TestRenderer) RenderCommitId(commit *jj.Commit) string {
+	return ""
+}
+
 func (t TestRenderer) RenderAuthor(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return "root()"

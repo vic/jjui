@@ -6,6 +6,7 @@ type RowRenderer interface {
 	RenderGlyph(connection ConnectionType, commit *Commit) string
 	RenderTermination(connection ConnectionType) string
 	RenderChangeId(commit *Commit) string
+	RenderCommitId(commit *Commit) string
 	RenderAuthor(commit *Commit) string
 	RenderDate(commit *Commit) string
 	RenderBookmarks(commit *Commit) string
