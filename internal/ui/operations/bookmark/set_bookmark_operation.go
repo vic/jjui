@@ -25,6 +25,10 @@ func (s SetBookmarkOperation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionBookmark
 }
 
+func (s SetBookmarkOperation) Name() string {
+	return "bookmark"
+}
+
 func NewSetBookmarkOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := SetBookmarkOperation{
 		Overlay: NewSetBookmark(context, selected.GetChangeId()),

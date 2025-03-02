@@ -42,6 +42,10 @@ func (s Operation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionAfter
 }
 
+func (s Operation) Name() string {
+	return "details"
+}
+
 func NewOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := Operation{
 		Overlay: New(context, selected.ChangeId),

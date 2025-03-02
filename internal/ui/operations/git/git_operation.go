@@ -24,6 +24,10 @@ func (o *Operation) Render() string {
 	return ""
 }
 
+func (o *Operation) Name() string {
+	return "Git"
+}
+
 var (
 	Fetch  = key.NewBinding(key.WithKeys("f"), key.WithHelp("f", "git fetch"))
 	Push   = key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "git push"))

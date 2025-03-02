@@ -10,6 +10,7 @@ import (
 
 type Model struct {
 	spinner spinner.Model
+	mode    string
 	command string
 	running bool
 	output  string
@@ -30,6 +31,10 @@ func (m *Model) SetWidth(w int) {
 }
 
 func (m *Model) SetHeight(int) {}
+
+func (m *Model) SetMode(mode string) {
+	m.mode = mode
+}
 
 var (
 	normalStyle  = lipgloss.NewStyle()
@@ -71,7 +76,7 @@ func (m *Model) View() string {
 		s = normalStyle.Render(m.spinner.View())
 	}
 	ret := normalStyle.Width(m.width - 2).SetString(m.command).Render()
-	ret = lipgloss.JoinHorizontal(lipgloss.Left, s, ret)
+	ret = lipgloss.JoinHorizontal(lipgloss.Left, m.mode, s, ret)
 	if m.error != nil {
 		ret += " " + errorStyle.Render(fmt.Sprintf("\n%v\n%s", m.error, m.output))
 	}

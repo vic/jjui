@@ -27,6 +27,10 @@ func (o Operation) Render() string {
 	return o.Overlay.View()
 }
 
+func (o Operation) Name() string {
+	return "Undo"
+}
+
 func NewOperation(context common.AppContext) (operations.Operation, tea.Cmd) {
 	model := confirmation.New("Are you sure you want to undo last change?")
 	model.AddOption("Yes", context.RunCommand(jj.Undo(), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))

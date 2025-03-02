@@ -41,6 +41,10 @@ func (s *Operation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionGlyph
 }
 
+func (s *Operation) Name() string {
+	return "Squash"
+}
+
 func (s *Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
 		Apply,

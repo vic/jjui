@@ -47,3 +47,7 @@ func (n *Noop) RenderPosition() RenderPosition {
 func (n *Noop) Render() string {
 	return ""
 }
+
+func (n *Noop) Name() string {
+	return "normal"
+}

@@ -62,6 +62,10 @@ func (c *ChooseBookmarkOperation) Render() string {
 	return ""
 }
 
+func (c *ChooseBookmarkOperation) Name() string {
+	return "bookmark"
+}
+
 func NewChooseBookmarkOperation(context common.AppContext) operations.Operation {
 	return &ChooseBookmarkOperation{
 		context: context,

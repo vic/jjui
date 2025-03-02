@@ -118,6 +118,10 @@ func (o Operation) Render() string {
 	return content
 }
 
+func (o Operation) Name() string {
+	return "evolog"
+}
+
 func (o Operation) load() tea.Msg {
 	output, _ := o.context.RunCommandImmediate(jj.Evolog(o.revision))
 	parser := jj.NewParser(bytes.NewReader(output))

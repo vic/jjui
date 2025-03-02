@@ -26,6 +26,10 @@ func (a Operation) Render() string {
 	return a.Overlay.View()
 }
 
+func (a Operation) Name() string {
+	return "Abandon"
+}
+
 func NewOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := Operation{
 		selected: selected,

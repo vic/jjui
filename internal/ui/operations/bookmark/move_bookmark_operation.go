@@ -43,6 +43,10 @@ func (m MoveBookmarkOperation) RenderPosition() operations.RenderPosition {
 	return operations.RenderPositionAfter
 }
 
+func (m MoveBookmarkOperation) Name() string {
+	return "bookmark"
+}
+
 func NewMoveBookmarkOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := MoveBookmarkOperation{
 		context: context,

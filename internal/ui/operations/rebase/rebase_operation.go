@@ -147,6 +147,10 @@ func (r *Operation) Render() string {
 	)
 }
 
+func (r *Operation) Name() string {
+	return "Rebase"
+}
+
 func NewOperation(context common.AppContext, from string, source Source, target Target) *Operation {
 	return &Operation{
 		context: context,

@@ -20,6 +20,7 @@ const (
 type Operation interface {
 	RenderPosition() RenderPosition
 	Render() string
+	Name() string
 }
 
 type OperationWithOverlay interface {

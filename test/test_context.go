@@ -1,10 +1,12 @@
 package test
 
 import (
+	"testing"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 type ExpectedCommand struct {
@@ -22,6 +24,13 @@ type TestContext struct {
 	*testing.T
 	selectedItem common.SelectedItem
 	expectations map[string][]*ExpectedCommand
+}
+
+func (t *TestContext) Op() operations.Operation {
+	return nil
+}
+
+func (t *TestContext) SetOp(operations.Operation) {
 }
 
 func (t *TestContext) SelectedItem() common.SelectedItem {
