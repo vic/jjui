@@ -54,6 +54,9 @@ func (s SegmentedRenderer) RenderChangeId(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderCommitId(commit *jj.Commit) string {
+	if commit.IsRoot() {
+		return ""
+	}
 	return s.Palette.CommitShortStyle.Render(commit.CommitIdShort) + s.Palette.CommitIdRestStyle.Render(commit.CommitId[len(commit.ChangeIdShort):])
 }
 
@@ -65,6 +68,9 @@ func (s SegmentedRenderer) RenderAuthor(commit *jj.Commit) string {
 }
 
 func (s SegmentedRenderer) RenderDate(commit *jj.Commit) string {
+	if commit.IsRoot() {
+		return ""
+	}
 	return s.Palette.TimestampStyle.Render(commit.Timestamp)
 }
 
