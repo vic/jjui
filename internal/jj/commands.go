@@ -38,8 +38,8 @@ func Split(revision string, files []string) CommandArgs {
 	return args
 }
 
-func Describe(revision string, value string) CommandArgs {
-	return []string{"describe", "-r", revision, "-m", value}
+func Describe(revision string) CommandArgs {
+	return []string{"describe", "-r", revision, "--edit"}
 }
 
 func Abandon(revision string) CommandArgs {

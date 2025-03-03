@@ -11,7 +11,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/idursun/jjui/internal/ui/operations/abandon"
 	"github.com/idursun/jjui/internal/ui/operations/bookmark"
-	"github.com/idursun/jjui/internal/ui/operations/describe"
 	"github.com/idursun/jjui/internal/ui/operations/details"
 	"github.com/idursun/jjui/internal/ui/operations/evolog"
 	"github.com/idursun/jjui/internal/ui/operations/git"
@@ -174,7 +173,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					currentRevision := m.SelectedRevision().GetChangeId()
 					return m, m.context.RunInteractiveCommand(jj.Split(currentRevision, []string{}), common.Refresh)
 				case key.Matches(msg, operations.Description):
-					m.op, cmd = describe.NewOperation(m.context, m.SelectedRevision(), m.Width())
+					currentRevision := m.SelectedRevision().GetChangeId()
+					return m, m.context.RunInteractiveCommand(jj.Describe(currentRevision), common.Refresh)
 				case key.Matches(msg, operations.Evolog):
 					m.op, cmd = evolog.NewOperation(m.context, m.SelectedRevision().GetChangeId(), m.width, m.height)
 				case key.Matches(msg, operations.Diff):
