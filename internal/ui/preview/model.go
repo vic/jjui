@@ -23,7 +23,7 @@ type Model struct {
 	context common.AppContext
 }
 
-const DebounceTime = 500 * time.Millisecond
+const DebounceTime = 200 * time.Millisecond
 
 var (
 	tab = key.NewBinding(key.WithKeys("tab"))
