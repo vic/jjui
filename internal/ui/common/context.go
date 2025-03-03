@@ -2,6 +2,7 @@ package common
 
 import (
 	"bytes"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"os/exec"
@@ -10,6 +11,7 @@ import (
 type AppContext interface {
 	Op() operations.Operation
 	SetOp(op operations.Operation)
+	KeyMap() KeyMappings[key.Binding]
 	SelectedItem() SelectedItem
 	SetSelectedItem(item SelectedItem)
 	RunCommandImmediate(args []string) ([]byte, error)
@@ -31,6 +33,7 @@ type SelectedFile struct {
 type MainContext struct {
 	selectedItem SelectedItem
 	location     string
+	config       Config
 	op           operations.Operation
 }
 
@@ -40,6 +43,10 @@ func (a *MainContext) Op() operations.Operation {
 
 func (a *MainContext) SetOp(op operations.Operation) {
 	a.op = op
+}
+
+func (a *MainContext) KeyMap() KeyMappings[key.Binding] {
+	return a.config.GetKeyMap()
 }
 
 func (a *MainContext) SelectedItem() SelectedItem {
@@ -85,7 +92,9 @@ func (a *MainContext) RunInteractiveCommand(args []string, continuation tea.Cmd)
 }
 
 func NewAppContext(location string) AppContext {
+	config := NewConfiguration()
 	return &MainContext{
 		location: location,
+		config:   config,
 	}
 }

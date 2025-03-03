@@ -10,6 +10,7 @@ import (
 
 type Operation struct {
 	context common.AppContext
+	keyMap  common.KeyMappings[key.Binding]
 }
 
 func (o *Operation) IsFocused() bool {
@@ -28,19 +29,13 @@ func (o *Operation) Name() string {
 	return "git"
 }
 
-var (
-	Fetch  = key.NewBinding(key.WithKeys("f"), key.WithHelp("f", "git fetch"))
-	Push   = key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "git push"))
-	Cancel = key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel"))
-)
-
 func (o *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
-	case key.Matches(msg, Fetch):
+	case key.Matches(msg, o.keyMap.Git.Fetch):
 		return o.context.RunCommand(jj.GitFetch(), common.Refresh, common.Close)
-	case key.Matches(msg, Push):
+	case key.Matches(msg, o.keyMap.Git.Push):
 		return o.context.RunCommand(jj.GitPush(), common.Refresh, common.Close)
-	case key.Matches(msg, Cancel):
+	case key.Matches(msg, o.keyMap.Cancel):
 		return common.Close
 	}
 	return nil
@@ -48,9 +43,9 @@ func (o *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 
 func (o *Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
-		Fetch,
-		Push,
-		Cancel,
+		o.keyMap.Git.Fetch,
+		o.keyMap.Git.Push,
+		o.keyMap.Cancel,
 	}
 }
 
@@ -61,5 +56,6 @@ func (o *Operation) FullHelp() [][]key.Binding {
 func NewOperation(context common.AppContext) *Operation {
 	return &Operation{
 		context: context,
+		keyMap:  context.KeyMap(),
 	}
 }

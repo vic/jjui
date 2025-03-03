@@ -3,7 +3,6 @@ package details
 import (
 	"fmt"
 	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/operations"
 	"io"
 	"path"
 	"strings"
@@ -123,22 +122,25 @@ type Model struct {
 	height       int
 	confirmation tea.Model
 	context      common.AppContext
+	keyMap       common.KeyMappings[key.Binding]
 }
 type updateCommitStatusMsg []string
 
 func New(context common.AppContext, revision string) tea.Model {
+	keyMap := context.KeyMap()
 	l := list.New(nil, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
 	l.SetShowPagination(false)
 	l.SetShowHelp(false)
-	l.KeyMap.CursorUp = operations.Up
-	l.KeyMap.CursorDown = operations.Down
+	l.KeyMap.CursorUp = keyMap.Up
+	l.KeyMap.CursorDown = keyMap.Down
 	return Model{
 		revision: revision,
 		files:    l,
 		context:  context,
+		keyMap:   context.KeyMap(),
 	}
 }
 
@@ -157,13 +159,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, Cancel):
 			return m, common.Close
-		case key.Matches(msg, operations.Diff):
+		case key.Matches(msg, m.keyMap.Details.Diff):
 			v := m.files.SelectedItem().(item).fileName
 			return m, func() tea.Msg {
 				output, _ := m.context.RunCommandImmediate(jj.Diff(m.revision, v))
 				return common.ShowDiffMsg(output)
 			}
-		case key.Matches(msg, Split):
+		case key.Matches(msg, m.keyMap.Details.Split):
 			selectedFiles, isVirtuallySelected := m.getSelectedFiles()
 			m.files.SetDelegate(itemDelegate{
 				isVirtuallySelected: isVirtuallySelected,
@@ -176,7 +178,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
-		case key.Matches(msg, Restore):
+		case key.Matches(msg, m.keyMap.Details.Restore):
 			selectedFiles, isVirtuallySelected := m.getSelectedFiles()
 			m.files.SetDelegate(itemDelegate{
 				isVirtuallySelected: isVirtuallySelected,
@@ -188,7 +190,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
-		case key.Matches(msg, Mark):
+		case key.Matches(msg, m.keyMap.Details.ToggleSelect):
 			if item, ok := m.files.SelectedItem().(item); ok {
 				item.selected = !item.selected
 				oldIndex := m.files.Index()

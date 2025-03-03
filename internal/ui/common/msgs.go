@@ -2,7 +2,6 @@ package common
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/idursun/jjui/internal/ui/operations"
 	"strings"
 )
 
@@ -12,7 +11,6 @@ type (
 	RefreshMsg    struct {
 		SelectedRevision string
 	}
-	SetOperationMsg          struct{ Operation operations.Operation }
 	ShowDiffMsg              string
 	UpdateRevisionsFailedMsg error
 	UpdateBookmarksMsg       struct {
@@ -55,12 +53,6 @@ func Refresh() tea.Msg {
 
 func ToggleHelp() tea.Msg {
 	return ToggleHelpMsg{}
-}
-
-func SetOperation(op operations.Operation) tea.Cmd {
-	return func() tea.Msg {
-		return SetOperationMsg{Operation: op}
-	}
 }
 
 func CommandRunning(args []string) tea.Cmd {

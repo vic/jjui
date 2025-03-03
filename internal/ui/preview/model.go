@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
-	"github.com/idursun/jjui/internal/ui/operations"
 	"time"
 )
 
@@ -21,6 +20,7 @@ type Model struct {
 	height  int
 	content string
 	context common.AppContext
+	keyMap  common.KeyMappings[key.Binding]
 }
 
 const DebounceTime = 200 * time.Millisecond
@@ -111,7 +111,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, operations.Cancel), key.Matches(msg, tab):
+		case key.Matches(msg, m.keyMap.Cancel), key.Matches(msg, tab):
 			m.focused = false
 			m.view.KeyMap = unfocusedKeyMap()
 			return m, nil
@@ -147,6 +147,7 @@ func New(context common.AppContext) Model {
 	view.KeyMap = unfocusedKeyMap()
 	return Model{
 		context: context,
+		keyMap:  context.KeyMap(),
 		view:    view,
 		help:    help.New(),
 	}

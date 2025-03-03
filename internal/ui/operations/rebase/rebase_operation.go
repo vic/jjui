@@ -44,38 +44,28 @@ type Operation struct {
 	To      *jj.Commit
 	Source  Source
 	Target  Target
+	keyMap  common.KeyMappings[key.Binding]
 }
-
-var (
-	Revision    = key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "change source to revision"))
-	Branch      = key.NewBinding(key.WithKeys("B"), key.WithHelp("B", "change source to branch"))
-	SourceKey   = key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "change source to descendants"))
-	Destination = key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "change target to destination"))
-	After       = key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "change target to after"))
-	Before      = key.NewBinding(key.WithKeys("b"), key.WithHelp("b", "change target to before"))
-	Apply       = key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply"))
-	Cancel      = key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel"))
-)
 
 func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
-	case key.Matches(msg, Revision):
+	case key.Matches(msg, r.keyMap.Rebase.Revision):
 		r.Source = SourceRevision
-	case key.Matches(msg, Branch):
+	case key.Matches(msg, r.keyMap.Rebase.Branch):
 		r.Source = SourceBranch
-	case key.Matches(msg, SourceKey):
+	case key.Matches(msg, r.keyMap.Rebase.Source):
 		r.Source = SourceDescendants
-	case key.Matches(msg, Destination):
+	case key.Matches(msg, r.keyMap.Rebase.Onto):
 		r.Target = TargetDestination
-	case key.Matches(msg, After):
+	case key.Matches(msg, r.keyMap.Rebase.After):
 		r.Target = TargetAfter
-	case key.Matches(msg, Before):
+	case key.Matches(msg, r.keyMap.Rebase.Before):
 		r.Target = TargetBefore
-	case key.Matches(msg, Apply):
+	case key.Matches(msg, r.keyMap.Apply):
 		source := sourceToFlags[r.Source]
 		target := targetToFlags[r.Target]
 		return r.context.RunCommand(jj.Rebase(r.From, r.To.ChangeIdShort, source, target), common.RefreshAndSelect(r.From), common.Close)
-	case key.Matches(msg, Cancel):
+	case key.Matches(msg, r.keyMap.Cancel):
 		return common.Close
 	}
 	return nil
@@ -87,12 +77,12 @@ func (r *Operation) SetSelectedRevision(commit *jj.Commit) {
 
 func (r *Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
-		Revision,
-		Branch,
-		SourceKey,
-		Destination,
-		After,
-		Before,
+		r.keyMap.Rebase.Revision,
+		r.keyMap.Rebase.Branch,
+		r.keyMap.Rebase.Source,
+		r.keyMap.Rebase.Before,
+		r.keyMap.Rebase.After,
+		r.keyMap.Rebase.Onto,
 	}
 }
 
@@ -154,6 +144,7 @@ func (r *Operation) Name() string {
 func NewOperation(context common.AppContext, from string, source Source, target Target) *Operation {
 	return &Operation{
 		context: context,
+		keyMap:  context.KeyMap(),
 		From:    from,
 		Source:  source,
 		Target:  target,

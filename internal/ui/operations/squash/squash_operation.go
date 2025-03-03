@@ -12,18 +12,14 @@ type Operation struct {
 	context common.AppContext
 	From    string
 	Current *jj.Commit
+	keyMap  common.KeyMappings[key.Binding]
 }
-
-var (
-	Apply  = key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply"))
-	Cancel = key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel"))
-)
 
 func (s *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
-	case key.Matches(msg, Apply):
+	case key.Matches(msg, s.keyMap.Apply):
 		return tea.Batch(common.Close, s.context.RunInteractiveCommand(jj.Squash(s.From, s.Current.ChangeIdShort), common.Refresh))
-	case key.Matches(msg, Cancel):
+	case key.Matches(msg, s.keyMap.Cancel):
 		return common.Close
 	}
 	return nil
@@ -47,8 +43,8 @@ func (s *Operation) Name() string {
 
 func (s *Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
-		Apply,
-		Cancel,
+		s.keyMap.Apply,
+		s.keyMap.Cancel,
 	}
 }
 
@@ -59,6 +55,7 @@ func (s *Operation) FullHelp() [][]key.Binding {
 func NewOperation(context common.AppContext, from string) *Operation {
 	return &Operation{
 		context: context,
+		keyMap:  context.KeyMap(),
 		From:    from,
 	}
 }

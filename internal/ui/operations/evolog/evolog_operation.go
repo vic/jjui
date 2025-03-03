@@ -10,10 +10,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
-var (
-	cancel = key.NewBinding(key.WithKeys("esc", "h"), key.WithHelp("esc/h", "cancel"))
-)
-
 type viewRange struct {
 	start int
 	end   int
@@ -31,10 +27,11 @@ type Operation struct {
 	cursor    int
 	width     int
 	height    int
+	keyMap    common.KeyMappings[key.Binding]
 }
 
 func (o Operation) ShortHelp() []key.Binding {
-	return []key.Binding{operations.Up, operations.Down, cancel, operations.Diff}
+	return []key.Binding{o.keyMap.Up, o.keyMap.Down, o.keyMap.Cancel, o.keyMap.Diff}
 }
 
 func (o Operation) FullHelp() [][]key.Binding {
@@ -49,21 +46,21 @@ func (o Operation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
 		return o, nil
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, cancel):
+		case key.Matches(msg, o.keyMap.Cancel):
 			return o, common.Close
-		case key.Matches(msg, operations.Diff):
+		case key.Matches(msg, o.keyMap.Diff):
 			return o, func() tea.Msg {
 				selectedCommitId := o.rows[o.cursor].Commit.CommitId
 				output, _ := o.context.RunCommandImmediate(jj.Diff(selectedCommitId, ""))
 				return common.ShowDiffMsg(output)
 			}
-		case key.Matches(msg, operations.Up):
+		case key.Matches(msg, o.keyMap.Up):
 			if o.cursor > 0 {
 				o.cursor--
 			}
 			o.context.SetSelectedItem(common.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
 			return o, common.SelectionChanged
-		case key.Matches(msg, operations.Down):
+		case key.Matches(msg, o.keyMap.Down):
 			if o.cursor < len(o.rows)-1 {
 				o.cursor++
 			}
@@ -135,6 +132,7 @@ func NewOperation(context common.AppContext, revision string, width int, height 
 	v := viewRange{start: 0, end: 0}
 	o := Operation{
 		context:   context,
+		keyMap:    context.KeyMap(),
 		revision:  revision,
 		rows:      nil,
 		viewRange: &v,

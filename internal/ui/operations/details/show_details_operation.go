@@ -10,17 +10,18 @@ import (
 
 type Operation struct {
 	Overlay tea.Model
+	keyMap  common.KeyMappings[key.Binding]
 }
 
 func (s Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
-		operations.Up,
-		operations.Down,
-		operations.Cancel,
-		operations.Diff,
-		Mark,
-		Split,
-		Restore,
+		s.keyMap.Up,
+		s.keyMap.Down,
+		s.keyMap.Cancel,
+		s.keyMap.Details.Diff,
+		s.keyMap.Details.ToggleSelect,
+		s.keyMap.Details.Split,
+		s.keyMap.Details.Restore,
 	}
 }
 
@@ -49,6 +50,7 @@ func (s Operation) Name() string {
 func NewOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := Operation{
 		Overlay: New(context, selected.ChangeId),
+		keyMap:  context.KeyMap(),
 	}
 	return op, op.Overlay.Init()
 }

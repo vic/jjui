@@ -18,12 +18,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	TogglePreview = key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "toggle preview"))
-	ToggleHelp    = key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "toggle help"))
-	PreviewFocus  = key.NewBinding(key.WithKeys("tab"), key.WithHelp("tab", "switch to preview"))
-)
-
 type Model struct {
 	revisions      tea.Model
 	revsetModel    revset.Model
@@ -38,6 +32,7 @@ type Model struct {
 	width          int
 	height         int
 	context        common.AppContext
+	keyMap         common.KeyMappings[key.Binding]
 }
 
 func (m Model) Init() tea.Cmd {
@@ -80,22 +75,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, operations.Cancel) && m.state == common.Error:
+		case key.Matches(msg, m.keyMap.Cancel) && m.state == common.Error:
 			m.state = common.Ready
 			m.error = nil
-		case key.Matches(msg, operations.Cancel) && m.helpPage != nil:
+		case key.Matches(msg, m.keyMap.Cancel) && m.helpPage != nil:
 			m.helpPage = nil
 			m.error = nil
-		case key.Matches(msg, operations.Revset):
+		case key.Matches(msg, m.keyMap.Revset):
 			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
-		case key.Matches(msg, ToggleHelp):
+		case key.Matches(msg, m.keyMap.Help):
 			cmds = append(cmds, common.ToggleHelp)
 			return m, tea.Batch(cmds...)
-		case key.Matches(msg, TogglePreview):
+		case key.Matches(msg, m.keyMap.Preview.Mode):
 			m.previewVisible = !m.previewVisible
 			cmds = append(cmds, common.SelectionChanged)
 			return m, tea.Batch(cmds...)
-		case key.Matches(msg, PreviewFocus):
+		case key.Matches(msg, m.keyMap.Preview.ToggleFocus):
 			if !m.previewVisible {
 				cmds = append(cmds, common.SelectionChanged)
 			}
@@ -105,7 +100,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case common.ToggleHelpMsg:
 		if m.helpPage == nil {
-			m.helpPage = &helppage.Model{}
+			m.helpPage = helppage.New(m.context)
 			if p, ok := m.helpPage.(common.Sizable); ok {
 				p.SetHeight(m.height - 4)
 				p.SetWidth(m.width)
@@ -202,6 +197,7 @@ func New(c common.AppContext) tea.Model {
 	statusModel := status.New(c)
 	return Model{
 		context:      c,
+		keyMap:       c.KeyMap(),
 		state:        common.Loading,
 		revisions:    &revisionsModel,
 		previewModel: &previewModel,

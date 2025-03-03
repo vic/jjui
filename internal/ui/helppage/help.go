@@ -7,16 +7,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/operations"
-	"github.com/idursun/jjui/internal/ui/operations/bookmark"
-	"github.com/idursun/jjui/internal/ui/operations/details"
-	"github.com/idursun/jjui/internal/ui/operations/git"
-	"github.com/idursun/jjui/internal/ui/operations/rebase"
-	"github.com/idursun/jjui/internal/ui/operations/squash"
 )
 
 type Model struct {
 	width  int
 	height int
+	keyMap common.KeyMappings[key.Binding]
 }
 
 func (h *Model) Width() int {
@@ -36,7 +32,7 @@ func (h *Model) SetHeight(height int) {
 }
 
 func (h *Model) ShortHelp() []key.Binding {
-	return []key.Binding{operations.Help, operations.Cancel}
+	return []key.Binding{h.keyMap.Help, h.keyMap.Cancel}
 }
 
 func (h *Model) FullHelp() [][]key.Binding {
@@ -51,7 +47,7 @@ func (h *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, operations.Help), key.Matches(msg, operations.Cancel):
+		case key.Matches(msg, h.keyMap.Help), key.Matches(msg, h.keyMap.Cancel):
 			return h, common.Close
 		}
 	}
@@ -86,10 +82,10 @@ func printMode(key key.Binding, name string) string {
 func (h *Model) View() string {
 	leftView := lipgloss.JoinVertical(lipgloss.Left,
 		printHeader("UI"),
-		printHelp(operations.Refresh),
-		printHelp(operations.Help),
-		printHelp(operations.Cancel),
-		printHelp(operations.Quit),
+		printHelp(h.keyMap.Refresh),
+		printHelp(h.keyMap.Help),
+		printHelp(h.keyMap.Cancel),
+		printHelp(h.keyMap.Quit),
 		"",
 		printHeader("Preview"),
 		printHelpExt("tab", "focus preview"),
@@ -106,52 +102,59 @@ func (h *Model) View() string {
 		printHelpExt("u", "half page up"),
 		"",
 		printHeader("Revisions"),
-		printHelp(operations.New),
-		printHelp(operations.Description),
-		printHelp(operations.Edit),
-		printHelp(operations.Diff),
-		printHelp(operations.Diffedit),
-		printHelp(operations.Split),
-		printHelp(operations.Abandon),
-		printHelp(operations.Undo),
-		printHelp(operations.Details),
+		printHelp(h.keyMap.New),
+		printHelp(h.keyMap.Describe),
+		printHelp(h.keyMap.Edit),
+		printHelp(h.keyMap.Diff),
+		printHelp(h.keyMap.Diffedit),
+		printHelp(h.keyMap.Split),
+		printHelp(h.keyMap.Abandon),
+		printHelp(h.keyMap.Undo),
+		printHelp(h.keyMap.Details.Mode),
 		"",
 		printHeader("Revset"),
-		printHelp(operations.Revset),
+		printHelp(h.keyMap.Revset),
 	)
 
 	rightView := lipgloss.JoinVertical(lipgloss.Left,
-		printMode(operations.Details, "Details"),
-		printHelp(details.Mark),
-		printHelp(details.Restore),
-		printHelp(details.Split),
-		printHelp(operations.Diff),
+		printMode(h.keyMap.Details.Mode, "Details"),
+		printHelp(h.keyMap.Details.ToggleSelect),
+		printHelp(h.keyMap.Details.Restore),
+		printHelp(h.keyMap.Details.Split),
+		printHelp(h.keyMap.Details.Diff),
 		"",
-		printMode(operations.GitMode, "Git"),
-		printHelp(git.Push),
-		printHelp(git.Fetch),
+		printMode(h.keyMap.Git.Mode, "Git"),
+		printHelp(h.keyMap.Git.Push),
+		printHelp(h.keyMap.Git.Fetch),
 		"",
-		printMode(operations.BookmarkMode, "Bookmarks"),
-		printHelp(bookmark.Move),
-		printHelp(bookmark.Set),
-		printHelp(bookmark.Delete),
+		printMode(h.keyMap.Bookmark.Mode, "Bookmarks"),
+		printHelp(h.keyMap.Bookmark.Move),
+		printHelp(h.keyMap.Bookmark.Set),
+		printHelp(h.keyMap.Bookmark.Delete),
 		"",
-		printMode(operations.RebaseMode, "Rebase"),
-		printHelp(rebase.Before),
-		printHelp(rebase.After),
-		printHelp(rebase.Destination),
-		printHelp(rebase.Revision),
-		printHelp(rebase.SourceKey),
-		printHelp(rebase.Apply),
+		printMode(h.keyMap.Rebase.Mode, "Rebase"),
+		printHelp(h.keyMap.Rebase.Revision),
+		printHelp(h.keyMap.Rebase.Source),
+		printHelp(h.keyMap.Rebase.Branch),
+		printHelp(h.keyMap.Rebase.Before),
+		printHelp(h.keyMap.Rebase.After),
+		printHelp(h.keyMap.Rebase.Onto),
+		printHelp(h.keyMap.Apply),
 		"",
-		printMode(operations.SquashMode, "Squash"),
-		printHelp(squash.Apply),
+		printMode(h.keyMap.Squash, "Squash"),
 		"",
-		printMode(operations.Evolog, "Evolog"),
-		printHelp(operations.Diff),
+		printMode(h.keyMap.Evolog, "Evolog"),
+		printHelp(h.keyMap.Diff),
 	)
 
 	content := lipgloss.JoinHorizontal(lipgloss.Left, leftView, "  ", rightView)
 
 	return lipgloss.Place(h.width, h.height, lipgloss.Center, lipgloss.Center, content)
+}
+
+func New(context common.AppContext) *Model {
+	keyMap := context.KeyMap()
+	return &Model{
+		keyMap: keyMap,
+	}
 }

@@ -37,6 +37,7 @@ type Model struct {
 	width       int
 	height      int
 	context     common.AppContext
+	keymap      common.KeyMappings[key.Binding]
 }
 
 type updateRevisionsMsg struct {
@@ -144,11 +145,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, operations.Up):
+		case key.Matches(msg, m.keymap.Up):
 			if m.cursor > 0 {
 				m.cursor--
 			}
-		case key.Matches(msg, operations.Down):
+		case key.Matches(msg, m.keymap.Down):
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
 			}
@@ -157,48 +158,48 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmd = op.HandleKey(msg)
 			} else {
 				switch {
-				case key.Matches(msg, operations.Cancel):
+				case key.Matches(msg, m.keymap.Cancel):
 					m.op = &operations.Noop{}
-				case key.Matches(msg, operations.Details):
+				case key.Matches(msg, m.keymap.Details.Mode):
 					m.op, cmd = details.NewOperation(m.context, m.SelectedRevision())
-				case key.Matches(msg, operations.Undo):
+				case key.Matches(msg, m.keymap.Undo):
 					m.op, cmd = undo.NewOperation(m.context)
-				case key.Matches(msg, operations.New):
+				case key.Matches(msg, m.keymap.New):
 					cmd = m.context.RunCommand(jj.New(m.SelectedRevision().GetChangeId()), common.RefreshAndSelect("@"))
-				case key.Matches(msg, operations.Edit):
+				case key.Matches(msg, m.keymap.Edit):
 					cmd = m.context.RunCommand(jj.Edit(m.SelectedRevision().GetChangeId()), common.Refresh)
-				case key.Matches(msg, operations.Diffedit):
+				case key.Matches(msg, m.keymap.Diffedit):
 					changeId := m.SelectedRevision().GetChangeId()
 					cmd = m.context.RunInteractiveCommand(jj.DiffEdit(changeId), common.Refresh)
-				case key.Matches(msg, operations.Abandon):
+				case key.Matches(msg, m.keymap.Abandon):
 					m.op, cmd = abandon.NewOperation(m.context, m.SelectedRevision())
-				case key.Matches(msg, operations.Split):
+				case key.Matches(msg, m.keymap.Split):
 					currentRevision := m.SelectedRevision().GetChangeId()
 					return m, m.context.RunInteractiveCommand(jj.Split(currentRevision, []string{}), common.Refresh)
-				case key.Matches(msg, operations.Description):
+				case key.Matches(msg, m.keymap.Describe):
 					currentRevision := m.SelectedRevision().GetChangeId()
 					return m, m.context.RunInteractiveCommand(jj.Describe(currentRevision), common.Refresh)
-				case key.Matches(msg, operations.Evolog):
+				case key.Matches(msg, m.keymap.Evolog):
 					m.op, cmd = evolog.NewOperation(m.context, m.SelectedRevision().GetChangeId(), m.width, m.height)
-				case key.Matches(msg, operations.Diff):
+				case key.Matches(msg, m.keymap.Diff):
 					return m, func() tea.Msg {
 						output, _ := m.context.RunCommandImmediate(jj.Diff(m.SelectedRevision().GetChangeId(), ""))
 						return common.ShowDiffMsg(output)
 					}
-				case key.Matches(msg, operations.Refresh):
+				case key.Matches(msg, m.keymap.Refresh):
 					cmd = common.Refresh
-				case key.Matches(msg, operations.GitMode):
+				case key.Matches(msg, m.keymap.Git.Mode):
 					m.op = git.NewOperation(m.context)
-				case key.Matches(msg, operations.SquashMode):
+				case key.Matches(msg, m.keymap.Squash):
 					m.op = squash.NewOperation(m.context, m.SelectedRevision().ChangeIdShort)
 					if m.cursor < len(m.rows)-1 {
 						m.cursor++
 					}
-				case key.Matches(msg, operations.RebaseMode):
+				case key.Matches(msg, m.keymap.Rebase.Mode):
 					m.op = rebase.NewOperation(m.context, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
-				case key.Matches(msg, operations.BookmarkMode):
+				case key.Matches(msg, m.keymap.Bookmark.Mode):
 					m.op = bookmark.NewChooseBookmarkOperation(m.context)
-				case key.Matches(msg, operations.Quit), key.Matches(msg, operations.Cancel):
+				case key.Matches(msg, m.keymap.Quit):
 					return m, tea.Quit
 				}
 			}
@@ -299,8 +300,10 @@ func (m *Model) selectRevision(revision string) int {
 
 func New(c common.AppContext) Model {
 	v := viewRange{start: 0, end: 0}
+	keymap := c.KeyMap()
 	return Model{
 		context:   c,
+		keymap:    keymap,
 		rows:      nil,
 		viewRange: &v,
 		op:        &operations.Noop{},
