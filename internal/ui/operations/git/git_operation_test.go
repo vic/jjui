@@ -3,7 +3,7 @@ package git
 import (
 	"github.com/charmbracelet/x/exp/teatest"
 	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/test"
 	"testing"
 	"time"
@@ -12,7 +12,7 @@ import (
 func Test_Push(t *testing.T) {
 	c := test.NewTestContext(t)
 	c.Expect(jj.GitPush())
-	c.SetSelectedItem(common.SelectedRevision{ChangeId: "revision"})
+	c.SetSelectedItem(context.SelectedRevision{ChangeId: "revision"})
 	defer c.Verify()
 
 	op := NewOperation(c)
@@ -24,7 +24,7 @@ func Test_Push(t *testing.T) {
 func Test_Fetch(t *testing.T) {
 	c := test.NewTestContext(t)
 	c.Expect(jj.GitFetch())
-	c.SetSelectedItem(common.SelectedRevision{ChangeId: "revision"})
+	c.SetSelectedItem(context.SelectedRevision{ChangeId: "revision"})
 	defer c.Verify()
 
 	op := NewOperation(c)

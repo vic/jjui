@@ -3,6 +3,7 @@ package details
 import (
 	"fmt"
 	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/ui/context"
 	"io"
 	"path"
 	"strings"
@@ -121,12 +122,12 @@ type Model struct {
 	files        list.Model
 	height       int
 	confirmation tea.Model
-	context      common.AppContext
+	context      context.AppContext
 	keyMap       common.KeyMappings[key.Binding]
 }
 type updateCommitStatusMsg []string
 
-func New(context common.AppContext, revision string) tea.Model {
+func New(context context.AppContext, revision string) tea.Model {
 	keyMap := context.KeyMap()
 	l := list.New(nil, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)
@@ -205,7 +206,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.files, cmd = m.files.Update(msg)
 				curItem := m.files.SelectedItem().(item)
 				if prevItem != curItem {
-					m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: curItem.fileName})
+					m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: curItem.fileName})
 					return m, common.SelectionChanged
 				}
 				return m, cmd
@@ -221,7 +222,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		items := m.parseFiles(msg)
 		m.files.SetItems(items)
 		if len(items) > 0 {
-			m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: m.files.SelectedItem().(item).fileName})
+			m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: m.files.SelectedItem().(item).fileName})
 		}
 		return m, common.SelectionChanged
 	case tea.WindowSizeMsg:

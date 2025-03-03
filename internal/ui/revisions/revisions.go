@@ -8,6 +8,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
+	"github.com/idursun/jjui/internal/ui/graph"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/idursun/jjui/internal/ui/operations/abandon"
 	"github.com/idursun/jjui/internal/ui/operations/bookmark"
@@ -36,7 +38,7 @@ type Model struct {
 	cursor      int
 	width       int
 	height      int
-	context     common.AppContext
+	context     context.AppContext
 	keymap      common.KeyMappings[key.Binding]
 }
 
@@ -94,19 +96,18 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	defer func() {
-		m.context.SetOp(m.op)
-	}()
 	cmds := make([]tea.Cmd, 0)
+	curOp := m.op
+
 	preSelectedRevision := m.SelectedRevision()
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
-		m.op = &operations.Noop{}
-		m.context.SetSelectedItem(common.SelectedRevision{ChangeId: m.SelectedRevision().ChangeId})
-		return m, common.SelectionChanged
-	case common.SetOperationMsg:
+		m.op = operations.Default(m.context)
+		m.context.SetSelectedItem(context.SelectedRevision{ChangeId: m.SelectedRevision().ChangeId})
+		return m, tea.Batch(common.SelectionChanged, operations.OperationChanged(m.op))
+	case operations.SetOperationMsg:
 		m.op = msg.Operation
-		return m, nil
+		return m, operations.OperationChanged(m.op)
 	case revset.UpdateRevSetMsg:
 		m.revsetValue = string(msg)
 		if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
@@ -159,7 +160,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				switch {
 				case key.Matches(msg, m.keymap.Cancel):
-					m.op = &operations.Noop{}
+					m.op = operations.Default(m.context)
 				case key.Matches(msg, m.keymap.Details.Mode):
 					m.op, cmd = details.NewOperation(m.context, m.SelectedRevision())
 				case key.Matches(msg, m.keymap.Undo):
@@ -214,7 +215,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	curSelected := m.SelectedRevision()
 	if preSelectedRevision != curSelected {
 		cmds = append(cmds, common.SelectionChanged)
-		m.context.SetSelectedItem(common.SelectedRevision{ChangeId: curSelected.ChangeId})
+		m.context.SetSelectedItem(context.SelectedRevision{ChangeId: curSelected.ChangeId})
+	}
+	if m.op.Name() != curOp.Name() {
+		cmds = append(cmds, operations.OperationChanged(m.op))
 	}
 	return m, tea.Batch(cmds...)
 }
@@ -241,7 +245,7 @@ func (m *Model) View() string {
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range m.rows {
-		nodeRenderer := common.SegmentedRenderer{
+		nodeRenderer := graph.SegmentedRenderer{
 			Palette:       common.DefaultPalette,
 			Op:            m.op,
 			IsHighlighted: i == m.cursor,
@@ -298,7 +302,7 @@ func (m *Model) selectRevision(revision string) int {
 	return idx
 }
 
-func New(c common.AppContext) Model {
+func New(c context.AppContext) Model {
 	v := viewRange{start: 0, end: 0}
 	keymap := c.KeyMap()
 	return Model{
@@ -306,7 +310,7 @@ func New(c common.AppContext) Model {
 		keymap:    keymap,
 		rows:      nil,
 		viewRange: &v,
-		op:        &operations.Noop{},
+		op:        operations.Default(c),
 		cursor:    0,
 		width:     20,
 		height:    10,

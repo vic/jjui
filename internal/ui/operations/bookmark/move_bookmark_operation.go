@@ -5,6 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"strings"
 )
@@ -14,7 +15,7 @@ var (
 )
 
 type MoveBookmarkOperation struct {
-	context common.AppContext
+	context context.AppContext
 	Overlay tea.Model
 }
 
@@ -47,7 +48,7 @@ func (m MoveBookmarkOperation) Name() string {
 	return "bookmark"
 }
 
-func NewMoveBookmarkOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewMoveBookmarkOperation(context context.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := MoveBookmarkOperation{
 		context: context,
 		Overlay: New(context, selected.GetChangeId()),

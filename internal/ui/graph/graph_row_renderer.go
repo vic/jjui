@@ -1,7 +1,8 @@
-package common
+package graph
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/ui/common"
 	"strings"
 
 	"github.com/idursun/jjui/internal/jj"
@@ -9,7 +10,7 @@ import (
 )
 
 type SegmentedRenderer struct {
-	Palette       Palette
+	Palette       common.Palette
 	IsHighlighted bool
 	Op            operations.Operation
 }

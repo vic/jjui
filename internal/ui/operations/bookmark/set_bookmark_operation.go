@@ -3,7 +3,7 @@ package bookmark
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
@@ -29,7 +29,7 @@ func (s SetBookmarkOperation) Name() string {
 	return "bookmark"
 }
 
-func NewSetBookmarkOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewSetBookmarkOperation(context context.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := SetBookmarkOperation{
 		Overlay: NewSetBookmark(context, selected.GetChangeId()),
 	}

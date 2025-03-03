@@ -1,17 +1,15 @@
-package common
+package context
 
 import (
 	"bytes"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/idursun/jjui/internal/ui/operations"
+	"github.com/idursun/jjui/internal/ui/common"
 	"os/exec"
 )
 
 type AppContext interface {
-	Op() operations.Operation
-	SetOp(op operations.Operation)
-	KeyMap() KeyMappings[key.Binding]
+	KeyMap() common.KeyMappings[key.Binding]
 	SelectedItem() SelectedItem
 	SetSelectedItem(item SelectedItem)
 	RunCommandImmediate(args []string) ([]byte, error)
@@ -33,19 +31,10 @@ type SelectedFile struct {
 type MainContext struct {
 	selectedItem SelectedItem
 	location     string
-	config       Config
-	op           operations.Operation
+	config       common.Config
 }
 
-func (a *MainContext) Op() operations.Operation {
-	return a.op
-}
-
-func (a *MainContext) SetOp(op operations.Operation) {
-	a.op = op
-}
-
-func (a *MainContext) KeyMap() KeyMappings[key.Binding] {
+func (a *MainContext) KeyMap() common.KeyMappings[key.Binding] {
 	return a.config.GetKeyMap()
 }
 
@@ -71,14 +60,14 @@ func (a *MainContext) RunCommand(args []string, continuations ...tea.Cmd) tea.Cm
 			c := exec.Command("jj", args...)
 			c.Dir = a.location
 			output, err := c.CombinedOutput()
-			return CommandCompletedMsg{
+			return common.CommandCompletedMsg{
 				Output: string(output),
 				Err:    err,
 			}
 		})
 	commands = append(commands, continuations...)
 	return tea.Batch(
-		CommandRunning(args),
+		common.CommandRunning(args),
 		tea.Sequence(commands...),
 	)
 }
@@ -92,7 +81,7 @@ func (a *MainContext) RunInteractiveCommand(args []string, continuation tea.Cmd)
 }
 
 func NewAppContext(location string) AppContext {
-	config := NewConfiguration()
+	config := common.NewConfiguration()
 	return &MainContext{
 		location: location,
 		config:   config,

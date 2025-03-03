@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 	"io"
 
@@ -22,7 +23,7 @@ type Model struct {
 	revision string
 	list     list.Model
 	op       operations.Operation
-	context  common.AppContext
+	context  context.AppContext
 }
 
 type item string
@@ -96,7 +97,7 @@ func (m Model) View() string {
 	return m.list.View()
 }
 
-func New(context common.AppContext, revision string) tea.Model {
+func New(context context.AppContext, revision string) tea.Model {
 	l := list.New(nil, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)
 	l.SetShowPagination(false)
@@ -114,7 +115,7 @@ func New(context common.AppContext, revision string) tea.Model {
 	}
 }
 
-func NewDeleteBookmark(context common.AppContext, revision string, bookmarks []string) tea.Model {
+func NewDeleteBookmark(context context.AppContext, revision string, bookmarks []string) tea.Model {
 	items := convertToItems(bookmarks)
 	l := list.New(items, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)

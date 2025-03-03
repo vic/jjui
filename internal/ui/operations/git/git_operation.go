@@ -5,11 +5,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
 type Operation struct {
-	context common.AppContext
+	context context.AppContext
 	keyMap  common.KeyMappings[key.Binding]
 }
 
@@ -53,7 +54,7 @@ func (o *Operation) FullHelp() [][]key.Binding {
 	return [][]key.Binding{o.ShortHelp()}
 }
 
-func NewOperation(context common.AppContext) *Operation {
+func NewOperation(context context.AppContext) *Operation {
 	return &Operation{
 		context: context,
 		keyMap:  context.KeyMap(),

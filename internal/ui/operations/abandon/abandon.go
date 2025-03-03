@@ -5,13 +5,14 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/confirmation"
+	"github.com/idursun/jjui/internal/ui/context"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Model struct {
 	confirmation tea.Model
-	context      common.AppContext
+	context      context.AppContext
 }
 
 func (m Model) Init() tea.Cmd {
@@ -28,7 +29,7 @@ func (m Model) View() string {
 	return m.confirmation.View()
 }
 
-func New(context common.AppContext, revision string) tea.Model {
+func New(context context.AppContext, revision string) tea.Model {
 	model := confirmation.New("Are you sure you want to abandon this revision?")
 	model.AddOption("Yes", context.RunCommand(jj.Abandon(revision), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))

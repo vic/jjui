@@ -7,6 +7,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
+	"github.com/idursun/jjui/internal/ui/graph"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
@@ -20,7 +22,7 @@ type updateEvologMsg struct {
 }
 
 type Operation struct {
-	context   common.AppContext
+	context   context.AppContext
 	revision  string
 	rows      []jj.GraphRow
 	viewRange *viewRange
@@ -58,13 +60,13 @@ func (o Operation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
 			if o.cursor > 0 {
 				o.cursor--
 			}
-			o.context.SetSelectedItem(common.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
+			o.context.SetSelectedItem(context.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
 			return o, common.SelectionChanged
 		case key.Matches(msg, o.keyMap.Down):
 			if o.cursor < len(o.rows)-1 {
 				o.cursor++
 			}
-			o.context.SetSelectedItem(common.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
+			o.context.SetSelectedItem(context.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
 			return o, common.SelectionChanged
 		}
 	}
@@ -84,7 +86,7 @@ func (o Operation) Render() string {
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range o.rows {
-		nodeRenderer := common.SegmentedRenderer{
+		nodeRenderer := graph.SegmentedRenderer{
 			Palette:       common.DefaultPalette,
 			Op:            &operations.Noop{},
 			IsHighlighted: i == o.cursor,
@@ -128,7 +130,7 @@ func (o Operation) load() tea.Msg {
 	}
 }
 
-func NewOperation(context common.AppContext, revision string, width int, height int) (*Operation, tea.Cmd) {
+func NewOperation(context context.AppContext, revision string, width int, height int) (*Operation, tea.Cmd) {
 	v := viewRange{start: 0, end: 0}
 	o := Operation{
 		context:   context,

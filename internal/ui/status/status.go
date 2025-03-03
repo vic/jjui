@@ -7,11 +7,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
+	"github.com/idursun/jjui/internal/ui/operations"
 	"time"
 )
 
 type Model struct {
-	context common.AppContext
+	context context.AppContext
 	spinner spinner.Model
 	help    help.Model
 	command string
@@ -19,6 +21,7 @@ type Model struct {
 	output  string
 	error   error
 	width   int
+	op      operations.Operation
 }
 
 const CommandClearDuration = 3 * time.Second
@@ -67,6 +70,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Tick(CommandClearDuration, func(time.Time) tea.Msg {
 			return clearMsg{}
 		})
+	case operations.OperationChangedMsg:
+		m.op = msg.Operation
+		return m, nil
 	default:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
@@ -83,12 +89,12 @@ func (m *Model) View() string {
 	} else if m.command != "" {
 		s = successStyle.Render("✓ ")
 	} else {
-		if o, ok := m.context.Op().(help.KeyMap); ok {
+		if o, ok := m.op.(help.KeyMap); ok {
 			s = m.help.View(o)
 		}
 	}
 	ret := normalStyle.Width(m.width - 2).SetString(m.command).Render()
-	mode := modeStyle.Width(10).Render(m.context.Op().Name())
+	mode := modeStyle.Width(10).Render(m.op.Name())
 	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, " ", s, ret)
 	if m.error != nil {
 		ret += " " + errorStyle.Render(fmt.Sprintf("\n%v\n%s", m.error, m.output))
@@ -96,7 +102,7 @@ func (m *Model) View() string {
 	return ret
 }
 
-func New(context common.AppContext) Model {
+func New(context context.AppContext) Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	h := help.New()
@@ -105,6 +111,7 @@ func New(context common.AppContext) Model {
 	h.ShortSeparator = " "
 	return Model{
 		context: context,
+		op:      operations.Default(context),
 		spinner: s,
 		help:    h,
 		command: "",

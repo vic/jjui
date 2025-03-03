@@ -3,7 +3,7 @@ package abandon
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
@@ -30,7 +30,7 @@ func (a Operation) Name() string {
 	return "abandon"
 }
 
-func NewOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewOperation(context context.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := Operation{
 		selected: selected,
 		Overlay:  New(context, selected.GetChangeId()),

@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"time"
 )
 
@@ -19,7 +20,7 @@ type Model struct {
 	width   int
 	height  int
 	content string
-	context common.AppContext
+	context context.AppContext
 	keyMap  common.KeyMappings[key.Binding]
 }
 
@@ -97,12 +98,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case refreshPreviewContentMsg:
 		if m.tag == msg.Tag {
 			switch msg := m.context.SelectedItem().(type) {
-			case common.SelectedFile:
+			case context.SelectedFile:
 				return m, func() tea.Msg {
 					output, _ := m.context.RunCommandImmediate(jj.Diff(msg.ChangeId, msg.File))
 					return updatePreviewContentMsg{Content: string(output)}
 				}
-			case common.SelectedRevision:
+			case context.SelectedRevision:
 				return m, func() tea.Msg {
 					output, _ := m.context.RunCommandImmediate(jj.Show(msg.ChangeId))
 					return updatePreviewContentMsg{Content: string(output)}
@@ -141,7 +142,7 @@ func unfocusedKeyMap() viewport.KeyMap {
 	}
 }
 
-func New(context common.AppContext) Model {
+func New(context context.AppContext) Model {
 	view := viewport.New(0, 0)
 	view.Style = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 	view.KeyMap = unfocusedKeyMap()

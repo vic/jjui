@@ -6,6 +6,7 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/confirmation"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
@@ -31,7 +32,7 @@ func (o Operation) Name() string {
 	return "undo"
 }
 
-func NewOperation(context common.AppContext) (operations.Operation, tea.Cmd) {
+func NewOperation(context context.AppContext) (operations.Operation, tea.Cmd) {
 	model := confirmation.New("Are you sure you want to undo last change?")
 	model.AddOption("Yes", context.RunCommand(jj.Undo(), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))

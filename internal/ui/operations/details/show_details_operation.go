@@ -5,6 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
@@ -47,7 +48,7 @@ func (s Operation) Name() string {
 	return "details"
 }
 
-func NewOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewOperation(context context.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := Operation{
 		Overlay: New(context, selected.ChangeId),
 		keyMap:  context.KeyMap(),

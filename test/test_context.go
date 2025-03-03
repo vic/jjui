@@ -1,11 +1,12 @@
 package test
 
 import (
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/idursun/jjui/internal/ui/context"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/ui/common"
-	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,22 +23,19 @@ func (e *ExpectedCommand) SetOutput(output []byte) *ExpectedCommand {
 
 type TestContext struct {
 	*testing.T
-	selectedItem common.SelectedItem
+	selectedItem context.SelectedItem
 	expectations map[string][]*ExpectedCommand
 }
 
-func (t *TestContext) Op() operations.Operation {
-	return nil
+func (t *TestContext) KeyMap() common.KeyMappings[key.Binding] {
+	return common.Convert(common.DefaultKeyMappings)
 }
 
-func (t *TestContext) SetOp(operations.Operation) {
-}
-
-func (t *TestContext) SelectedItem() common.SelectedItem {
+func (t *TestContext) SelectedItem() context.SelectedItem {
 	return t.selectedItem
 }
 
-func (t *TestContext) SetSelectedItem(item common.SelectedItem) {
+func (t *TestContext) SetSelectedItem(item context.SelectedItem) {
 	t.selectedItem = item
 }
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/helppage"
-	"github.com/idursun/jjui/internal/ui/operations"
 	"github.com/idursun/jjui/internal/ui/preview"
 	"github.com/idursun/jjui/internal/ui/revset"
 
@@ -31,7 +31,7 @@ type Model struct {
 	output         string
 	width          int
 	height         int
-	context        common.AppContext
+	context        context.AppContext
 	keyMap         common.KeyMappings[key.Binding]
 }
 
@@ -189,8 +189,7 @@ func (m Model) View() string {
 	return lipgloss.JoinVertical(0, topView, centerView, footer)
 }
 
-func New(c common.AppContext) tea.Model {
-	c.SetOp(&operations.Noop{})
+func New(c context.AppContext) tea.Model {
 	defaultRevSet, _ := c.RunCommandImmediate(jj.ConfigGet("revsets.log"))
 	revisionsModel := revisions.New(c)
 	previewModel := preview.New(c)

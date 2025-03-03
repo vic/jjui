@@ -5,12 +5,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
 type ChooseBookmarkOperation struct {
 	selected *jj.Commit
-	context  common.AppContext
+	context  context.AppContext
 }
 
 func (c *ChooseBookmarkOperation) SetSelectedRevision(commit *jj.Commit) {
@@ -21,13 +22,13 @@ func (c *ChooseBookmarkOperation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, Move):
 		operation, cmd := NewMoveBookmarkOperation(c.context, c.selected)
-		return tea.Sequence(common.SetOperation(operation), cmd)
+		return tea.Sequence(operations.SetOperation(operation), cmd)
 	case key.Matches(msg, Set):
 		operation, cmd := NewSetBookmarkOperation(c.context, c.selected)
-		return tea.Sequence(common.SetOperation(operation), cmd)
+		return tea.Sequence(operations.SetOperation(operation), cmd)
 	case key.Matches(msg, Delete):
 		operation, cmd := NewDeleteBookmarkOperation(c.context, c.selected)
-		return tea.Sequence(common.SetOperation(operation), cmd)
+		return tea.Sequence(operations.SetOperation(operation), cmd)
 	case key.Matches(msg, Cancel):
 		return common.Close
 	}
@@ -66,7 +67,7 @@ func (c *ChooseBookmarkOperation) Name() string {
 	return "bookmark"
 }
 
-func NewChooseBookmarkOperation(context common.AppContext) operations.Operation {
+func NewChooseBookmarkOperation(context context.AppContext) operations.Operation {
 	return &ChooseBookmarkOperation{
 		context: context,
 	}

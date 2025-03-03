@@ -5,10 +5,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 )
 
 type SetBookmarkModel struct {
-	context  common.AppContext
+	context  context.AppContext
 	revision string
 	name     textarea.Model
 }
@@ -38,7 +39,7 @@ func (m SetBookmarkModel) View() string {
 	return m.name.View()
 }
 
-func NewSetBookmark(context common.AppContext, revision string) tea.Model {
+func NewSetBookmark(context context.AppContext, revision string) tea.Model {
 	t := textarea.New()
 	t.SetValue("")
 	t.Focus()

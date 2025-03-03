@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
@@ -39,7 +40,7 @@ var (
 )
 
 type Operation struct {
-	context common.AppContext
+	context context.AppContext
 	From    string
 	To      *jj.Commit
 	Source  Source
@@ -141,7 +142,7 @@ func (r *Operation) Name() string {
 	return "rebase"
 }
 
-func NewOperation(context common.AppContext, from string, source Source, target Target) *Operation {
+func NewOperation(context context.AppContext, from string, source Source, target Target) *Operation {
 	return &Operation{
 		context: context,
 		keyMap:  context.KeyMap(),

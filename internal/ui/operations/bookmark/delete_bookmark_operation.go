@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
@@ -45,7 +45,7 @@ func (d DeleteBookmarkOperation) Name() string {
 	return "bookmark"
 }
 
-func NewDeleteBookmarkOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewDeleteBookmarkOperation(context context.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := DeleteBookmarkOperation{
 		Overlay: NewDeleteBookmark(context, selected.GetChangeId(), selected.Bookmarks),
 	}

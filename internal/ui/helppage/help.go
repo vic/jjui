@@ -6,7 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/ui/common"
-	"github.com/idursun/jjui/internal/ui/operations"
+	"github.com/idursun/jjui/internal/ui/context"
 )
 
 type Model struct {
@@ -152,7 +152,7 @@ func (h *Model) View() string {
 	return lipgloss.Place(h.width, h.height, lipgloss.Center, lipgloss.Center, content)
 }
 
-func New(context common.AppContext) *Model {
+func New(context context.AppContext) *Model {
 	keyMap := context.KeyMap()
 	return &Model{
 		keyMap: keyMap,

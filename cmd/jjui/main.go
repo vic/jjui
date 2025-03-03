@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/context"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -25,9 +25,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	context := common.NewAppContext(location)
+	appContext := context.NewAppContext(location)
 
-	p := tea.NewProgram(ui.New(context), tea.WithAltScreen())
+	p := tea.NewProgram(ui.New(appContext), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running program: %v\n", err)
 		os.Exit(1)
