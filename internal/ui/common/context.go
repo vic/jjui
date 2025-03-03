@@ -3,10 +3,13 @@ package common
 import (
 	"bytes"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/idursun/jjui/internal/ui/operations"
 	"os/exec"
 )
 
 type AppContext interface {
+	Op() operations.Operation
+	SetOp(op operations.Operation)
 	SelectedItem() SelectedItem
 	SetSelectedItem(item SelectedItem)
 	RunCommandImmediate(args []string) ([]byte, error)
@@ -28,6 +31,15 @@ type SelectedFile struct {
 type MainContext struct {
 	selectedItem SelectedItem
 	location     string
+	op           operations.Operation
+}
+
+func (a *MainContext) Op() operations.Operation {
+	return a.op
+}
+
+func (a *MainContext) SetOp(op operations.Operation) {
+	a.op = op
 }
 
 func (a *MainContext) SelectedItem() SelectedItem {

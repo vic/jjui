@@ -28,7 +28,7 @@ func (o Operation) Render() string {
 }
 
 func (o Operation) Name() string {
-	return "Undo"
+	return "undo"
 }
 
 func NewOperation(context common.AppContext) (operations.Operation, tea.Cmd) {

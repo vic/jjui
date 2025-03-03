@@ -25,7 +25,7 @@ func (o *Operation) Render() string {
 }
 
 func (o *Operation) Name() string {
-	return "Git"
+	return "git"
 }
 
 var (

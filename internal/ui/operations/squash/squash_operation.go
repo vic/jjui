@@ -42,7 +42,7 @@ func (s *Operation) RenderPosition() operations.RenderPosition {
 }
 
 func (s *Operation) Name() string {
-	return "Squash"
+	return "squash"
 }
 
 func (s *Operation) ShortHelp() []key.Binding {

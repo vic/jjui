@@ -27,7 +27,7 @@ func (a Operation) Render() string {
 }
 
 func (a Operation) Name() string {
-	return "Abandon"
+	return "abandon"
 }
 
 func NewOperation(context common.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {

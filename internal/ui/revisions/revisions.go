@@ -93,6 +93,9 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	defer func() {
+		m.context.SetOp(m.op)
+	}()
 	cmds := make([]tea.Cmd, 0)
 	preSelectedRevision := m.SelectedRevision()
 	switch msg := msg.(type) {

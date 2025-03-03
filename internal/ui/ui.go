@@ -2,8 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/helppage"
@@ -16,7 +14,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/revisions"
 	"github.com/idursun/jjui/internal/ui/status"
 
-	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -34,7 +31,6 @@ type Model struct {
 	previewVisible bool
 	helpPage       tea.Model
 	diff           tea.Model
-	help           help.Model
 	state          common.State
 	error          error
 	status         tea.Model
@@ -163,21 +159,12 @@ func (m Model) View() string {
 	}
 
 	topView := m.revsetModel.View()
-
 	if m.state == common.Error {
 		topView += fmt.Sprintf("\nerror: %v\n", m.error)
 	}
-
 	topViewHeight := lipgloss.Height(topView)
 
-	var b strings.Builder
-	if h, ok := m.revisions.(help.KeyMap); ok {
-		b.WriteString(m.help.View(h))
-		b.WriteString("\n")
-	}
-	b.WriteString(m.status.View())
-
-	footer := b.String()
+	footer := m.status.View()
 	footerHeight := lipgloss.Height(footer)
 
 	if m.helpPage != nil {
@@ -208,20 +195,16 @@ func (m Model) View() string {
 }
 
 func New(c common.AppContext) tea.Model {
-	h := help.New()
-	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
-	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
-	h.ShortSeparator = " "
+	c.SetOp(&operations.Noop{})
 	defaultRevSet, _ := c.RunCommandImmediate(jj.ConfigGet("revsets.log"))
 	revisionsModel := revisions.New(c)
 	previewModel := preview.New(c)
-	statusModel := status.New()
+	statusModel := status.New(c)
 	return Model{
 		context:      c,
 		state:        common.Loading,
 		revisions:    &revisionsModel,
 		previewModel: &previewModel,
-		help:         h,
 		status:       &statusModel,
 		revsetModel:  revset.New(string(defaultRevSet)),
 	}
