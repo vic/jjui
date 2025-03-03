@@ -38,11 +38,6 @@ In this mode, you can:
 
 For detailed information, see [Details](https://github.com/idursun/jjui/wiki/Details) wiki page.
 
-### Description
-You can edit or update description of a revision.
-
-![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_description.gif)
-
 ### Abandon
 You can abandon a revision.
 
@@ -75,11 +70,11 @@ You can see diffs of revisions.
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_diff.gif)
 
 Additionally,
-
-* Create a _new_ revision
-* _Edit_ a revision
-* Git _push_/_fetch_
-* Undo last change
+* Edit description of a revision by pressing `D`
+* Create a _new_ revision by pressing `n`
+* _Edit_ a revision by pressing `e`
+* Git _push_/_fetch_ by pressing `g`, followed by `p` or `f`
+* Undo last change by pressing `u`
 
 ## Installation
 
