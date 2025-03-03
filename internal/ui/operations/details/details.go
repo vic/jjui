@@ -197,15 +197,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		default:
-			var cmd tea.Cmd
-			prevItem := m.files.SelectedItem().(item)
-			m.files, cmd = m.files.Update(msg)
-			curItem := m.files.SelectedItem().(item)
-			if prevItem != curItem {
-				m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: curItem.fileName})
-				return m, common.SelectionChanged
+			if len(m.files.Items()) > 0 {
+				var cmd tea.Cmd
+				prevItem := m.files.SelectedItem().(item)
+				m.files, cmd = m.files.Update(msg)
+				curItem := m.files.SelectedItem().(item)
+				if prevItem != curItem {
+					m.context.SetSelectedItem(common.SelectedFile{ChangeId: m.revision, File: curItem.fileName})
+					return m, common.SelectionChanged
+				}
+				return m, cmd
 			}
-			return m, cmd
 		}
 	case confirmation.CloseMsg:
 		m.confirmation = nil
