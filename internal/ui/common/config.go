@@ -25,6 +25,7 @@ var DefaultKeyMappings = KeyMappings[keys]{
 	Describe: []string{"D"},
 	Abandon:  []string{"a"},
 	Edit:     []string{"e"},
+	Diff:     []string{"d"},
 	Diffedit: []string{"E"},
 	Split:    []string{"s"},
 	Squash:   []string{"S"},
