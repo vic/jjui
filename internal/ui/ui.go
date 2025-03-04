@@ -102,7 +102,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.helpPage == nil {
 			m.helpPage = helppage.New(m.context)
 			if p, ok := m.helpPage.(common.Sizable); ok {
-				p.SetHeight(m.height - 4)
+				p.SetHeight(m.height - 2)
 				p.SetWidth(m.width)
 			}
 		} else {
