@@ -103,8 +103,8 @@ func New(context context.AppContext) Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	h := help.New()
-	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
-	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
+	h.Styles.ShortKey = common.DefaultPalette.ChangeId
+	h.Styles.ShortDesc = common.DefaultPalette.Rest
 	h.ShortSeparator = " "
 	return Model{
 		context: context,

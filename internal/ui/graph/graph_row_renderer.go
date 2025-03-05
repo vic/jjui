@@ -42,7 +42,7 @@ func (s SegmentedRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.
 }
 
 func (s SegmentedRenderer) RenderTermination(connection jj.ConnectionType) string {
-	return s.Palette.CommitIdRestStyle.Render(string(connection))
+	return s.Palette.Elided.Render(string(connection))
 }
 
 func (s SegmentedRenderer) RenderChangeId(commit *jj.Commit) string {
@@ -51,28 +51,28 @@ func (s SegmentedRenderer) RenderChangeId(commit *jj.Commit) string {
 		hidden = s.Palette.Normal.Render(" hidden")
 	}
 
-	return fmt.Sprintf("%s%s %s", s.Palette.CommitShortStyle.Render(commit.ChangeIdShort), s.Palette.CommitIdRestStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):]), hidden)
+	return fmt.Sprintf("%s%s %s", s.Palette.ChangeId.Render(commit.ChangeIdShort), s.Palette.Rest.Render(commit.ChangeId[len(commit.ChangeIdShort):]), hidden)
 }
 
 func (s SegmentedRenderer) RenderCommitId(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return ""
 	}
-	return s.Palette.CommitShortStyle.Render(commit.CommitIdShort) + s.Palette.CommitIdRestStyle.Render(commit.CommitId[len(commit.ChangeIdShort):])
+	return s.Palette.CommitId.Render(commit.CommitIdShort) + s.Palette.Rest.Render(commit.CommitId[len(commit.ChangeIdShort):])
 }
 
 func (s SegmentedRenderer) RenderAuthor(commit *jj.Commit) string {
 	if commit.IsRoot() {
-		return s.Palette.Empty.Render("root()")
+		return s.Palette.EmptyPlaceholder.Render("root()")
 	}
-	return s.Palette.AuthorStyle.Render(commit.Author)
+	return s.Palette.Author.Render(commit.Author)
 }
 
 func (s SegmentedRenderer) RenderDate(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return ""
 	}
-	return s.Palette.TimestampStyle.Render(commit.Timestamp)
+	return s.Palette.Timestamp.Render(commit.Timestamp)
 }
 
 func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
@@ -81,14 +81,14 @@ func (s SegmentedRenderer) RenderBookmarks(commit *jj.Commit) string {
 		w.WriteString(s.Op.Render())
 	}
 	if len(commit.Bookmarks) > 0 {
-		w.WriteString(s.Palette.BookmarksStyle.Render(strings.Join(commit.Bookmarks, " ")))
+		w.WriteString(s.Palette.Bookmarks.Render(strings.Join(commit.Bookmarks, " ")))
 	}
 	return w.String()
 }
 
 func (s SegmentedRenderer) RenderMarkers(commit *jj.Commit) string {
 	if commit.Conflict {
-		return s.Palette.ConflictStyle.Render("conflict")
+		return s.Palette.Conflict.Render("conflict")
 	}
 	return ""
 }
@@ -99,14 +99,14 @@ func (s SegmentedRenderer) RenderDescription(commit *jj.Commit) string {
 	}
 	var w strings.Builder
 	if commit.Empty {
-		w.WriteString(s.Palette.Empty.Render("(empty)"))
+		w.WriteString(s.Palette.EmptyPlaceholder.Render("(empty)"))
 		w.WriteString(" ")
 	}
 	if commit.Description == "" {
 		if commit.Empty {
-			w.WriteString(s.Palette.Empty.Render("(no description set)"))
+			w.WriteString(s.Palette.EmptyPlaceholder.Render("(no description set)"))
 		} else {
-			w.WriteString(s.Palette.NonEmpty.Render("(no description set)"))
+			w.WriteString(s.Palette.Placeholder.Render("(no description set)"))
 		}
 	} else {
 		w.WriteString(s.Palette.Normal.Render(commit.Description))

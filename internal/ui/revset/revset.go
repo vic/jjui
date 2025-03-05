@@ -101,8 +101,8 @@ func (m Model) IsFocused() bool {
 }
 
 var (
-	promptStyle = common.DefaultPalette.CommitShortStyle
-	cursorStyle = common.DefaultPalette.Empty
+	promptStyle = common.DefaultPalette.ChangeId
+	cursorStyle = common.DefaultPalette.EmptyPlaceholder
 )
 
 type keymap struct{}
@@ -132,8 +132,8 @@ func New(defaultRevSet string) Model {
 	ti.SetValue(defaultRevSet)
 
 	h := help.New()
-	h.Styles.ShortKey = common.DefaultPalette.CommitShortStyle
-	h.Styles.ShortDesc = common.DefaultPalette.CommitIdRestStyle
+	h.Styles.ShortKey = common.DefaultPalette.ChangeId
+	h.Styles.ShortDesc = common.DefaultPalette.Rest
 	return Model{
 		Editing:       false,
 		Value:         defaultRevSet,

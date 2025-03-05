@@ -126,14 +126,14 @@ func (r *Operation) Render() string {
 		lipgloss.Left,
 		common.DropStyle.Render("<< "+ret+" >>"),
 		" ",
-		common.DefaultPalette.CommitIdRestStyle.Render("rebase"),
+		common.DefaultPalette.Rest.Render("rebase"),
 		" ",
-		common.DefaultPalette.CommitIdRestStyle.Render(source),
-		common.DefaultPalette.CommitShortStyle.Render(r.From),
+		common.DefaultPalette.Rest.Render(source),
+		common.DefaultPalette.ChangeId.Render(r.From),
 		" ",
-		common.DefaultPalette.CommitIdRestStyle.Render(ret),
+		common.DefaultPalette.Rest.Render(ret),
 		" ",
-		common.DefaultPalette.CommitShortStyle.Render(r.To.ChangeIdShort),
+		common.DefaultPalette.ChangeId.Render(r.To.ChangeIdShort),
 	)
 }
 

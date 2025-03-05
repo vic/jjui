@@ -55,8 +55,8 @@ func (h *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 var (
-	keyStyle  = common.DefaultPalette.CommitShortStyle
-	descStyle = common.DefaultPalette.CommitIdRestStyle
+	keyStyle  = common.DefaultPalette.ChangeId
+	descStyle = common.DefaultPalette.Rest
 )
 
 func printHelp(k key.Binding) string {
@@ -70,12 +70,12 @@ func printHelpExt(key string, desc string) string {
 }
 
 func printHeader(header string) string {
-	return common.DefaultPalette.Empty.Render(header)
+	return common.DefaultPalette.EmptyPlaceholder.Render(header)
 }
 
 func printMode(key key.Binding, name string) string {
 	keyAligned := fmt.Sprintf("%9s", key.Help().Key)
-	help := fmt.Sprintf("%v %s", keyStyle.Render(keyAligned), common.DefaultPalette.Empty.Render(name))
+	help := fmt.Sprintf("%v %s", keyStyle.Render(keyAligned), common.DefaultPalette.EmptyPlaceholder.Render(name))
 	return help
 }
 
