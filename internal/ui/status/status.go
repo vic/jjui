@@ -2,6 +2,8 @@ package status
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -9,7 +11,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/operations"
-	"time"
 )
 
 type Model struct {
@@ -33,7 +34,7 @@ var (
 	modeStyle    = lipgloss.NewStyle().Inherit(normalStyle).Foreground(common.Black).Background(common.DarkBlue)
 )
 
-type clearMsg struct{}
+type clearMsg string
 
 func (m *Model) Width() int {
 	return m.width
@@ -55,9 +56,11 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case clearMsg:
-		m.command = ""
-		m.error = nil
-		m.output = ""
+		if m.command == string(msg) {
+			m.command = ""
+			m.error = nil
+			m.output = ""
+		}
 		return m, nil
 	case common.CommandRunningMsg:
 		m.command = string(msg)
@@ -67,8 +70,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.running = false
 		m.output = msg.Output
 		m.error = msg.Err
+		commandToBeCleared := m.command
 		return m, tea.Tick(CommandClearDuration, func(time.Time) tea.Msg {
-			return clearMsg{}
+			return clearMsg(commandToBeCleared)
 		})
 	case operations.OperationChangedMsg:
 		m.op = msg.Operation
