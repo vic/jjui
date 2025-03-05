@@ -97,7 +97,7 @@ func GitPush() CommandArgs {
 }
 
 func Show(revision string) CommandArgs {
-	return []string{"show", "-r", revision, "--color", "always"}
+	return []string{"show", "-r", revision, "--summary", "--git", "--ignore-all-space", "--color", "always"}
 }
 
 func Rebase(from string, to string, source string, target string) CommandArgs {
