@@ -5,18 +5,18 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-
 	"github.com/idursun/jjui/internal/ui/common"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 var (
-	right  = key.NewBinding(key.WithKeys("right", "l"))
-	left   = key.NewBinding(key.WithKeys("left", "h"))
-	enter  = key.NewBinding(key.WithKeys("enter"))
-	cancel = key.NewBinding(key.WithKeys("esc"))
+	right = key.NewBinding(key.WithKeys("right", "l"))
+	left  = key.NewBinding(key.WithKeys("left", "h"))
+	enter = key.NewBinding(key.WithKeys("enter"))
 )
+
+var border = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 1, 0, 1)
 
 type CloseMsg struct{}
 
@@ -31,20 +31,6 @@ type Model struct {
 	options  []option
 	selected int
 }
-
-var (
-	textStyle   = lipgloss.NewStyle().Bold(true).Foreground(common.Magenta)
-	normalStyle = lipgloss.NewStyle().
-			Foreground(common.White).
-			PaddingLeft(2).
-			PaddingRight(2)
-)
-
-var selectedStyle = lipgloss.NewStyle().
-	Foreground(common.DarkWhite).
-	Background(common.Blue).
-	PaddingLeft(2).
-	PaddingRight(2)
 
 func (m *Model) Init() tea.Cmd {
 	return nil
@@ -78,16 +64,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) View() string {
 	w := strings.Builder{}
-	w.WriteString(textStyle.Render(m.message))
+	w.WriteString(common.DefaultPalette.ConfirmationText.Render(m.message))
 	for i, option := range m.options {
 		w.WriteString(" ")
 		if i == m.selected {
-			w.WriteString(selectedStyle.Render(option.label))
+			w.WriteString(common.DefaultPalette.FocusedButton.Render(option.label))
 		} else {
-			w.WriteString(normalStyle.Render(option.label))
+			w.WriteString(common.DefaultPalette.Button.Render(option.label))
 		}
 	}
-	return lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 1, 0, 1).Render(w.String())
+	return border.Render(w.String())
 }
 
 func (m *Model) AddOption(label string, cmd tea.Cmd, keyBinding key.Binding) {

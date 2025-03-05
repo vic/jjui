@@ -27,13 +27,6 @@ type Model struct {
 
 const CommandClearDuration = 3 * time.Second
 
-var (
-	normalStyle  = lipgloss.NewStyle()
-	successStyle = lipgloss.NewStyle().Inherit(normalStyle).Foreground(common.Green)
-	errorStyle   = lipgloss.NewStyle().Inherit(normalStyle).Foreground(common.Red)
-	modeStyle    = lipgloss.NewStyle().Inherit(normalStyle).Foreground(common.Black).Background(common.DarkBlue)
-)
-
 type clearMsg string
 
 func (m *Model) Width() int {
@@ -85,23 +78,23 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	s := normalStyle.Render(" ")
+	s := common.DefaultPalette.StatusNormal.Render(" ")
 	if m.running {
-		s = normalStyle.Render(m.spinner.View())
+		s = common.DefaultPalette.StatusNormal.Render(m.spinner.View())
 	} else if m.error != nil {
-		s = errorStyle.Render("✗ ")
+		s = common.DefaultPalette.StatusError.Render("✗ ")
 	} else if m.command != "" {
-		s = successStyle.Render("✓ ")
+		s = common.DefaultPalette.StatusSuccess.Render("✓ ")
 	} else {
 		if o, ok := m.op.(help.KeyMap); ok {
 			s = m.help.View(o)
 		}
 	}
-	ret := normalStyle.Width(m.width - 2).SetString(m.command).Render()
-	mode := modeStyle.Width(10).Render(m.op.Name())
+	ret := common.DefaultPalette.StatusNormal.Width(m.width - 2).SetString(m.command).Render()
+	mode := common.DefaultPalette.StatusMode.Width(10).Render(m.op.Name())
 	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, " ", s, ret)
 	if m.error != nil {
-		ret += " " + errorStyle.Render(fmt.Sprintf("\n%v\n%s", m.error, m.output))
+		ret += " " + common.DefaultPalette.StatusError.Render(fmt.Sprintf("\n%v\n%s", m.error, m.output))
 	}
 	return ret
 }

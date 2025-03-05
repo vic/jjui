@@ -16,14 +16,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/confirmation"
 )
 
-var (
-	AddedStyle    = lipgloss.NewStyle().Foreground(common.Green)
-	DeletedStyle  = lipgloss.NewStyle().Foreground(common.Red)
-	ModifiedStyle = lipgloss.NewStyle().Foreground(common.Cyan)
-	RenamedStyle  = lipgloss.NewStyle().Foreground(common.Cyan)
-	HintStyle     = lipgloss.NewStyle().Foreground(common.DarkBlack).PaddingLeft(1)
-)
-
 type status uint8
 
 var (
@@ -78,16 +70,16 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	var style lipgloss.Style
 	switch item.status {
 	case Added:
-		style = AddedStyle
+		style = common.DefaultPalette.Added
 	case Deleted:
-		style = DeletedStyle
+		style = common.DefaultPalette.Deleted
 	case Modified:
-		style = ModifiedStyle
+		style = common.DefaultPalette.Modified
 	case Renamed:
-		style = RenamedStyle
+		style = common.DefaultPalette.Renamed
 	}
 	if index == m.Index() {
-		style = style.Bold(true).Background(common.DarkBlack)
+		style = style.Bold(true).Background(common.IntenseBlack)
 	}
 
 	title := item.Title()
@@ -106,7 +98,7 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		}
 	}
 
-	fmt.Fprint(w, style.PaddingRight(1).Render(title), HintStyle.Render(hint))
+	fmt.Fprint(w, style.PaddingRight(1).Render(title), common.DefaultPalette.Hint.Render(hint))
 }
 
 func (i itemDelegate) Height() int                         { return 1 }

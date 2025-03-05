@@ -122,7 +122,6 @@ func (r *Operation) Render() string {
 	if r.Source == SourceRevision {
 		source = "only "
 	}
-	lipgloss.NewStyle().SetString("rebase")
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
 		common.DropStyle.Render("<< "+ret+" >>"),

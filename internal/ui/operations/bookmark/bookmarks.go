@@ -34,18 +34,14 @@ func (b item) FilterValue() string { return string(b) }
 
 type itemDelegate struct{}
 
-var (
-	itemStyle = lipgloss.NewStyle().Foreground(common.Cyan).PaddingLeft(1).PaddingRight(1)
-)
-
 func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
 	if cur, ok := listItem.(item); ok {
-		style := itemStyle
+		style := common.DefaultPalette.ListItem
 		if index == m.Index() {
-			style = style.Bold(true).Background(common.DarkBlack)
+			style = style.Bold(true).Background(common.IntenseBlack)
 		}
 		fmt.Fprint(w, style.Render(cur.Title()))
 	}
@@ -105,7 +101,7 @@ func New(context context.AppContext, revision string) tea.Model {
 	l.SetShowTitle(true)
 	l.SetShowHelp(false)
 	l.Title = "Move Bookmark"
-	l.Styles.Title = lipgloss.NewStyle().Bold(true).Foreground(common.White)
+	l.Styles.Title = common.DefaultPalette.ListTitle
 	l.Styles.TitleBar = lipgloss.NewStyle()
 	return Model{
 		revision: revision,
@@ -124,7 +120,7 @@ func NewDeleteBookmark(context context.AppContext, revision string, bookmarks []
 	l.SetShowHelp(false)
 	l.SetShowTitle(true)
 	l.Title = "Delete Bookmark"
-	l.Styles.Title = lipgloss.NewStyle().Bold(true).Foreground(common.White)
+	l.Styles.Title = common.DefaultPalette.ListTitle
 	l.Styles.TitleBar = lipgloss.NewStyle()
 	return Model{
 		revision: revision,
