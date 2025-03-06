@@ -27,6 +27,7 @@ var DropStyle = lipgloss.NewStyle().
 	Background(Red)
 
 var DefaultPalette = Palette{
+	Normal:           lipgloss.NewStyle(),
 	ChangeId:         lipgloss.NewStyle().Foreground(Magenta).Bold(true),
 	CommitId:         lipgloss.NewStyle().Foreground(Blue).Bold(true),
 	Rest:             lipgloss.NewStyle().Foreground(IntenseBlack),
@@ -36,7 +37,6 @@ var DefaultPalette = Palette{
 	Conflict:         lipgloss.NewStyle().Foreground(Red),
 	EmptyPlaceholder: lipgloss.NewStyle().Foreground(Green).Bold(true),
 	Placeholder:      lipgloss.NewStyle().Foreground(Yellow).Bold(true),
-	Normal:           lipgloss.NewStyle().Foreground(White),
 	Selected:         lipgloss.NewStyle().Foreground(Red),
 	Elided:           lipgloss.NewStyle().Foreground(IntenseBlack),
 	ConfirmationText: lipgloss.NewStyle().Foreground(Magenta).Bold(true),
