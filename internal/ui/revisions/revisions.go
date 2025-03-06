@@ -245,7 +245,7 @@ func (m *Model) View() string {
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range m.rows {
-		nodeRenderer := graph.SegmentedRenderer{
+		nodeRenderer := graph.DefaultRowRenderer{
 			Palette:       common.DefaultPalette,
 			Op:            m.op,
 			IsHighlighted: i == m.cursor,

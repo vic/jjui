@@ -86,7 +86,7 @@ func (o Operation) Render() string {
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range o.rows {
-		nodeRenderer := graph.SegmentedRenderer{
+		nodeRenderer := graph.DefaultRowRenderer{
 			Palette:       common.DefaultPalette,
 			Op:            &operations.Noop{},
 			IsHighlighted: i == o.cursor,
