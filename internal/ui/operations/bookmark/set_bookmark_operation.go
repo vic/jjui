@@ -11,6 +11,10 @@ type SetBookmarkOperation struct {
 	Overlay tea.Model
 }
 
+func (s SetBookmarkOperation) IsFocused() bool {
+	return true
+}
+
 func (s SetBookmarkOperation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
 	var cmd tea.Cmd
 	s.Overlay, cmd = s.Overlay.Update(msg)
