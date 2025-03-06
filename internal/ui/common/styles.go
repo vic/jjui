@@ -26,6 +26,11 @@ var DropStyle = lipgloss.NewStyle().
 	Foreground(Black).
 	Background(Red)
 
+var HighlightedBackground = lipgloss.AdaptiveColor{
+	Light: "#A0A0A0",
+	Dark:  "#282a36",
+}
+
 var DefaultPalette = Palette{
 	Normal:           lipgloss.NewStyle(),
 	ImmutableNode:    lipgloss.NewStyle().Foreground(IntenseCyan).Bold(true),

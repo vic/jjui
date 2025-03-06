@@ -10,13 +10,26 @@ import (
 )
 
 type DefaultRowRenderer struct {
-	Palette       common.Palette
-	IsHighlighted bool
-	Op            operations.Operation
+	Palette             common.Palette
+	HighlightBackground lipgloss.AdaptiveColor
+	IsHighlighted       bool
+	Op                  operations.Operation
+}
+
+func (s DefaultRowRenderer) RenderNormal(text string) string {
+	normal := s.Palette.Normal
+	if s.IsHighlighted {
+		normal = normal.Background(s.HighlightBackground)
+	}
+	return normal.Render(text)
 }
 
 func (s DefaultRowRenderer) RenderConnection(connectionType jj.ConnectionType) string {
-	return s.Palette.Normal.Render(string(connectionType))
+	normal := s.Palette.Normal
+	if s.IsHighlighted {
+		normal = normal.Background(s.HighlightBackground)
+	}
+	return normal.Render(string(connectionType))
 }
 
 func (s DefaultRowRenderer) RenderBefore(*jj.Commit) string {
@@ -45,7 +58,7 @@ func (s DefaultRowRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj
 	}
 	opMarker := ""
 	if s.IsHighlighted {
-		style = s.Palette.Selected
+		style = s.Palette.Selected.Background(s.HighlightBackground)
 		if s.Op.RenderPosition() == operations.RenderPositionGlyph {
 			opMarker = s.Op.Render()
 		}
@@ -58,10 +71,18 @@ func (s DefaultRowRenderer) RenderTermination(connection jj.ConnectionType) stri
 }
 
 func (s DefaultRowRenderer) RenderChangeId(commit *jj.Commit) string {
-	changeId := s.Palette.ChangeId.Render("", commit.ChangeIdShort) + s.Palette.Rest.Render(commit.ChangeId[len(commit.ChangeIdShort):])
+	normalStyle := s.Palette.Normal
+	changeIdStyle := s.Palette.ChangeId
+	restStyle := s.Palette.Rest
+	if s.IsHighlighted {
+		normalStyle = normalStyle.Background(s.HighlightBackground)
+		changeIdStyle = changeIdStyle.Background(s.HighlightBackground)
+		restStyle = restStyle.Background(s.HighlightBackground)
+	}
+	changeId := changeIdStyle.Render("", commit.ChangeIdShort) + restStyle.Render(commit.ChangeId[len(commit.ChangeIdShort):])
 	hidden := ""
 	if commit.Hidden {
-		hidden = s.Palette.Normal.Render(" hidden")
+		hidden = normalStyle.Render(" hidden")
 		return lipgloss.JoinHorizontal(0, changeId, hidden)
 	}
 	return changeId
@@ -71,24 +92,44 @@ func (s DefaultRowRenderer) RenderCommitId(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return ""
 	}
-	return s.Palette.CommitId.Render("", commit.CommitIdShort) + s.Palette.Rest.Render(commit.CommitId[len(commit.ChangeIdShort):])
+	commitIdStyle := s.Palette.CommitId
+	restStyle := s.Palette.Rest
+	if s.IsHighlighted {
+		commitIdStyle = commitIdStyle.Background(s.HighlightBackground)
+		restStyle = restStyle.Background(s.HighlightBackground)
+	}
+	return commitIdStyle.Render("", commit.CommitIdShort) + restStyle.Render(commit.CommitId[len(commit.ChangeIdShort):])
 }
 
 func (s DefaultRowRenderer) RenderAuthor(commit *jj.Commit) string {
-	if commit.IsRoot() {
-		return s.Palette.EmptyPlaceholder.Render("root()")
+	placeholderStyle := s.Palette.EmptyPlaceholder
+	authorStyle := s.Palette.Author
+	if s.IsHighlighted {
+		placeholderStyle = placeholderStyle.Background(s.HighlightBackground)
+		authorStyle = authorStyle.Background(s.HighlightBackground)
 	}
-	return s.Palette.Author.Render("", commit.Author)
+	if commit.IsRoot() {
+		return placeholderStyle.Render("root()")
+	}
+	return authorStyle.Render("", commit.Author)
 }
 
 func (s DefaultRowRenderer) RenderDate(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return ""
 	}
-	return s.Palette.Timestamp.Render("", commit.Timestamp)
+	timestamp := s.Palette.Timestamp
+	if s.IsHighlighted {
+		timestamp = timestamp.Background(s.HighlightBackground)
+	}
+	return timestamp.Render("", commit.Timestamp)
 }
 
 func (s DefaultRowRenderer) RenderBookmarks(commit *jj.Commit) string {
+	bookmarksStyle := s.Palette.Bookmarks
+	if s.IsHighlighted {
+		bookmarksStyle = bookmarksStyle.Background(s.HighlightBackground)
+	}
 	var w strings.Builder
 	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionBookmark {
 		w.WriteString(" ")
@@ -98,30 +139,42 @@ func (s DefaultRowRenderer) RenderBookmarks(commit *jj.Commit) string {
 		var bookmarks []string
 		bookmarks = append(bookmarks, "")
 		bookmarks = append(bookmarks, commit.Bookmarks...)
-		w.WriteString(s.Palette.Bookmarks.Render(bookmarks...))
+		w.WriteString(bookmarksStyle.Render(bookmarks...))
 	}
 	return w.String()
 }
 
 func (s DefaultRowRenderer) RenderMarkers(commit *jj.Commit) string {
+	conflictStyle := s.Palette.Conflict
+	if s.IsHighlighted {
+		conflictStyle = conflictStyle.Background(s.HighlightBackground)
+	}
 	if commit.Conflict {
-		return s.Palette.Conflict.Render("conflict")
+		return conflictStyle.Render(" conflict")
 	}
 	return ""
 }
 
 func (s DefaultRowRenderer) RenderDescription(commit *jj.Commit) string {
+	emptyPlaceholderStyle := s.Palette.EmptyPlaceholder
+	placeholderStyle := s.Palette.Placeholder
+	normalStyle := s.Palette.Normal
+	if s.IsHighlighted {
+		emptyPlaceholderStyle = emptyPlaceholderStyle.Background(s.HighlightBackground)
+		placeholderStyle = placeholderStyle.Background(s.HighlightBackground)
+		normalStyle = normalStyle.Background(s.HighlightBackground)
+	}
 	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionDescription {
 		return s.Op.Render()
 	}
 
 	if commit.Empty && commit.Description == "" {
-		return s.Palette.EmptyPlaceholder.Render(" (empty) (no description set)")
+		return emptyPlaceholderStyle.Render(" (empty) (no description set)")
 	}
 	if commit.Empty {
-		return lipgloss.JoinHorizontal(0, s.Palette.EmptyPlaceholder.Render(" (empty)", s.Palette.Normal.Render(commit.Description)))
+		return lipgloss.JoinHorizontal(0, emptyPlaceholderStyle.Render(" (empty)", normalStyle.Render(commit.Description)))
 	} else if commit.Description == "" {
-		return s.Palette.Placeholder.Render(" (no description set)")
+		return placeholderStyle.Render(" (no description set)")
 	}
-	return s.Palette.Normal.Render("", commit.Description)
+	return normalStyle.Render("", commit.Description)
 }

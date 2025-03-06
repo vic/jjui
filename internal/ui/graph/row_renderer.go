@@ -15,4 +15,5 @@ type RowRenderer interface {
 	RenderDescription(commit *jj.Commit) string
 	RenderMarkers(commit *jj.Commit) string
 	RenderConnection(connectionType jj.ConnectionType) string
+	RenderNormal(text string) string
 }

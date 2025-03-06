@@ -74,6 +74,10 @@ type TestRenderer struct {
 	highlighted bool
 }
 
+func (t TestRenderer) RenderNormal(text string) string {
+	return text
+}
+
 func (t TestRenderer) RenderConnection(connectionType jj.ConnectionType) string {
 	return string(connectionType)
 }

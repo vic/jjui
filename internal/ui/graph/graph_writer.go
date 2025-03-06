@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/jj"
 	"slices"
 	"strings"
@@ -17,6 +18,7 @@ type GraphWriter struct {
 	connectionsWritten bool
 	renderer           RowRenderer
 	row                jj.GraphRow
+	Width              int
 }
 
 func (w *GraphWriter) Write(p []byte) (n int, err error) {
@@ -86,12 +88,22 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 	}
 	w.connectionsWritten = false
 	w.connections = row.Connections[0]
-	fmt.Fprint(w, renderer.RenderChangeId(row.Commit))
-	fmt.Fprint(w, renderer.RenderAuthor(row.Commit))
-	fmt.Fprint(w, renderer.RenderDate(row.Commit))
-	fmt.Fprint(w, renderer.RenderBookmarks(row.Commit))
-	fmt.Fprint(w, renderer.RenderMarkers(row.Commit))
-	fmt.Fprint(w, renderer.RenderCommitId(row.Commit))
+	lw := strings.Builder{}
+	prefix := len(w.connections)*2 + 1
+	fmt.Fprint(&lw, renderer.RenderChangeId(row.Commit))
+	fmt.Fprint(&lw, renderer.RenderAuthor(row.Commit))
+	fmt.Fprint(&lw, renderer.RenderDate(row.Commit))
+	fmt.Fprint(&lw, renderer.RenderBookmarks(row.Commit))
+	fmt.Fprint(&lw, renderer.RenderMarkers(row.Commit))
+	fmt.Fprint(&lw, renderer.RenderCommitId(row.Commit))
+	line := lw.String()
+	width := lipgloss.Width(line)
+	fmt.Fprint(w, line)
+
+	gap := w.Width - prefix - width
+	if gap > 0 {
+		fmt.Fprint(w, renderer.RenderNormal(strings.Repeat(" ", gap)))
+	}
 	fmt.Fprintln(w)
 
 	if row.Commit.IsRoot() {
@@ -113,7 +125,14 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 			} else {
 				w.connections = extendConnections(row.Connections[0])
 			}
-			fmt.Fprintln(w, line)
+			prefix = len(w.connections)*2 + 1
+			width = lipgloss.Width(line)
+			fmt.Fprint(w, line)
+			gap = w.Width - prefix - width
+			if gap > 0 {
+				fmt.Fprint(w, renderer.RenderNormal(strings.Repeat(" ", gap)))
+			}
+			fmt.Fprintln(w)
 		}
 	}
 

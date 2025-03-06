@@ -242,13 +242,15 @@ func (m *Model) View() string {
 	}
 
 	var w graph.GraphWriter
+	w.Width = m.width
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range m.rows {
 		nodeRenderer := graph.DefaultRowRenderer{
-			Palette:       common.DefaultPalette,
-			Op:            m.op,
-			IsHighlighted: i == m.cursor,
+			Palette:             common.DefaultPalette,
+			HighlightBackground: common.HighlightedBackground,
+			Op:                  m.op,
+			IsHighlighted:       i == m.cursor,
 		}
 
 		if i == m.cursor {
