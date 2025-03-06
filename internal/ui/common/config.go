@@ -5,7 +5,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -204,77 +203,29 @@ type previewModeKeys[T any] struct {
 	ToggleFocus  T `toml:"toggle_focus"`
 }
 
-func findConfig() string {
-	var baseDirs []string
-
-	switch runtime.GOOS {
-	case "windows":
-		if appData := os.Getenv("APPDATA"); appData != "" {
-			baseDirs = append(baseDirs, appData)
-		}
-		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
-			baseDirs = append(baseDirs, localAppData)
-		}
-	case "darwin": // macOS
-		xdgConfig := os.Getenv("XDG_CONFIG_HOME")
-		if xdgConfig == "" {
-			xdgConfig = "~/.config"
-		}
-		baseDirs = append(baseDirs,
-			xdgConfig,
-			"~/.config",
-			"~/Library/Application Support",
-		)
-	default: // Linux and other Unix-like systems
-		xdgConfig := os.Getenv("XDG_CONFIG_HOME")
-		if xdgConfig == "" {
-			xdgConfig = "~/.config"
-		}
-		baseDirs = append(baseDirs, xdgConfig, "~/.config")
-	}
-
-	home, err := os.UserHomeDir()
+func findConfig() (string, error) {
+	configDir, err := os.UserConfigDir()
 	if err != nil {
-		home = "" // Proceed without home directory expansion
+		return "", err
 	}
+	configPath := filepath.Join(configDir, "jjui", "config.toml")
 
-	for _, dir := range baseDirs {
-		expandedDir := expandTilde(dir, home)
-		if expandedDir == "" {
-			continue
-		}
-
-		configPath := filepath.Join(expandedDir, "jjui", "config.toml")
-		if _, err := os.Stat(configPath); err == nil {
-			return configPath
-		}
+	_, err = os.Stat(configPath)
+	if err != nil {
+		return "", err
 	}
-
-	return ""
-}
-
-func expandTilde(path string, homeDir string) string {
-	if homeDir == "" {
-		return path
-	}
-
-	if strings.HasPrefix(path, "~/") {
-		return filepath.Join(homeDir, path[2:])
-	}
-
-	if path == "~" {
-		return homeDir
-	}
-
-	return path
+	return configPath, nil
 }
 
 func NewConfiguration() Config {
-	config := Config{Keys: DefaultKeyMappings}
-	if configFile := findConfig(); configFile != "" {
-		if _, err := toml.DecodeFile(configFile, &config); err == nil {
-			return config
-		}
+	defaultConfig := Config{Keys: DefaultKeyMappings}
+	configFile, err := findConfig()
+	if err != nil {
+		return defaultConfig
 	}
-	return config
+	_, err = toml.DecodeFile(configFile, &defaultConfig)
+	if err != nil {
+		return defaultConfig
+	}
+	return defaultConfig
 }
