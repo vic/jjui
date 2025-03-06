@@ -14,4 +14,5 @@ type RowRenderer interface {
 	RenderBookmarks(commit *jj.Commit) string
 	RenderDescription(commit *jj.Commit) string
 	RenderMarkers(commit *jj.Commit) string
+	RenderConnection(connectionType jj.ConnectionType) string
 }

@@ -27,8 +27,6 @@ func (m SetBookmarkModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			return m, m.context.RunCommand(jj.BookmarkSet(m.revision, m.name.Value()), common.Close, common.Refresh)
 		}
-	case tea.WindowSizeMsg:
-		m.name.SetWidth(msg.Width)
 	}
 	var cmd tea.Cmd
 	m.name, cmd = m.name.Update(msg)
@@ -41,12 +39,12 @@ func (m SetBookmarkModel) View() string {
 
 func NewSetBookmark(context context.AppContext, revision string) tea.Model {
 	t := textarea.New()
-	t.SetValue("")
-	t.Focus()
-	t.SetWidth(20)
-	t.SetHeight(1)
 	t.CharLimit = 120
 	t.ShowLineNumbers = false
+	t.SetValue("")
+	t.SetWidth(20)
+	t.SetHeight(1)
+	t.Focus()
 	return SetBookmarkModel{
 		name:     t,
 		revision: revision,

@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"fmt"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/ui/common"
 	"strings"
 
@@ -13,6 +13,10 @@ type DefaultRowRenderer struct {
 	Palette       common.Palette
 	IsHighlighted bool
 	Op            operations.Operation
+}
+
+func (s DefaultRowRenderer) RenderConnection(connectionType jj.ConnectionType) string {
+	return s.Palette.Normal.Render(string(connectionType))
 }
 
 func (s DefaultRowRenderer) RenderBefore(*jj.Commit) string {
@@ -46,42 +50,47 @@ func (s DefaultRowRenderer) RenderTermination(connection jj.ConnectionType) stri
 }
 
 func (s DefaultRowRenderer) RenderChangeId(commit *jj.Commit) string {
+	changeId := s.Palette.ChangeId.Render("", commit.ChangeIdShort) + s.Palette.Rest.Render(commit.ChangeId[len(commit.ChangeIdShort):])
 	hidden := ""
 	if commit.Hidden {
 		hidden = s.Palette.Normal.Render(" hidden")
+		return lipgloss.JoinHorizontal(0, changeId, hidden)
 	}
-
-	return fmt.Sprintf("%s%s %s", s.Palette.ChangeId.Render(commit.ChangeIdShort), s.Palette.Rest.Render(commit.ChangeId[len(commit.ChangeIdShort):]), hidden)
+	return changeId
 }
 
 func (s DefaultRowRenderer) RenderCommitId(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return ""
 	}
-	return s.Palette.CommitId.Render(commit.CommitIdShort) + s.Palette.Rest.Render(commit.CommitId[len(commit.ChangeIdShort):])
+	return s.Palette.CommitId.Render("", commit.CommitIdShort) + s.Palette.Rest.Render(commit.CommitId[len(commit.ChangeIdShort):])
 }
 
 func (s DefaultRowRenderer) RenderAuthor(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return s.Palette.EmptyPlaceholder.Render("root()")
 	}
-	return s.Palette.Author.Render(commit.Author)
+	return s.Palette.Author.Render("", commit.Author)
 }
 
 func (s DefaultRowRenderer) RenderDate(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return ""
 	}
-	return s.Palette.Timestamp.Render(commit.Timestamp)
+	return s.Palette.Timestamp.Render("", commit.Timestamp)
 }
 
 func (s DefaultRowRenderer) RenderBookmarks(commit *jj.Commit) string {
 	var w strings.Builder
 	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionBookmark {
+		w.WriteString(" ")
 		w.WriteString(s.Op.Render())
 	}
 	if len(commit.Bookmarks) > 0 {
-		w.WriteString(s.Palette.Bookmarks.Render(strings.Join(commit.Bookmarks, " ")))
+		var bookmarks []string
+		bookmarks = append(bookmarks, "")
+		bookmarks = append(bookmarks, commit.Bookmarks...)
+		w.WriteString(s.Palette.Bookmarks.Render(bookmarks...))
 	}
 	return w.String()
 }
@@ -97,19 +106,14 @@ func (s DefaultRowRenderer) RenderDescription(commit *jj.Commit) string {
 	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionDescription {
 		return s.Op.Render()
 	}
-	var w strings.Builder
+
+	if commit.Empty && commit.Description == "" {
+		return s.Palette.EmptyPlaceholder.Render(" (empty) (no description set)")
+	}
 	if commit.Empty {
-		w.WriteString(s.Palette.EmptyPlaceholder.Render("(empty)"))
-		w.WriteString(" ")
+		return lipgloss.JoinHorizontal(0, s.Palette.EmptyPlaceholder.Render(" (empty)", s.Palette.Normal.Render(commit.Description)))
+	} else if commit.Description == "" {
+		return s.Palette.Placeholder.Render(" (no description set)")
 	}
-	if commit.Description == "" {
-		if commit.Empty {
-			w.WriteString(s.Palette.EmptyPlaceholder.Render("(no description set)"))
-		} else {
-			w.WriteString(s.Palette.Placeholder.Render("(no description set)"))
-		}
-	} else {
-		w.WriteString(s.Palette.Normal.Render(commit.Description))
-	}
-	return w.String()
+	return s.Palette.Normal.Render("", commit.Description)
 }

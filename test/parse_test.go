@@ -74,13 +74,17 @@ type TestRenderer struct {
 	highlighted bool
 }
 
+func (t TestRenderer) RenderConnection(connectionType jj.ConnectionType) string {
+	return string(connectionType)
+}
+
 func (t TestRenderer) RenderMarkers(*jj.Commit) string {
 	return ""
 }
 
 func (t TestRenderer) RenderBefore(*jj.Commit) string {
 	if t.highlighted {
-		return "<here>"
+		return " <here>"
 	}
 	return ""
 }
@@ -98,7 +102,7 @@ func (t TestRenderer) RenderTermination(connection jj.ConnectionType) string {
 }
 
 func (t TestRenderer) RenderChangeId(commit *jj.Commit) string {
-	return commit.ChangeId
+	return " " + commit.ChangeId
 }
 
 func (t TestRenderer) RenderCommitId(commit *jj.Commit) string {
@@ -107,7 +111,7 @@ func (t TestRenderer) RenderCommitId(commit *jj.Commit) string {
 
 func (t TestRenderer) RenderAuthor(commit *jj.Commit) string {
 	if commit.IsRoot() {
-		return "root()"
+		return " root()"
 	}
 	return ""
 }
@@ -124,14 +128,14 @@ func (t TestRenderer) RenderDescription(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return ""
 	}
-	var w strings.Builder
+
+	if commit.Empty && commit.Description == "" {
+		return " (empty) (no description set)"
+	}
 	if commit.Empty {
-		w.WriteString("(empty) ")
+		return " (empty) " + commit.Description
+	} else if commit.Description == "" {
+		return " (no description set)"
 	}
-	if commit.Description == "" {
-		w.WriteString("(no description set)")
-	} else {
-		w.WriteString(commit.Description)
-	}
-	return w.String()
+	return " " + commit.Description
 }

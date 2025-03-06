@@ -87,26 +87,11 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 	w.connectionsWritten = false
 	w.connections = row.Connections[0]
 	fmt.Fprint(w, renderer.RenderChangeId(row.Commit))
-	if author := renderer.RenderAuthor(row.Commit); author != "" {
-		fmt.Fprintf(w, " ")
-		fmt.Fprint(w, author)
-	}
-	if date := renderer.RenderDate(row.Commit); date != "" {
-		fmt.Fprintf(w, " ")
-		fmt.Fprint(w, date)
-	}
-	if bookmarks := renderer.RenderBookmarks(row.Commit); bookmarks != "" {
-		fmt.Fprintf(w, " ")
-		fmt.Fprint(w, bookmarks)
-	}
-	if markers := renderer.RenderMarkers(row.Commit); markers != "" {
-		fmt.Fprintf(w, " ")
-		fmt.Fprint(w, markers)
-	}
-	if commitId := renderer.RenderCommitId(row.Commit); commitId != "" {
-		fmt.Fprintf(w, " ")
-		fmt.Fprint(w, commitId)
-	}
+	fmt.Fprint(w, renderer.RenderAuthor(row.Commit))
+	fmt.Fprint(w, renderer.RenderDate(row.Commit))
+	fmt.Fprint(w, renderer.RenderBookmarks(row.Commit))
+	fmt.Fprint(w, renderer.RenderMarkers(row.Commit))
+	fmt.Fprint(w, renderer.RenderCommitId(row.Commit))
 	fmt.Fprintln(w)
 
 	if row.Commit.IsRoot() {
@@ -128,8 +113,7 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 			} else {
 				w.connections = extendConnections(row.Connections[0])
 			}
-			fmt.Fprint(w, line)
-			fmt.Fprintln(w)
+			fmt.Fprintln(w, line)
 		}
 	}
 
@@ -144,7 +128,7 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 		w.connections = row.Connections[w.connectionPos]
 		w.renderConnections()
 		if slices.Contains(w.connections, jj.TERMINATION) {
-			w.buffer.Write([]byte(w.renderer.RenderTermination("(elided revisions)")))
+			w.buffer.Write([]byte(w.renderer.RenderTermination(" (elided revisions)")))
 		}
 		w.buffer.Write([]byte("\n"))
 		w.lineCount++
@@ -170,13 +154,12 @@ func (w *GraphWriter) renderConnections() {
 		} else if c == jj.TERMINATION {
 			w.buffer.WriteString(w.renderer.RenderTermination(c))
 		} else {
-			w.buffer.WriteString(string(c))
+			w.buffer.WriteString(w.renderer.RenderConnection(c))
 		}
 	}
 	if len(w.connections) < maxPadding {
 		w.buffer.WriteString(strings.Repeat(jj.SPACE, maxPadding-len(w.connections)))
 	}
-	w.buffer.WriteString(" ")
 	w.connectionsWritten = true
 }
 
