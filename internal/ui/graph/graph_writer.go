@@ -1,9 +1,10 @@
-package jj
+package graph
 
 import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/idursun/jjui/internal/jj"
 	"slices"
 	"strings"
 )
@@ -12,10 +13,10 @@ type GraphWriter struct {
 	buffer             bytes.Buffer
 	lineCount          int
 	connectionPos      int
-	connections        []ConnectionType
+	connections        []jj.ConnectionType
 	connectionsWritten bool
 	renderer           RowRenderer
-	row                GraphRow
+	row                jj.GraphRow
 }
 
 func (w *GraphWriter) Write(p []byte) (n int, err error) {
@@ -72,7 +73,7 @@ func (w *GraphWriter) Reset() {
 	w.lineCount = 0
 }
 
-func (w *GraphWriter) RenderRow(row GraphRow, renderer RowRenderer) {
+func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 	w.connectionPos = 0
 	w.connectionsWritten = false
 	w.row = row
@@ -113,7 +114,7 @@ func (w *GraphWriter) RenderRow(row GraphRow, renderer RowRenderer) {
 	}
 
 	lastLineConnection := extendConnections(row.Connections[0])
-	if len(row.Connections) > 1 && !slices.Contains(row.Connections[1], TERMINATION) {
+	if len(row.Connections) > 1 && !slices.Contains(row.Connections[1], jj.TERMINATION) {
 		w.connectionPos = 1
 		lastLineConnection = row.Connections[1]
 	}
@@ -142,7 +143,7 @@ func (w *GraphWriter) RenderRow(row GraphRow, renderer RowRenderer) {
 	for w.connectionPos < len(row.Connections) {
 		w.connections = row.Connections[w.connectionPos]
 		w.renderConnections()
-		if slices.Contains(w.connections, TERMINATION) {
+		if slices.Contains(w.connections, jj.TERMINATION) {
 			w.buffer.Write([]byte(w.renderer.RenderTermination("(elided revisions)")))
 		}
 		w.buffer.Write([]byte("\n"))
@@ -164,29 +165,29 @@ func (w *GraphWriter) renderConnections() {
 	}
 
 	for _, c := range w.connections {
-		if c == GLYPH || c == GLYPH_IMMUTABLE || c == GLYPH_WORKING_COPY || c == GLYPH_CONFLICT {
+		if c == jj.GLYPH || c == jj.GLYPH_IMMUTABLE || c == jj.GLYPH_WORKING_COPY || c == jj.GLYPH_CONFLICT {
 			w.buffer.WriteString(w.renderer.RenderGlyph(c, w.row.Commit))
-		} else if c == TERMINATION {
+		} else if c == jj.TERMINATION {
 			w.buffer.WriteString(w.renderer.RenderTermination(c))
 		} else {
 			w.buffer.WriteString(string(c))
 		}
 	}
 	if len(w.connections) < maxPadding {
-		w.buffer.WriteString(strings.Repeat(SPACE, maxPadding-len(w.connections)))
+		w.buffer.WriteString(strings.Repeat(jj.SPACE, maxPadding-len(w.connections)))
 	}
 	w.buffer.WriteString(" ")
 	w.connectionsWritten = true
 }
 
-func extendConnections(connections []ConnectionType) []ConnectionType {
+func extendConnections(connections []jj.ConnectionType) []jj.ConnectionType {
 	if connections == nil {
 		return nil
 	}
-	extended := make([]ConnectionType, 0)
+	extended := make([]jj.ConnectionType, 0)
 	for _, cur := range connections {
-		if cur != MERGE_LEFT && cur != MERGE_BOTH && cur != MERGE_RIGHT {
-			extended = append(extended, VERTICAL)
+		if cur != jj.MERGE_LEFT && cur != jj.MERGE_BOTH && cur != jj.MERGE_RIGHT {
+			extended = append(extended, jj.VERTICAL)
 		}
 	}
 	return extended

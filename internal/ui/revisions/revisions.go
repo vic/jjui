@@ -241,7 +241,7 @@ func (m *Model) View() string {
 		m.viewRange.end = m.viewRange.start + h
 	}
 
-	var w jj.GraphWriter
+	var w graph.GraphWriter
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range m.rows {

@@ -82,7 +82,7 @@ func (o Operation) Render() string {
 		return "loading"
 	}
 	h := min(o.height-5, len(o.rows)*2)
-	var w jj.GraphWriter
+	var w graph.GraphWriter
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range o.rows {

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/idursun/jjui/internal/ui/graph"
 	"os"
 	"strings"
 	"testing"
@@ -52,7 +53,7 @@ func Test_Parse_File(t *testing.T) {
 
 			p := jj.NewParser(file)
 			rows := p.Parse()
-			var w jj.GraphWriter
+			var w graph.GraphWriter
 			for _, row := range rows {
 				w.RenderRow(row, TestRenderer{highlighted: row.Commit.ChangeIdShort == test.highlighted})
 			}
