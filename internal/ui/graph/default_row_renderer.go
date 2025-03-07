@@ -110,7 +110,7 @@ func (s DefaultRowRenderer) RenderAuthor(commit *jj.Commit) string {
 		authorStyle = authorStyle.Background(s.HighlightBackground)
 	}
 	if commit.IsRoot() {
-		return placeholderStyle.Render("root()")
+		return placeholderStyle.Render(" root()")
 	}
 	return authorStyle.Render("", commit.Author)
 }
