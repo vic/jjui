@@ -75,6 +75,11 @@ Additionally,
 * _Edit_ a revision by pressing `e`
 * Git _push_/_fetch_ by pressing `g`, followed by `p` or `f`
 * Undo last change by pressing `u`
+* Show evolog of a revision by pressing `O`
+
+## Configuration
+
+See [configuration](https://github.com/idursun/jjui/wiki/Configuration) section in the wiki.
 
 ## Installation
 
