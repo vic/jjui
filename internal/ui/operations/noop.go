@@ -2,12 +2,12 @@ package operations
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/context"
 )
 
 type Noop struct {
-	keyMap common.KeyMappings[key.Binding]
+	keyMap config.KeyMappings[key.Binding]
 }
 
 func (n *Noop) ShortHelp() []key.Binding {

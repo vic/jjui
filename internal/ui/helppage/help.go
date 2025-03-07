@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
 )
@@ -12,7 +13,7 @@ import (
 type Model struct {
 	width  int
 	height int
-	keyMap common.KeyMappings[key.Binding]
+	keyMap config.KeyMappings[key.Binding]
 }
 
 func (h *Model) Width() int {

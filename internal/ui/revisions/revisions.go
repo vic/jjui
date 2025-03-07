@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
@@ -39,7 +40,7 @@ type Model struct {
 	width       int
 	height      int
 	context     context.AppContext
-	keymap      common.KeyMappings[key.Binding]
+	keymap      config.KeyMappings[key.Binding]
 }
 
 type updateRevisionsMsg struct {

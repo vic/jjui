@@ -3,6 +3,7 @@ package git
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
@@ -11,7 +12,7 @@ import (
 
 type Operation struct {
 	context context.AppContext
-	keyMap  common.KeyMappings[key.Binding]
+	keyMap  config.KeyMappings[key.Binding]
 }
 
 func (o *Operation) IsFocused() bool {

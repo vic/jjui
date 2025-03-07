@@ -2,6 +2,7 @@ package test
 
 import (
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/context"
 	"testing"
 
@@ -27,8 +28,8 @@ type TestContext struct {
 	expectations map[string][]*ExpectedCommand
 }
 
-func (t *TestContext) KeyMap() common.KeyMappings[key.Binding] {
-	return common.Convert(common.DefaultKeyMappings)
+func (t *TestContext) KeyMap() config.KeyMappings[key.Binding] {
+	return config.Convert(config.DefaultKeyMappings)
 }
 
 func (t *TestContext) SelectedItem() context.SelectedItem {

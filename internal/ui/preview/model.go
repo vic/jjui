@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
@@ -21,7 +22,7 @@ type Model struct {
 	height  int
 	content string
 	context context.AppContext
-	keyMap  common.KeyMappings[key.Binding]
+	keyMap  config.KeyMappings[key.Binding]
 }
 
 const DebounceTime = 200 * time.Millisecond

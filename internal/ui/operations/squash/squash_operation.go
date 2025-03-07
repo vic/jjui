@@ -3,6 +3,7 @@ package squash
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
@@ -13,7 +14,7 @@ type Operation struct {
 	context context.AppContext
 	From    string
 	Current *jj.Commit
-	keyMap  common.KeyMappings[key.Binding]
+	keyMap  config.KeyMappings[key.Binding]
 }
 
 func (s *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {

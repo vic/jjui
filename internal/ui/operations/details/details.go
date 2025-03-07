@@ -2,6 +2,7 @@ package details
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/context"
 	"io"
@@ -115,7 +116,7 @@ type Model struct {
 	height       int
 	confirmation tea.Model
 	context      context.AppContext
-	keyMap       common.KeyMappings[key.Binding]
+	keyMap       config.KeyMappings[key.Binding]
 }
 type updateCommitStatusMsg []string
 

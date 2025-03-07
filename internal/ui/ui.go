@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/helppage"
@@ -32,7 +33,7 @@ type Model struct {
 	width          int
 	height         int
 	context        context.AppContext
-	keyMap         common.KeyMappings[key.Binding]
+	keyMap         config.KeyMappings[key.Binding]
 }
 
 func (m Model) Init() tea.Cmd {
