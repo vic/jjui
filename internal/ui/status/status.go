@@ -90,8 +90,8 @@ func (m *Model) View() string {
 			s = m.help.View(o)
 		}
 	}
-	ret := common.DefaultPalette.StatusNormal.Width(m.width - 2).SetString(m.command).Render()
-	mode := common.DefaultPalette.StatusMode.Width(10).Render(m.op.Name())
+	ret := common.DefaultPalette.StatusNormal.Render(m.command)
+	mode := common.DefaultPalette.StatusMode.Width(10).Render("", m.op.Name())
 	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, " ", s, ret)
 	if m.error != nil {
 		ret += " " + common.DefaultPalette.StatusError.Render(fmt.Sprintf("\n%v\n%s", m.error, m.output))
