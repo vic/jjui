@@ -104,8 +104,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
 		m.op = operations.Default(m.context)
-		m.context.SetSelectedItem(context.SelectedRevision{ChangeId: m.SelectedRevision().ChangeId})
-		return m, tea.Batch(common.SelectionChanged, operations.OperationChanged(m.op))
+		if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
+			m.context.SetSelectedItem(context.SelectedRevision{ChangeId: m.SelectedRevision().ChangeId})
+			return m, tea.Batch(common.SelectionChanged, operations.OperationChanged(m.op))
+		}
+		return m, operations.OperationChanged(m.op)
 	case operations.SetOperationMsg:
 		m.op = msg.Operation
 		return m, operations.OperationChanged(m.op)
@@ -214,7 +217,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		op.SetSelectedRevision(m.SelectedRevision())
 	}
 	curSelected := m.SelectedRevision()
-	if preSelectedRevision != curSelected {
+	if preSelectedRevision != curSelected && curSelected != nil {
 		cmds = append(cmds, common.SelectionChanged)
 		m.context.SetSelectedItem(context.SelectedRevision{ChangeId: curSelected.ChangeId})
 	}
