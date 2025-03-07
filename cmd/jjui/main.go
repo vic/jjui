@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/context"
 	"os"
 
@@ -12,9 +13,15 @@ import (
 var Version = "unknown"
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "--version" {
-		fmt.Printf("jjui version %s\n", Version)
-		os.Exit(0)
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "--version":
+			fmt.Printf("jjui version %s\n", Version)
+			os.Exit(0)
+		case "--config":
+			exitCode := config.Edit()
+			os.Exit(exitCode)
+		}
 	}
 	location := os.Getenv("PWD")
 	if len(os.Args) > 1 {
