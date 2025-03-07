@@ -1,6 +1,9 @@
 package jj
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/idursun/jjui/internal/config"
+)
 
 type Commands interface{}
 
@@ -97,7 +100,11 @@ func GitPush() CommandArgs {
 }
 
 func Show(revision string) CommandArgs {
-	return []string{"show", "-r", revision, "--summary", "--git", "--ignore-all-space", "--color", "always"}
+	args := []string{"show", "-r", revision, "--color", "always"}
+	if config.Current.Preview.ExtraArgs != nil {
+		args = append(args, config.Current.Preview.ExtraArgs...)
+	}
+	return args
 }
 
 func Rebase(from string, to string, source string, target string) CommandArgs {

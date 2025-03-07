@@ -9,8 +9,30 @@ import (
 	"path/filepath"
 )
 
+var Current = &Config{
+	Keys: DefaultKeyMappings,
+	UI: UIConfig{
+		HighlightLight: "#a0a0a0",
+		HighlightDark:  "#282a36",
+	},
+	Preview: PreviewConfig{
+		ExtraArgs: []string{},
+	},
+}
+
 type Config struct {
-	Keys KeyMappings[keys] `toml:"keys"`
+	Keys    KeyMappings[keys] `toml:"keys"`
+	UI      UIConfig          `toml:"ui"`
+	Preview PreviewConfig     `toml:"preview"`
+}
+
+type UIConfig struct {
+	HighlightLight string `toml:"highlight_light"`
+	HighlightDark  string `toml:"highlight_dark"`
+}
+
+type PreviewConfig struct {
+	ExtraArgs []string `toml:"extra_args"`
 }
 
 func getConfigFilePath() string {
@@ -41,19 +63,17 @@ func getDefaultEditor() string {
 	return editor
 }
 
-func Load() Config {
-	defaultConfig := Config{Keys: DefaultKeyMappings}
+func Load() *Config {
 	configFile := getConfigFilePath()
 	_, err := os.Stat(configFile)
 	if err != nil {
-		return defaultConfig
+		return Current
 	}
-	_, err = toml.DecodeFile(configFile, &defaultConfig)
+	_, err = toml.DecodeFile(configFile, &Current)
 	if err != nil {
-		Current = &defaultConfig
-		return defaultConfig
+		return Current
 	}
-	return defaultConfig
+	return Current
 }
 
 func Edit() int {

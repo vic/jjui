@@ -23,7 +23,7 @@ type SelectedFile struct {
 type MainContext struct {
 	selectedItem SelectedItem
 	location     string
-	config       config.Config
+	config       *config.Config
 }
 
 func (a *MainContext) KeyMap() config.KeyMappings[key.Binding] {

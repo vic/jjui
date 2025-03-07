@@ -246,10 +246,14 @@ func (m *Model) View() string {
 	w.Width = m.width
 	selectedLineStart := -1
 	selectedLineEnd := -1
+	highlightColor := lipgloss.AdaptiveColor{
+		Light: config.Current.UI.HighlightLight,
+		Dark:  config.Current.UI.HighlightDark,
+	}
 	for i, row := range m.rows {
 		nodeRenderer := graph.DefaultRowRenderer{
 			Palette:             common.DefaultPalette,
-			HighlightBackground: common.HighlightedBackground,
+			HighlightBackground: highlightColor,
 			Op:                  m.op,
 			IsHighlighted:       i == m.cursor,
 		}

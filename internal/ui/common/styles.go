@@ -1,6 +1,8 @@
 package common
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+)
 
 var (
 	Black          = lipgloss.Color("0")
@@ -25,11 +27,6 @@ var DropStyle = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(Black).
 	Background(Red)
-
-var HighlightedBackground = lipgloss.AdaptiveColor{
-	Light: "#A0A0A0",
-	Dark:  "#282a36",
-}
 
 var DefaultPalette = Palette{
 	Normal:           lipgloss.NewStyle(),
