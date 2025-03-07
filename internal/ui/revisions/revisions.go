@@ -251,7 +251,7 @@ func (m *Model) View() string {
 		Dark:  config.Current.UI.HighlightDark,
 	}
 	for i, row := range m.rows {
-		nodeRenderer := graph.DefaultRowRenderer{
+		nodeRenderer := &graph.DefaultRowRenderer{
 			Palette:             common.DefaultPalette,
 			HighlightBackground: highlightColor,
 			Op:                  m.op,

@@ -81,6 +81,7 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 	w.row = row
 	w.renderer = renderer
 	w.connections = extendConnections(w.connections)
+	renderer.BeginSection(RowSectionBefore)
 	// will render by extending the previous connections
 	written, _ := w.Write([]byte(renderer.RenderBefore(row.Commit)))
 	if written > 0 {
@@ -90,6 +91,7 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 	w.connections = row.Connections[0]
 	lw := strings.Builder{}
 	prefix := len(w.connections)*2 + 1
+	renderer.BeginSection(RowSectionRevision)
 	fmt.Fprint(&lw, renderer.RenderChangeId(row.Commit))
 	fmt.Fprint(&lw, renderer.RenderAuthor(row.Commit))
 	fmt.Fprint(&lw, renderer.RenderDate(row.Commit))
@@ -109,7 +111,6 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 	if row.Commit.IsRoot() {
 		return
 	}
-
 	lastLineConnection := extendConnections(row.Connections[0])
 	if len(row.Connections) > 1 && !slices.Contains(row.Connections[1], jj.TERMINATION) {
 		w.connectionPos = 1
@@ -136,6 +137,7 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowRenderer) {
 		}
 	}
 
+	renderer.BeginSection(RowSectionAfter)
 	w.connections = extendConnections(lastLineConnection)
 	written, _ = w.Write([]byte(renderer.RenderAfter(row.Commit)))
 	if written > 0 {

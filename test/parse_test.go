@@ -74,6 +74,8 @@ type TestRenderer struct {
 	highlighted bool
 }
 
+func (t TestRenderer) BeginSection(graph.RowSection) {}
+
 func (t TestRenderer) RenderNormal(text string) string {
 	return text
 }

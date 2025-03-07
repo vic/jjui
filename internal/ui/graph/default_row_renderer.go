@@ -11,13 +11,18 @@ import (
 )
 
 type DefaultRowRenderer struct {
+	section             RowSection
 	Palette             common.Palette
 	HighlightBackground lipgloss.AdaptiveColor
 	IsHighlighted       bool
 	Op                  operations.Operation
 }
 
-func (s DefaultRowRenderer) RenderNormal(text string) string {
+func (s *DefaultRowRenderer) BeginSection(section RowSection) {
+	s.section = section
+}
+
+func (s *DefaultRowRenderer) RenderNormal(text string) string {
 	normal := s.Palette.Normal
 	if s.IsHighlighted {
 		normal = normal.Background(s.HighlightBackground)
@@ -25,29 +30,29 @@ func (s DefaultRowRenderer) RenderNormal(text string) string {
 	return normal.Render(text)
 }
 
-func (s DefaultRowRenderer) RenderConnection(connectionType jj.ConnectionType) string {
+func (s *DefaultRowRenderer) RenderConnection(connectionType jj.ConnectionType) string {
 	normal := s.Palette.Normal
-	if s.IsHighlighted {
+	if s.IsHighlighted && s.section == RowSectionRevision {
 		normal = normal.Background(s.HighlightBackground)
 	}
 	return normal.Render(string(connectionType))
 }
 
-func (s DefaultRowRenderer) RenderBefore(*jj.Commit) string {
+func (s *DefaultRowRenderer) RenderBefore(*jj.Commit) string {
 	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionBefore {
 		return s.Op.Render()
 	}
 	return ""
 }
 
-func (s DefaultRowRenderer) RenderAfter(*jj.Commit) string {
+func (s *DefaultRowRenderer) RenderAfter(*jj.Commit) string {
 	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionAfter {
 		return s.Op.Render()
 	}
 	return ""
 }
 
-func (s DefaultRowRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
+func (s *DefaultRowRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
 	var style lipgloss.Style
 	switch connection {
 	case jj.GLYPH_IMMUTABLE:
@@ -67,11 +72,11 @@ func (s DefaultRowRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj
 	return style.Render(string(connection) + opMarker)
 }
 
-func (s DefaultRowRenderer) RenderTermination(connection jj.ConnectionType) string {
+func (s *DefaultRowRenderer) RenderTermination(connection jj.ConnectionType) string {
 	return s.Palette.Elided.Render(string(connection))
 }
 
-func (s DefaultRowRenderer) RenderChangeId(commit *jj.Commit) string {
+func (s *DefaultRowRenderer) RenderChangeId(commit *jj.Commit) string {
 	normalStyle := s.Palette.Normal
 	changeIdStyle := s.Palette.ChangeId
 	restStyle := s.Palette.Rest
@@ -89,7 +94,7 @@ func (s DefaultRowRenderer) RenderChangeId(commit *jj.Commit) string {
 	return changeId
 }
 
-func (s DefaultRowRenderer) RenderCommitId(commit *jj.Commit) string {
+func (s *DefaultRowRenderer) RenderCommitId(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return ""
 	}
@@ -102,7 +107,7 @@ func (s DefaultRowRenderer) RenderCommitId(commit *jj.Commit) string {
 	return commitIdStyle.Render("", commit.CommitIdShort) + restStyle.Render(commit.CommitId[len(commit.ChangeIdShort):])
 }
 
-func (s DefaultRowRenderer) RenderAuthor(commit *jj.Commit) string {
+func (s *DefaultRowRenderer) RenderAuthor(commit *jj.Commit) string {
 	placeholderStyle := s.Palette.EmptyPlaceholder
 	authorStyle := s.Palette.Author
 	if s.IsHighlighted {
@@ -115,7 +120,7 @@ func (s DefaultRowRenderer) RenderAuthor(commit *jj.Commit) string {
 	return authorStyle.Render("", commit.Author)
 }
 
-func (s DefaultRowRenderer) RenderDate(commit *jj.Commit) string {
+func (s *DefaultRowRenderer) RenderDate(commit *jj.Commit) string {
 	if commit.IsRoot() {
 		return ""
 	}
@@ -126,7 +131,7 @@ func (s DefaultRowRenderer) RenderDate(commit *jj.Commit) string {
 	return timestamp.Render("", commit.Timestamp)
 }
 
-func (s DefaultRowRenderer) RenderBookmarks(commit *jj.Commit) string {
+func (s *DefaultRowRenderer) RenderBookmarks(commit *jj.Commit) string {
 	bookmarksStyle := s.Palette.Bookmarks
 	if s.IsHighlighted {
 		bookmarksStyle = bookmarksStyle.Background(s.HighlightBackground)
@@ -145,7 +150,7 @@ func (s DefaultRowRenderer) RenderBookmarks(commit *jj.Commit) string {
 	return w.String()
 }
 
-func (s DefaultRowRenderer) RenderMarkers(commit *jj.Commit) string {
+func (s *DefaultRowRenderer) RenderMarkers(commit *jj.Commit) string {
 	conflictStyle := s.Palette.Conflict
 	if s.IsHighlighted {
 		conflictStyle = conflictStyle.Background(s.HighlightBackground)
@@ -156,7 +161,7 @@ func (s DefaultRowRenderer) RenderMarkers(commit *jj.Commit) string {
 	return ""
 }
 
-func (s DefaultRowRenderer) RenderDescription(commit *jj.Commit) string {
+func (s *DefaultRowRenderer) RenderDescription(commit *jj.Commit) string {
 	emptyPlaceholderStyle := s.Palette.EmptyPlaceholder
 	placeholderStyle := s.Palette.Placeholder
 	normalStyle := s.Palette.Normal
