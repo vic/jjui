@@ -28,6 +28,8 @@ var DropStyle = lipgloss.NewStyle().
 
 var DefaultPalette = Palette{
 	Normal:           lipgloss.NewStyle(),
+	ImmutableNode:    lipgloss.NewStyle().Foreground(IntenseCyan).Bold(true),
+	WorkingCopyNode:  lipgloss.NewStyle().Foreground(Green).Bold(true),
 	ChangeId:         lipgloss.NewStyle().Foreground(Magenta).Bold(true),
 	CommitId:         lipgloss.NewStyle().Foreground(Blue).Bold(true),
 	Rest:             lipgloss.NewStyle().Foreground(IntenseBlack),
@@ -57,6 +59,8 @@ var DefaultPalette = Palette{
 
 type Palette struct {
 	Normal           lipgloss.Style
+	ImmutableNode    lipgloss.Style
+	WorkingCopyNode  lipgloss.Style
 	ChangeId         lipgloss.Style
 	CommitId         lipgloss.Style
 	Rest             lipgloss.Style

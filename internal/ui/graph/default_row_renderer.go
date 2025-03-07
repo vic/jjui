@@ -35,6 +35,14 @@ func (s DefaultRowRenderer) RenderAfter(*jj.Commit) string {
 
 func (s DefaultRowRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
 	style := s.Palette.Normal
+	switch connection {
+	case jj.GLYPH_IMMUTABLE:
+		style = s.Palette.ImmutableNode
+	case jj.GLYPH_WORKING_COPY:
+		style = s.Palette.WorkingCopyNode
+	default:
+		style = s.Palette.Normal
+	}
 	opMarker := ""
 	if s.IsHighlighted {
 		style = s.Palette.Selected
