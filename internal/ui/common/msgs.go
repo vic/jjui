@@ -12,8 +12,11 @@ type (
 		SelectedRevision string
 	}
 	ShowDiffMsg              string
-	UpdateRevisionsFailedMsg error
-	UpdateBookmarksMsg       struct {
+	UpdateRevisionsFailedMsg struct {
+		Output string
+		Err    error
+	}
+	UpdateBookmarksMsg struct {
 		Bookmarks []string
 		Revision  string
 	}

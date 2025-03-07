@@ -294,7 +294,10 @@ func (m *Model) load(revset string, selectedRevision string) tea.Cmd {
 	return func() tea.Msg {
 		output, err := m.context.RunCommandImmediate(jj.Log(revset))
 		if err != nil {
-			return common.UpdateRevisionsFailedMsg(err)
+			return common.UpdateRevisionsFailedMsg{
+				Err:    err,
+				Output: string(output),
+			}
 		}
 		p := jj.NewParser(bytes.NewReader(output))
 		graphLines := p.Parse()

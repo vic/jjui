@@ -54,6 +54,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.revsetModel.Editing {
 		m.revsetModel, cmd = m.revsetModel.Update(msg)
+		m.state = common.Loading
 		return m, cmd
 	}
 
@@ -118,7 +119,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.output = msg.Output
 	case common.UpdateRevisionsFailedMsg:
 		m.state = common.Error
-		m.error = msg
+		m.output = msg.Output
+		m.error = msg.Err
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -156,7 +158,7 @@ func (m Model) View() string {
 
 	topView := m.revsetModel.View()
 	if m.state == common.Error {
-		topView += fmt.Sprintf("\nerror: %v\n", m.error)
+		topView += fmt.Sprintf("\n%s\n", m.output)
 	}
 	topViewHeight := lipgloss.Height(topView)
 
