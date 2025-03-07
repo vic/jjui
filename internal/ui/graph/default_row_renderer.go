@@ -1,9 +1,10 @@
 package graph
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/ui/common"
-	"strings"
 
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/operations"
@@ -47,7 +48,7 @@ func (s DefaultRowRenderer) RenderAfter(*jj.Commit) string {
 }
 
 func (s DefaultRowRenderer) RenderGlyph(connection jj.ConnectionType, commit *jj.Commit) string {
-	style := s.Palette.Normal
+	var style lipgloss.Style
 	switch connection {
 	case jj.GLYPH_IMMUTABLE:
 		style = s.Palette.ImmutableNode
@@ -172,7 +173,7 @@ func (s DefaultRowRenderer) RenderDescription(commit *jj.Commit) string {
 		return emptyPlaceholderStyle.Render(" (empty) (no description set)")
 	}
 	if commit.Empty {
-		return lipgloss.JoinHorizontal(0, emptyPlaceholderStyle.Render(" (empty)", normalStyle.Render(commit.Description)))
+		return lipgloss.JoinHorizontal(0, emptyPlaceholderStyle.Render(" (empty)"), normalStyle.Render("", commit.Description))
 	} else if commit.Description == "" {
 		return placeholderStyle.Render(" (no description set)")
 	}
