@@ -1,7 +1,6 @@
 package revset
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 
@@ -84,7 +83,9 @@ var functionSignatureHelp = map[string]string{
 	"at_operation":               "at_operation(op, x): Evaluates to x at the specified operation",
 }
 
-type EditRevSetMsg struct{}
+type EditRevSetMsg struct {
+	Clear bool
+}
 
 type Model struct {
 	Editing       bool
@@ -101,7 +102,7 @@ func (m Model) IsFocused() bool {
 }
 
 var (
-	promptStyle = common.DefaultPalette.ChangeId
+	promptStyle = common.DefaultPalette.ChangeId.SetString("revset:")
 	cursorStyle = common.DefaultPalette.EmptyPlaceholder
 )
 
@@ -125,7 +126,7 @@ func New(defaultRevSet string) Model {
 	ti := textinput.New()
 	ti.Placeholder = ""
 	ti.Prompt = "revset: "
-	ti.PromptStyle = promptStyle
+	ti.PromptStyle = common.DefaultPalette.ChangeId
 	ti.Cursor.Style = cursorStyle
 	ti.Focus()
 	ti.ShowSuggestions = true
@@ -167,7 +168,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.Editing = true
 		m.signatureHelp = ""
 		m.textInput.Focus()
-		m.textInput.SetValue("")
+		if msg.Clear {
+			m.textInput.SetValue("")
+		}
 		return m, textinput.Blink
 	}
 
@@ -215,7 +218,7 @@ func (m Model) View() string {
 		revset = m.Value
 	}
 
-	return fmt.Sprintf("%s: %s", promptStyle.Render("revset"), cursorStyle.Render(revset))
+	return promptStyle.Render(cursorStyle.Render(revset))
 }
 
 type UpdateRevSetMsg string

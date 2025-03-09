@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
@@ -84,7 +85,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.helpPage = nil
 			m.error = nil
 		case key.Matches(msg, m.keyMap.Revset):
-			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{})
+			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{Clear: m.state != common.Error})
 		case key.Matches(msg, m.keyMap.Help):
 			cmds = append(cmds, common.ToggleHelp)
 			return m, tea.Batch(cmds...)
