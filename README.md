@@ -38,20 +38,10 @@ In this mode, you can:
 
 For detailed information, see [Details](https://github.com/idursun/jjui/wiki/Details) wiki page.
 
-### Abandon
-You can abandon a revision.
-
-![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_abandon.gif)
-
 ### Bookmarks
 You can move bookmarks to the revision you selected.
 
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_bookmarks.gif)
-
-### Split
-You can split revisions.
-
-![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_split.gif)
 
 ### Preview
 You can open the preview window by pressing `p`. Preview window displays output of the `jj show` command of the selected revision. If the currenlty selected item is a file, then `jj diff` output is displayed. 
@@ -64,14 +54,12 @@ For detailed information, see [Preview](https://github.com/idursun/jjui/wiki/Pre
 
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_preview.gif)
 
-### Diffs
-You can see diffs of revisions.
-
-![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_diff.gif)
-
 Additionally,
+* View the diff of a revision by pressing `d`.
 * Edit description of a revision by pressing `D`
 * Create a _new_ revision by pressing `n`
+* Split a revision by pressing `s`.
+* Abandon a revision by pressing `a`.
 * _Edit_ a revision by pressing `e`
 * Git _push_/_fetch_ by pressing `g`, followed by `p` or `f`
 * Undo last change by pressing `u`
