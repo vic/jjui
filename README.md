@@ -86,11 +86,6 @@ To install the latest released (or pre-released) version:
 ```shell
 go install github.com/idursun/jjui/cmd/jjui@latest
 ```
-To install the latest commit in the default branch:
-
-```shell
-go install github.com/idursun/jjui/cmd/jjui@HEAD
-```
 
 ### From source
 

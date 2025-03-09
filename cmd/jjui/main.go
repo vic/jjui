@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"runtime/debug"
+
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/context"
-	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/ui"
@@ -12,11 +14,18 @@ import (
 
 var Version = "unknown"
 
+func getVersion() string {
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
+		return info.Main.Version
+	}
+	return Version
+}
+
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "--version":
-			fmt.Printf("jjui version %s\n", Version)
+			println(getVersion())
 			os.Exit(0)
 		case "--config":
 			exitCode := config.Edit()
