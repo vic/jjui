@@ -79,20 +79,29 @@ You can install `jjui` using nix from the unstable channel.
 nix-env -iA nixpkgs.jjui
 ```
 
+### From go install
+
+To install the latest released (or pre-released) version:
+
+```shell
+go install github.com/idursun/jjui/cmd/jjui@latest
+```
+To install the latest commit in the default branch:
+
+```shell
+go install github.com/idursun/jjui/cmd/jjui@HEAD
+```
+
 ### From source
 
 You can build `jjui` from source.
 
-```
+```shell
 git clone https://github.com/idursun/jjui.git
 cd jjui
-go install cmd/jjui/main.go
+go install ./...
 ```
 
-### From go install
-```
-go install github.com/idursun/jjui/cmd/jjui@latest
-```
 
 ### From pre-built binaries
 You can download pre-built binaries from the [releases](https://github.com/idursun/jjui/releases) page.
