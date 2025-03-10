@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/idursun/jjui/internal/jj"
 	"slices"
 	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/jj"
 )
 
 type GraphWriter struct {
@@ -39,7 +40,8 @@ func (w *GraphWriter) Write(p []byte) (n int, err error) {
 		if !w.connectionsWritten {
 			w.renderConnections()
 		}
-		w.buffer.Write([]byte(line))
+		w.buffer.Write([]byte(" "))
+		w.buffer.WriteString(line)
 		w.buffer.Write([]byte("\n"))
 		w.lineCount++
 		w.connectionsWritten = false
