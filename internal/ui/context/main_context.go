@@ -66,10 +66,20 @@ func (a *MainContext) RunCommand(args []string, continuations ...tea.Cmd) tea.Cm
 
 func (a *MainContext) RunInteractiveCommand(args []string, continuation tea.Cmd) tea.Cmd {
 	c := exec.Command("jj", args...)
+	errBuffer := &bytes.Buffer{}
+	c.Stderr = errBuffer
 	c.Dir = a.location
-	return tea.ExecProcess(c, func(err error) tea.Msg {
-		return continuation()
-	})
+	return tea.Batch(
+		common.CommandRunning(args),
+		tea.ExecProcess(c, func(err error) tea.Msg {
+			if err != nil {
+				return common.CommandCompletedMsg{Err: err, Output: errBuffer.String()}
+			}
+			return tea.Batch(continuation, func() tea.Msg {
+				return common.CommandCompletedMsg{Err: nil}
+			})()
+		}),
+	)
 }
 
 func NewAppContext(location string) AppContext {
