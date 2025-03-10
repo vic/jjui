@@ -1,7 +1,9 @@
 package status
 
 import (
-	"fmt"
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/idursun/jjui/internal/config"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -23,6 +25,7 @@ type Model struct {
 	error   error
 	width   int
 	op      operations.Operation
+	keymap  config.KeyMappings[key.Binding]
 }
 
 const CommandClearDuration = 3 * time.Second
@@ -63,12 +66,23 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.running = false
 		m.output = msg.Output
 		m.error = msg.Err
-		commandToBeCleared := m.command
-		return m, tea.Tick(CommandClearDuration, func(time.Time) tea.Msg {
-			return clearMsg(commandToBeCleared)
-		})
+		if m.error == nil {
+			commandToBeCleared := m.command
+			return m, tea.Tick(CommandClearDuration, func(time.Time) tea.Msg {
+				return clearMsg(commandToBeCleared)
+			})
+		}
+		return m, nil
 	case operations.OperationChangedMsg:
 		m.op = msg.Operation
+		return m, nil
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.keymap.Cancel) && m.error != nil:
+			m.error = nil
+			m.output = ""
+			m.command = ""
+		}
 		return m, nil
 	default:
 		var cmd tea.Cmd
@@ -94,7 +108,11 @@ func (m *Model) View() string {
 	mode := common.DefaultPalette.StatusMode.Width(10).Render("", m.op.Name())
 	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, " ", s, ret)
 	if m.error != nil {
-		ret += " " + common.DefaultPalette.StatusError.Render(fmt.Sprintf("\n%v\n%s", m.error, m.output))
+		k := m.keymap.Cancel.Help().Key
+		return lipgloss.JoinVertical(0,
+			ret,
+			common.DefaultPalette.StatusError.Render(strings.Trim(m.output, "\n")),
+			common.DefaultPalette.ChangeId.Render("press ", k, " to dismiss"))
 	}
 	return ret
 }
@@ -114,5 +132,6 @@ func New(context context.AppContext) Model {
 		command: "",
 		running: false,
 		output:  "",
+		keymap:  context.KeyMap(),
 	}
 }
