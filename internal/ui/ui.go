@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
@@ -21,7 +20,7 @@ import (
 )
 
 type Model struct {
-	revisions      tea.Model
+	revisions      *revisions.Model
 	revsetModel    revset.Model
 	previewModel   tea.Model
 	previewVisible bool
@@ -63,7 +62,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.status, cmd = m.status.Update(msg)
 	cmds = append(cmds, cmd)
 
-	if r, ok := m.revisions.(common.Focusable); ok && r.IsFocused() {
+	if m.revisions.IsFocused() {
 		m.revisions, cmd = m.revisions.Update(msg)
 		cmds = append(cmds, cmd)
 		return m, tea.Batch(cmds...)
@@ -125,14 +124,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		if r, ok := m.revisions.(common.Sizable); ok {
-			if m.previewVisible {
-				r.SetWidth(m.width / 2)
-			} else {
-				r.SetWidth(m.width)
-			}
-			r.SetHeight(m.height - 4)
+		if m.previewVisible {
+			m.revisions.SetWidth(m.width / 2)
+		} else {
+			m.revisions.SetWidth(m.width)
 		}
+		m.revisions.SetHeight(m.height - 4)
 		if p, ok := m.previewModel.(common.Sizable); ok && m.previewVisible {
 			p.SetWidth(m.width / 2)
 			p.SetHeight(m.height - 4)
@@ -170,16 +167,14 @@ func (m Model) View() string {
 		return lipgloss.JoinVertical(0, topView, m.helpPage.View(), footer)
 	}
 
-	if r, ok := m.revisions.(common.Sizable); ok {
-		r.SetWidth(m.width)
-		if m.previewVisible {
-			r.SetWidth(m.width / 2)
-			if p, ok := m.previewModel.(common.Focusable); ok && p.IsFocused() {
-				r.SetWidth(4)
-			}
+	m.revisions.SetWidth(m.width)
+	if m.previewVisible {
+		m.revisions.SetWidth(m.width / 2)
+		if p, ok := m.previewModel.(common.Focusable); ok && p.IsFocused() {
+			m.revisions.SetWidth(4)
 		}
-		r.SetHeight(m.height - footerHeight - topViewHeight)
 	}
+	m.revisions.SetHeight(m.height - footerHeight - topViewHeight)
 	revisionsView := m.revisions.View()
 
 	previewView := ""
