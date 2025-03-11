@@ -91,12 +91,20 @@ func BookmarkDelete(bookmark string) CommandArgs {
 	return []string{"bookmark", "delete", bookmark}
 }
 
-func GitFetch() CommandArgs {
-	return []string{"git", "fetch"}
+func GitFetch(flags ...string) CommandArgs {
+	args := []string{"git", "fetch"}
+	if flags != nil {
+		args = append(args, flags...)
+	}
+	return args
 }
 
-func GitPush() CommandArgs {
-	return []string{"git", "push"}
+func GitPush(flags ...string) CommandArgs {
+	args := []string{"git", "push"}
+	if flags != nil {
+		args = append(args, flags...)
+	}
+	return args
 }
 
 func Show(revision string) CommandArgs {

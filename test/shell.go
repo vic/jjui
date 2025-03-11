@@ -34,8 +34,8 @@ func (m model) View() string {
 	return m.embeddedModel.View()
 }
 
-func NewShell(details tea.Model) tea.Model {
+func NewShell(embeddedModel tea.Model) tea.Model {
 	return model{
-		embeddedModel: details,
+		embeddedModel: embeddedModel,
 	}
 }
