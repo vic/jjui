@@ -6,6 +6,7 @@ import (
 	ui "github.com/idursun/jjui/internal"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/ui/bookmarks"
 	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/git"
 	"github.com/idursun/jjui/internal/ui/helppage"
@@ -100,6 +101,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.stacked = git.NewModel(m.context, m.revisions.SelectedRevision(), m.width, m.height)
 		case key.Matches(msg, m.keyMap.Undo):
 			m.stacked = undo.NewModel(m.context)
+			cmds = append(cmds, m.stacked.Init())
+		case key.Matches(msg, m.keyMap.Bookmark.Mode):
+			m.stacked = bookmarks.NewModel(m.context, m.revisions.SelectedRevision(), m.width, m.height)
 			cmds = append(cmds, m.stacked.Init())
 		case key.Matches(msg, m.keyMap.Help):
 			cmds = append(cmds, common.ToggleHelp)

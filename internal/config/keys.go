@@ -49,10 +49,13 @@ var DefaultKeyMappings = KeyMappings[keys]{
 		ToggleFocus:  []string{"tab"},
 	},
 	Bookmark: bookmarkModeKeys[keys]{
-		Mode:   []string{"b"},
-		Set:    []string{"s"},
-		Delete: []string{"d"},
-		Move:   []string{"m"},
+		Mode:    []string{"b"},
+		Set:     []string{"B"},
+		Delete:  []string{"d"},
+		Move:    []string{"m"},
+		Forget:  []string{"f"},
+		Track:   []string{"t"},
+		Untrack: []string{"u"},
 	},
 	Git: gitModeKeys[keys]{
 		Mode:  []string{"g"},
@@ -98,10 +101,13 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 			ToggleSelect: key.NewBinding(key.WithKeys(m.Details.ToggleSelect...), key.WithHelp(join(m.Details.ToggleSelect), "details toggle select")),
 		},
 		Bookmark: bookmarkModeKeys[key.Binding]{
-			Mode:   key.NewBinding(key.WithKeys(m.Bookmark.Mode...), key.WithHelp(join(m.Bookmark.Mode), "bookmark")),
-			Set:    key.NewBinding(key.WithKeys(m.Bookmark.Set...), key.WithHelp(join(m.Bookmark.Set), "bookmark set")),
-			Delete: key.NewBinding(key.WithKeys(m.Bookmark.Delete...), key.WithHelp(join(m.Bookmark.Delete), "bookmark delete")),
-			Move:   key.NewBinding(key.WithKeys(m.Bookmark.Move...), key.WithHelp(join(m.Bookmark.Move), "bookmark move")),
+			Mode:    key.NewBinding(key.WithKeys(m.Bookmark.Mode...), key.WithHelp(join(m.Bookmark.Mode), "bookmarks")),
+			Set:     key.NewBinding(key.WithKeys(m.Bookmark.Set...), key.WithHelp(join(m.Bookmark.Set), "set bookmark")),
+			Delete:  key.NewBinding(key.WithKeys(m.Bookmark.Delete...), key.WithHelp(join(m.Bookmark.Delete), "delete")),
+			Move:    key.NewBinding(key.WithKeys(m.Bookmark.Move...), key.WithHelp(join(m.Bookmark.Move), "move")),
+			Forget:  key.NewBinding(key.WithKeys(m.Bookmark.Forget...), key.WithHelp(join(m.Bookmark.Forget), "forget")),
+			Track:   key.NewBinding(key.WithKeys(m.Bookmark.Track...), key.WithHelp(join(m.Bookmark.Track), "track")),
+			Untrack: key.NewBinding(key.WithKeys(m.Bookmark.Untrack...), key.WithHelp(join(m.Bookmark.Untrack), "untrack")),
 		},
 		Preview: previewModeKeys[key.Binding]{
 			Mode:         key.NewBinding(key.WithKeys(m.Preview.Mode...), key.WithHelp(join(m.Preview.Mode), "preview")),
@@ -131,10 +137,13 @@ func join(keys []string) string {
 type keys []string
 
 type bookmarkModeKeys[T any] struct {
-	Mode   T `toml:"mode"`
-	Set    T `toml:"set"`
-	Delete T `toml:"delete"`
-	Move   T `toml:"move"`
+	Mode    T `toml:"mode"`
+	Set     T `toml:"set"`
+	Delete  T `toml:"delete"`
+	Move    T `toml:"move"`
+	Forget  T `toml:"forget"`
+	Track   T `toml:"track"`
+	Untrack T `toml:"untrack"`
 }
 
 type KeyMappings[T any] struct {

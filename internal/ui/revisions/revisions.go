@@ -172,6 +172,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 					cmd = m.context.RunInteractiveCommand(jj.DiffEdit(changeId), common.Refresh)
 				case key.Matches(msg, m.keymap.Abandon):
 					m.op, cmd = abandon.NewOperation(m.context, m.SelectedRevision())
+				case key.Matches(msg, m.keymap.Bookmark.Set):
+					m.op, cmd = bookmark.NewSetBookmarkOperation(m.context, m.SelectedRevision())
 				case key.Matches(msg, m.keymap.Split):
 					currentRevision := m.SelectedRevision().GetChangeId()
 					return m, m.context.RunInteractiveCommand(jj.Split(currentRevision, []string{}), common.Refresh)
@@ -194,8 +196,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 					}
 				case key.Matches(msg, m.keymap.Rebase.Mode):
 					m.op = rebase.NewOperation(m.context, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
-				case key.Matches(msg, m.keymap.Bookmark.Mode):
-					m.op = bookmark.NewChooseBookmarkOperation(m.context)
 				case key.Matches(msg, m.keymap.Quit):
 					return m, tea.Quit
 				}

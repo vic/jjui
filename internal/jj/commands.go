@@ -75,20 +75,44 @@ func BookmarkSet(revision string, name string) CommandArgs {
 	return []string{"bookmark", "set", "-r", revision, name}
 }
 
+func BookmarkMove(revision string, bookmark string, extraFlags ...string) CommandArgs {
+	args := []string{"bookmark", "move", bookmark, "--to", revision}
+	if extraFlags != nil {
+		args = append(args, extraFlags...)
+	}
+	return args
+}
+
+func BookmarkDelete(name string) CommandArgs {
+	return []string{"bookmark", "delete", name}
+}
+
+func BookmarkForget(name string) CommandArgs {
+	return []string{"bookmark", "forget", name}
+}
+
+func BookmarkTrack(name string) CommandArgs {
+	return []string{"bookmark", "track", name}
+}
+
+func BookmarkUntrack(name string) CommandArgs {
+	return []string{"bookmark", "untrack", name}
+}
+
 func Squash(from string, destination string) CommandArgs {
 	return []string{"squash", "--from", from, "--into", destination}
 }
 
 func BookmarkList(revision string) CommandArgs {
-	return []string{"bookmark", "list", "-r", fmt.Sprintf("::%s-", revision), "--template", "name ++ if(remote, '@') ++ remote ++ '\n'", "--color", "never"}
+	revsetBefore := fmt.Sprintf("::%s", revision)
+	revsetAfter := fmt.Sprintf("%s::", revision)
+	revset := fmt.Sprintf("%s | %s", revsetBefore, revsetAfter)
+	template := fmt.Sprintf(moveBookmarkTemplate, revsetAfter)
+	return []string{"bookmark", "list", "-r", revset, "--template", template, "--color", "never"}
 }
 
-func BookmarkMove(revision string, bookmark string) CommandArgs {
-	return []string{"bookmark", "move", bookmark, "--to", revision}
-}
-
-func BookmarkDelete(bookmark string) CommandArgs {
-	return []string{"bookmark", "delete", bookmark}
+func BookmarkListAll() CommandArgs {
+	return []string{"bookmark", "list", "-a", "--template", allBookmarkTemplate, "--color", "never"}
 }
 
 func GitFetch(flags ...string) CommandArgs {
@@ -121,4 +145,8 @@ func Rebase(from string, to string, source string, target string) CommandArgs {
 
 func Evolog(revision string) CommandArgs {
 	return []string{"evolog", "-r", revision, "--color", "never", "--template", TEMPLATE, "--config", "ui.graph.style=curved"}
+}
+
+func Args(args ...string) CommandArgs {
+	return args
 }
