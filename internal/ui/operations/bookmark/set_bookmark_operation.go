@@ -18,7 +18,7 @@ func (s SetBookmarkOperation) IsFocused() bool {
 func (s SetBookmarkOperation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
 	var cmd tea.Cmd
 	s.Overlay, cmd = s.Overlay.Update(msg)
-	return SetBookmarkOperation{Overlay: s.Overlay}, cmd
+	return s, cmd
 }
 
 func (s SetBookmarkOperation) Render() string {

@@ -33,7 +33,7 @@ func (m MoveBookmarkOperation) FullHelp() [][]key.Binding {
 func (m MoveBookmarkOperation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
 	var cmd tea.Cmd
 	m.Overlay, cmd = m.Overlay.Update(msg)
-	return MoveBookmarkOperation{Overlay: m.Overlay}, cmd
+	return m, cmd
 }
 
 func (m MoveBookmarkOperation) Render() string {

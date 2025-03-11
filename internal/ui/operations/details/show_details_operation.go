@@ -33,7 +33,7 @@ func (s Operation) FullHelp() [][]key.Binding {
 func (s Operation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
 	var cmd tea.Cmd
 	s.Overlay, cmd = s.Overlay.Update(msg)
-	return Operation{Overlay: s.Overlay}, cmd
+	return s, cmd
 }
 
 func (s Operation) Render() string {

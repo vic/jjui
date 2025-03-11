@@ -17,7 +17,7 @@ type Operation struct {
 func (o Operation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
 	var cmd tea.Cmd
 	o.Overlay, cmd = o.Overlay.Update(msg)
-	return Operation{Overlay: o.Overlay}, cmd
+	return o, cmd
 }
 
 func (o Operation) RenderPosition() operations.RenderPosition {

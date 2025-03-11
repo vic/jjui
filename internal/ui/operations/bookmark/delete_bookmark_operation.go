@@ -30,7 +30,7 @@ func (d DeleteBookmarkOperation) Init() tea.Cmd {
 func (d DeleteBookmarkOperation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
 	var cmd tea.Cmd
 	d.Overlay, cmd = d.Overlay.Update(msg)
-	return DeleteBookmarkOperation{Overlay: d.Overlay}, cmd
+	return d, cmd
 }
 
 func (d DeleteBookmarkOperation) RenderPosition() operations.RenderPosition {
