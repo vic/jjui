@@ -87,6 +87,17 @@ To install the latest released (or pre-released) version:
 go install github.com/idursun/jjui/cmd/jjui@latest
 ```
 
+To install the latest commit from `main`:
+
+```shell
+go install github.com/idursun/jjui/cmd/jjui@HEAD
+```
+To install the latest commit from `main` bypassing local cache:
+
+```shell
+GOPROXY=direct go install github.com/idursun/jjui/cmd/jjui@HEAD
+```
+
 ### From source
 
 You can build `jjui` from source.
