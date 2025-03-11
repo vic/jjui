@@ -16,8 +16,6 @@ var (
 	enter = key.NewBinding(key.WithKeys("enter"))
 )
 
-var border = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 1, 0, 1)
-
 type CloseMsg struct{}
 
 type option struct {
@@ -27,9 +25,10 @@ type option struct {
 }
 
 type Model struct {
-	message  string
-	options  []option
-	selected int
+	message     string
+	options     []option
+	selected    int
+	borderStyle lipgloss.Style
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -73,18 +72,23 @@ func (m *Model) View() string {
 			w.WriteString(common.DefaultPalette.Button.Render(option.label))
 		}
 	}
-	return border.Render(w.String())
+	return m.borderStyle.Render(w.String())
 }
 
 func (m *Model) AddOption(label string, cmd tea.Cmd, keyBinding key.Binding) {
 	m.options = append(m.options, option{label, cmd, keyBinding})
 }
 
+func (m *Model) SetBorderStyle(style lipgloss.Style) {
+	m.borderStyle = style
+}
+
 func New(message string) Model {
 	return Model{
-		message:  message,
-		options:  []option{},
-		selected: 0,
+		message:     message,
+		options:     []option{},
+		selected:    0,
+		borderStyle: lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 1, 0, 1),
 	}
 }
 
