@@ -16,16 +16,16 @@ import (
 )
 
 type Model struct {
-	context context.AppContext
-	spinner spinner.Model
-	help    help.Model
-	command string
-	running bool
-	output  string
-	error   error
-	width   int
-	op      operations.Operation
-	keymap  config.KeyMappings[key.Binding]
+	context          context.AppContext
+	spinner          spinner.Model
+	help             help.Model
+	command          string
+	running          bool
+	output           string
+	error            error
+	width            int
+	keymap           config.KeyMappings[key.Binding]
+	currentOperation operations.Operation
 }
 
 const CommandClearDuration = 3 * time.Second
@@ -49,7 +49,7 @@ func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case clearMsg:
 		if m.command == string(msg) {
@@ -72,9 +72,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return clearMsg(commandToBeCleared)
 			})
 		}
-		return m, nil
-	case operations.OperationChangedMsg:
-		m.op = msg.Operation
 		return m, nil
 	case tea.KeyMsg:
 		switch {
@@ -100,12 +97,12 @@ func (m *Model) View() string {
 	} else if m.command != "" {
 		s = common.DefaultPalette.StatusSuccess.Render("✓ ")
 	} else {
-		if o, ok := m.op.(help.KeyMap); ok {
+		if o, ok := m.currentOperation.(help.KeyMap); ok {
 			s = m.help.View(o)
 		}
 	}
 	ret := common.DefaultPalette.StatusNormal.Render(m.command)
-	mode := common.DefaultPalette.StatusMode.Width(10).Render("", m.op.Name())
+	mode := common.DefaultPalette.StatusMode.Width(10).Render("", m.currentOperation.Name())
 	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, " ", s, ret)
 	if m.error != nil {
 		k := m.keymap.Cancel.Help().Key
@@ -117,6 +114,10 @@ func (m *Model) View() string {
 	return ret
 }
 
+func (m *Model) SetCurrentOperation(op operations.Operation) {
+	m.currentOperation = op
+}
+
 func New(context context.AppContext) Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
@@ -126,7 +127,6 @@ func New(context context.AppContext) Model {
 	h.ShortSeparator = " "
 	return Model{
 		context: context,
-		op:      operations.Default(context),
 		spinner: s,
 		help:    h,
 		command: "",

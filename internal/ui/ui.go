@@ -28,7 +28,7 @@ type Model struct {
 	diff           tea.Model
 	state          common.State
 	error          error
-	status         tea.Model
+	status         *status.Model
 	output         string
 	width          int
 	height         int
@@ -134,9 +134,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.SetWidth(m.width / 2)
 			p.SetHeight(m.height - 4)
 		}
-		if s, ok := m.status.(common.Sizable); ok {
-			s.SetWidth(m.width)
-		}
+		m.status.SetWidth(m.width)
 	}
 
 	m.revisions, cmd = m.revisions.Update(msg)
@@ -160,6 +158,7 @@ func (m Model) View() string {
 	}
 	topViewHeight := lipgloss.Height(topView)
 
+	m.status.SetCurrentOperation(m.revisions.CurrentOperation())
 	footer := m.status.View()
 	footerHeight := lipgloss.Height(footer)
 

@@ -98,7 +98,6 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, 0)
-	curOp := m.op
 
 	preSelectedRevision := m.SelectedRevision()
 	switch msg := msg.(type) {
@@ -221,9 +220,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		cmds = append(cmds, common.SelectionChanged)
 		m.context.SetSelectedItem(context.SelectedRevision{ChangeId: curSelected.ChangeId})
 	}
-	if m.op.Name() != curOp.Name() {
-		cmds = append(cmds, operations.OperationChanged(m.op))
-	}
 	return m, tea.Batch(cmds...)
 }
 
@@ -313,6 +309,10 @@ func (m *Model) selectRevision(revision string) int {
 		return row.Commit.GetChangeId() == revision || row.Commit.ChangeIdShort == revision
 	})
 	return idx
+}
+
+func (m *Model) CurrentOperation() operations.Operation {
+	return m.op
 }
 
 func New(c context.AppContext) Model {
