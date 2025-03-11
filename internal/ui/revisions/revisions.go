@@ -16,10 +16,8 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations/bookmark"
 	"github.com/idursun/jjui/internal/ui/operations/details"
 	"github.com/idursun/jjui/internal/ui/operations/evolog"
-	"github.com/idursun/jjui/internal/ui/operations/git"
 	"github.com/idursun/jjui/internal/ui/operations/rebase"
 	"github.com/idursun/jjui/internal/ui/operations/squash"
-	"github.com/idursun/jjui/internal/ui/operations/undo"
 	"github.com/idursun/jjui/internal/ui/revset"
 	"slices"
 )
@@ -166,8 +164,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 					m.op = operations.Default(m.context)
 				case key.Matches(msg, m.keymap.Details.Mode):
 					m.op, cmd = details.NewOperation(m.context, m.SelectedRevision())
-				case key.Matches(msg, m.keymap.Undo):
-					m.op, cmd = undo.NewOperation(m.context)
 				case key.Matches(msg, m.keymap.New):
 					cmd = m.context.RunCommand(jj.New(m.SelectedRevision().GetChangeId()), common.RefreshAndSelect("@"))
 				case key.Matches(msg, m.keymap.Edit):
@@ -192,8 +188,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 					}
 				case key.Matches(msg, m.keymap.Refresh):
 					cmd = common.Refresh
-				case key.Matches(msg, m.keymap.Git.Mode):
-					m.op = git.NewOperation(m.context)
 				case key.Matches(msg, m.keymap.Squash):
 					m.op = squash.NewOperation(m.context, m.SelectedRevision().ChangeIdShort)
 					if m.cursor < len(m.rows)-1 {
