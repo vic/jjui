@@ -34,7 +34,7 @@ In this mode, you can:
 - Restore selected files using `r`
 - View diffs of the highlighted by pressing `d`
 
-![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_details_diff.gif)
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_details.gif)
 
 For detailed information, see [Details](https://github.com/idursun/jjui/wiki/Details) wiki page.
 
