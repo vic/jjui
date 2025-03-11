@@ -15,8 +15,8 @@ func TestConfirm(t *testing.T) {
 	c.Expect(jj.Undo())
 	defer c.Verify()
 
-	operation, _ := NewOperation(c)
-	tm := teatest.NewTestModel(t, test.OperationHost{Operation: operation})
+	model := NewModel(c)
+	tm := teatest.NewTestModel(t, test.NewShell(model))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("undo"))
 	})
@@ -28,10 +28,7 @@ func TestCancel(t *testing.T) {
 	c := test.NewTestContext(t)
 	defer c.Verify()
 
-	operation, _ := NewOperation(c)
-	model := test.OperationHost{Operation: operation}
-
-	tm := teatest.NewTestModel(t, model)
+	tm := teatest.NewTestModel(t, test.NewShell(NewModel(c)))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("undo"))
 	})
