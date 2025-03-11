@@ -3,12 +3,15 @@ package ui
 import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
+	ui "github.com/idursun/jjui/internal"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/context"
+	"github.com/idursun/jjui/internal/ui/git"
 	"github.com/idursun/jjui/internal/ui/helppage"
 	"github.com/idursun/jjui/internal/ui/preview"
 	"github.com/idursun/jjui/internal/ui/revset"
+	"github.com/idursun/jjui/internal/ui/undo"
 
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/diff"
@@ -34,6 +37,7 @@ type Model struct {
 	height         int
 	context        context.AppContext
 	keyMap         config.KeyMappings[key.Binding]
+	stacked        tea.Model
 }
 
 func (m Model) Init() tea.Cmd {
@@ -41,8 +45,9 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if _, ok := msg.(common.CloseViewMsg); ok && m.diff != nil {
+	if _, ok := msg.(common.CloseViewMsg); ok && (m.diff != nil || m.stacked != nil) {
 		m.diff = nil
+		m.stacked = nil
 		return m, nil
 	}
 
@@ -52,30 +57,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
-	if m.revsetModel.Editing {
-		m.revsetModel, cmd = m.revsetModel.Update(msg)
-		m.state = common.Loading
-		return m, cmd
-	}
-
 	var cmds []tea.Cmd
-	m.status, cmd = m.status.Update(msg)
-	cmds = append(cmds, cmd)
-
-	if m.revisions.IsFocused() {
-		m.revisions, cmd = m.revisions.Update(msg)
-		cmds = append(cmds, cmd)
-		return m, tea.Batch(cmds...)
-	}
-
-	if r, ok := m.previewModel.(common.Focusable); ok && r.IsFocused() {
-		m.previewModel, cmd = m.previewModel.Update(msg)
-		cmds = append(cmds, cmd)
-		return m, tea.Batch(cmds...)
-	}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.revsetModel.Editing {
+			m.revsetModel, cmd = m.revsetModel.Update(msg)
+			m.state = common.Loading
+			return m, cmd
+		}
+
+		if m.revisions.IsFocused() {
+			m.revisions, cmd = m.revisions.Update(msg)
+			cmds = append(cmds, cmd)
+			return m, tea.Batch(cmds...)
+		}
+
+		if r, ok := m.previewModel.(common.Focusable); ok && r.IsFocused() {
+			m.previewModel, cmd = m.previewModel.Update(msg)
+			cmds = append(cmds, cmd)
+			return m, tea.Batch(cmds...)
+		}
+
+		if m.stacked != nil {
+			m.stacked, cmd = m.stacked.Update(msg)
+			cmds = append(cmds, cmd)
+			return m, tea.Batch(cmds...)
+		}
+
 		switch {
 		case key.Matches(msg, m.keyMap.Cancel) && m.state == common.Error:
 			m.state = common.Ready
@@ -83,8 +92,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keyMap.Cancel) && m.helpPage != nil:
 			m.helpPage = nil
 			m.error = nil
+		case key.Matches(msg, m.keyMap.Cancel) && m.stacked != nil:
+			m.stacked = nil
 		case key.Matches(msg, m.keyMap.Revset):
 			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{Clear: m.state != common.Error})
+		case key.Matches(msg, m.keyMap.Git.Mode):
+			m.stacked = git.NewModel(m.context, m.revisions.SelectedRevision(), m.width, m.height)
+		case key.Matches(msg, m.keyMap.Undo):
+			m.stacked = undo.NewModel(m.context)
+			cmds = append(cmds, m.stacked.Init())
 		case key.Matches(msg, m.keyMap.Help):
 			cmds = append(cmds, common.ToggleHelp)
 			return m, tea.Batch(cmds...)
@@ -134,7 +150,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.SetWidth(m.width / 2)
 			p.SetHeight(m.height - 4)
 		}
+		if s, ok := m.stacked.(common.Sizable); ok {
+			s.SetWidth(m.width - 2)
+			s.SetHeight(m.height - 2)
+		}
 		m.status.SetWidth(m.width)
+	}
+
+	m.status, cmd = m.status.Update(msg)
+	cmds = append(cmds, cmd)
+
+	if m.stacked != nil {
+		m.stacked, cmd = m.stacked.Update(msg)
+		cmds = append(cmds, cmd)
 	}
 
 	m.revisions, cmd = m.revisions.Update(msg)
@@ -144,6 +172,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.previewModel, cmd = m.previewModel.Update(msg)
 		cmds = append(cmds, cmd)
 	}
+
 	return m, tea.Batch(cmds...)
 }
 
@@ -184,6 +213,13 @@ func (m Model) View() string {
 	}
 
 	centerView := lipgloss.JoinHorizontal(lipgloss.Left, revisionsView, previewView)
+
+	if m.stacked != nil {
+		stackedView := m.stacked.View()
+		sx := (m.width - lipgloss.Width(stackedView)) / 2
+		sy := (m.height - lipgloss.Height(stackedView)) / 2
+		centerView = ui.Stacked(centerView, stackedView, sx, sy)
+	}
 	return lipgloss.JoinVertical(0, topView, centerView, footer)
 }
 
