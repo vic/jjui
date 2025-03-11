@@ -12,7 +12,7 @@ type Operation struct {
 	selected *jj.Commit
 }
 
-func (a Operation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
+func (a Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
 	var cmd tea.Cmd
 	a.Overlay, cmd = a.Overlay.Update(msg)
 	return a, cmd

@@ -137,9 +137,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 	if op, ok := m.op.(operations.OperationWithOverlay); ok {
 		var cmd tea.Cmd
-		if m.op, cmd = op.Update(msg); cmd != nil {
-			cmds = append(cmds, cmd)
-		}
+		m.op, cmd = op.Update(msg)
+		cmds = append(cmds, cmd)
 		return m, tea.Batch(cmds...)
 	}
 

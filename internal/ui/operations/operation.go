@@ -27,7 +27,8 @@ type Operation interface {
 }
 
 type OperationWithOverlay interface {
-	Update(msg tea.Msg) (Operation, tea.Cmd)
+	Operation
+	Update(msg tea.Msg) (OperationWithOverlay, tea.Cmd)
 }
 
 type TracksSelectedRevision interface {

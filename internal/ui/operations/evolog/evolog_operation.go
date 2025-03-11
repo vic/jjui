@@ -41,7 +41,7 @@ func (o Operation) FullHelp() [][]key.Binding {
 	return [][]key.Binding{o.ShortHelp()}
 }
 
-func (o Operation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
+func (o Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
 	switch msg := msg.(type) {
 	case updateEvologMsg:
 		o.rows = msg.rows

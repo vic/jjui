@@ -30,7 +30,7 @@ func (s Operation) FullHelp() [][]key.Binding {
 	return [][]key.Binding{s.ShortHelp()}
 }
 
-func (s Operation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
+func (s Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
 	var cmd tea.Cmd
 	s.Overlay, cmd = s.Overlay.Update(msg)
 	return s, cmd

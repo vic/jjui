@@ -27,7 +27,7 @@ func (d DeleteBookmarkOperation) Init() tea.Cmd {
 	return d.Overlay.Init()
 }
 
-func (d DeleteBookmarkOperation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
+func (d DeleteBookmarkOperation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
 	var cmd tea.Cmd
 	d.Overlay, cmd = d.Overlay.Update(msg)
 	return d, cmd

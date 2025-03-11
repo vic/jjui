@@ -30,7 +30,7 @@ func (m MoveBookmarkOperation) FullHelp() [][]key.Binding {
 	return [][]key.Binding{m.ShortHelp()}
 }
 
-func (m MoveBookmarkOperation) Update(msg tea.Msg) (operations.Operation, tea.Cmd) {
+func (m MoveBookmarkOperation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
 	var cmd tea.Cmd
 	m.Overlay, cmd = m.Overlay.Update(msg)
 	return m, cmd
