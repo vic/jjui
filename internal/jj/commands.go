@@ -23,8 +23,12 @@ func Log(revset string) CommandArgs {
 	return args
 }
 
-func New(revision string) CommandArgs {
-	return []string{"new", "-r", revision}
+func New(revisions ...string) CommandArgs {
+	args := []string{"new"}
+	for _, revision := range revisions {
+		args = append(args, "-r", revision)
+	}
+	return args
 }
 
 func Edit(changeId string) CommandArgs {
@@ -45,8 +49,12 @@ func Describe(revision string) CommandArgs {
 	return []string{"describe", "-r", revision, "--edit"}
 }
 
-func Abandon(revision string) CommandArgs {
-	return []string{"abandon", "-r", revision}
+func Abandon(revision ...string) CommandArgs {
+	args := []string{"abandon"}
+	for _, rev := range revision {
+		args = append(args, "-r", rev)
+	}
+	return args
 }
 
 func Diff(revision string, fileName string) CommandArgs {

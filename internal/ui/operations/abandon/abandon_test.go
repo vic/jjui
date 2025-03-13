@@ -10,14 +10,14 @@ import (
 	"time"
 )
 
-const revision = "revision"
+var revisions = []string{"revision"}
 
 func Test_Accept(t *testing.T) {
 	c := test.NewTestContext(t)
-	c.Expect(jj.Abandon(revision))
+	c.Expect(jj.Abandon(revisions...))
 	defer c.Verify()
 
-	model := test.NewShell(New(c, revision))
+	model := test.NewShell(New(c, revisions))
 	tm := teatest.NewTestModel(t, model)
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("abandon"))
@@ -34,7 +34,7 @@ func Test_Cancel(t *testing.T) {
 	c := test.NewTestContext(t)
 	defer c.Verify()
 
-	model := test.NewShell(New(c, revision))
+	model := test.NewShell(New(c, revisions))
 	tm := teatest.NewTestModel(t, model)
 	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {

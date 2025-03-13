@@ -1,6 +1,7 @@
 package abandon
 
 import (
+	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
@@ -29,9 +30,13 @@ func (m Model) View() string {
 	return m.confirmation.View()
 }
 
-func New(context context.AppContext, revision string) tea.Model {
-	model := confirmation.New("Are you sure you want to abandon this revision?")
-	model.AddOption("Yes", context.RunCommand(jj.Abandon(revision), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
+func New(context context.AppContext, selectedRevisions []string) tea.Model {
+	message := "Are you sure you want to abandon this revision?"
+	if len(selectedRevisions) > 1 {
+		message = fmt.Sprintf("Are you sure you want to abandon %d revisions?", len(selectedRevisions))
+	}
+	model := confirmation.New(message)
+	model.AddOption("Yes", context.RunCommand(jj.Abandon(selectedRevisions...), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))
 
 	return Model{

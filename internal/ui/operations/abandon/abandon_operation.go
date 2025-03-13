@@ -9,7 +9,7 @@ import (
 
 type Operation struct {
 	Overlay  tea.Model
-	selected *jj.Commit
+	selected []*jj.Commit
 }
 
 func (a Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
@@ -30,10 +30,14 @@ func (a Operation) Name() string {
 	return "abandon"
 }
 
-func NewOperation(context context.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
+func NewOperation(context context.AppContext, selectedRevisions []*jj.Commit) (operations.Operation, tea.Cmd) {
+	var changeIds []string
+	for _, s := range selectedRevisions {
+		changeIds = append(changeIds, s.GetChangeId())
+	}
 	op := Operation{
-		selected: selected,
-		Overlay:  New(context, selected.GetChangeId()),
+		selected: selectedRevisions,
+		Overlay:  New(context, changeIds),
 	}
 	return op, op.Overlay.Init()
 }
