@@ -213,11 +213,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.load(m.revision)
 	case updateCommitStatusMsg:
 		items := m.parseFiles(msg)
-		m.files.SetItems(items)
 		if len(items) > 0 {
-			m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: m.files.SelectedItem().(item).fileName})
+			m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: items[0].(item).fileName})
 		}
-		return m, common.SelectionChanged
+		return m, tea.Batch(common.SelectionChanged, m.files.SetItems(items))
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 	}
