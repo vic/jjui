@@ -28,7 +28,6 @@ type Model struct {
 	revsetModel    revset.Model
 	previewModel   tea.Model
 	previewVisible bool
-	helpPage       tea.Model
 	diff           tea.Model
 	state          common.State
 	error          error
@@ -90,9 +89,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keyMap.Cancel) && m.state == common.Error:
 			m.state = common.Ready
 			m.error = nil
-		case key.Matches(msg, m.keyMap.Cancel) && m.helpPage != nil:
-			m.helpPage = nil
-			m.error = nil
 		case key.Matches(msg, m.keyMap.Cancel) && m.stacked != nil:
 			m.stacked = nil
 		case key.Matches(msg, m.keyMap.Revset):
@@ -121,14 +117,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(cmds...)
 		}
 	case common.ToggleHelpMsg:
-		if m.helpPage == nil {
-			m.helpPage = helppage.New(m.context)
-			if p, ok := m.helpPage.(common.Sizable); ok {
+		if m.stacked == nil {
+			m.stacked = helppage.New(m.context)
+			if p, ok := m.stacked.(common.Sizable); ok {
 				p.SetHeight(m.height - 2)
 				p.SetWidth(m.width)
 			}
 		} else {
-			m.helpPage = nil
+			m.stacked = nil
 		}
 		return m, nil
 	case common.ShowDiffMsg:
@@ -194,10 +190,6 @@ func (m Model) View() string {
 	m.status.SetCurrentOperation(m.revisions.CurrentOperation())
 	footer := m.status.View()
 	footerHeight := lipgloss.Height(footer)
-
-	if m.helpPage != nil {
-		return lipgloss.JoinVertical(0, topView, m.helpPage.View(), footer)
-	}
 
 	m.revisions.SetWidth(m.width)
 	if m.previewVisible {

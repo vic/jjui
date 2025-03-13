@@ -80,6 +80,8 @@ func printMode(key key.Binding, name string) string {
 	return help
 }
 
+var border = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(2)
+
 func (h *Model) View() string {
 	leftView := lipgloss.JoinVertical(lipgloss.Left,
 		printHeader("UI"),
@@ -150,7 +152,7 @@ func (h *Model) View() string {
 
 	content := lipgloss.JoinHorizontal(lipgloss.Left, leftView, "  ", rightView)
 
-	return lipgloss.Place(h.width, h.height, lipgloss.Center, lipgloss.Center, content)
+	return border.Render(content)
 }
 
 func New(context context.AppContext) *Model {
