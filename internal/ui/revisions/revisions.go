@@ -90,9 +90,24 @@ func (m *Model) SelectedRevision() *jj.Commit {
 	return m.rows[m.cursor].Commit
 }
 
+func (m *Model) SelectedRevisions() []*jj.Commit {
+	var selected []*jj.Commit
+	for _, row := range m.rows {
+		if row.IsSelected {
+			selected = append(selected, row.Commit)
+		}
+	}
+	if len(selected) == 0 {
+		return []*jj.Commit{m.SelectedRevision()}
+	}
+	return selected
+}
+
 func (m *Model) Init() tea.Cmd {
 	return common.Refresh
 }
+
+var space = key.NewBinding(key.WithKeys(" "))
 
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, 0)
@@ -142,6 +157,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				cmd = op.HandleKey(msg)
 			} else {
 				switch {
+				case key.Matches(msg, space):
+					m.rows[m.cursor].IsSelected = !m.rows[m.cursor].IsSelected
 				case key.Matches(msg, m.keymap.Cancel):
 					m.op = operations.Default(m.context)
 				case key.Matches(msg, m.keymap.Details.Mode):
@@ -245,16 +262,17 @@ func (m *Model) View() string {
 		Dark:  config.Current.UI.HighlightDark,
 	}
 	for i, row := range m.rows {
+		if i == m.cursor {
+			selectedLineStart = w.LineCount()
+		}
 		nodeRenderer := &graph.DefaultRowRenderer{
 			Palette:             common.DefaultPalette,
 			HighlightBackground: highlightColor,
 			Op:                  m.op,
 			IsHighlighted:       i == m.cursor,
+			IsSelected:          row.IsSelected,
 		}
 
-		if i == m.cursor {
-			selectedLineStart = w.LineCount()
-		}
 		w.RenderRow(row, nodeRenderer)
 		if i == m.cursor {
 			selectedLineEnd = w.LineCount()

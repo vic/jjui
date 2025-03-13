@@ -40,6 +40,7 @@ type Parser struct {
 type GraphRow struct {
 	Connections [][]ConnectionType
 	Commit      *Commit
+	IsSelected  bool
 }
 
 func NewParser(reader io.Reader) *Parser {

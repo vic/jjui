@@ -15,6 +15,7 @@ type DefaultRowRenderer struct {
 	Palette             common.Palette
 	HighlightBackground lipgloss.AdaptiveColor
 	IsHighlighted       bool
+	IsSelected          bool
 	Op                  operations.Operation
 }
 
@@ -69,7 +70,11 @@ func (s *DefaultRowRenderer) RenderGlyph(connection jj.ConnectionType, commit *j
 			opMarker = s.Op.Render()
 		}
 	}
-	return style.Render(string(connection) + opMarker)
+	selectedMarker := ""
+	if s.IsSelected {
+		selectedMarker = s.Palette.Added.Render("✓")
+	}
+	return style.Render(string(connection) + opMarker + selectedMarker)
 }
 
 func (s *DefaultRowRenderer) RenderTermination(connection jj.ConnectionType) string {
