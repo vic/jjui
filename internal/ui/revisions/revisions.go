@@ -107,8 +107,6 @@ func (m *Model) Init() tea.Cmd {
 	return common.Refresh
 }
 
-var space = key.NewBinding(key.WithKeys(" "))
-
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, 0)
 
@@ -157,7 +155,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				cmd = op.HandleKey(msg)
 			} else {
 				switch {
-				case key.Matches(msg, space):
+				case key.Matches(msg, m.keymap.ToggleSelect):
 					m.rows[m.cursor].IsSelected = !m.rows[m.cursor].IsSelected
 				case key.Matches(msg, m.keymap.Cancel):
 					m.op = operations.Default(m.context)
