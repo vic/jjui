@@ -103,19 +103,15 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.op = operations.Default(m.context)
 		if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
 			m.context.SetSelectedItem(context.SelectedRevision{ChangeId: m.SelectedRevision().ChangeId})
-			return m, tea.Batch(common.SelectionChanged, operations.OperationChanged(m.op))
+			return m, common.SelectionChanged
 		}
-		return m, operations.OperationChanged(m.op)
+		return m, nil
 	case operations.SetOperationMsg:
 		m.op = msg.Operation
-		return m, operations.OperationChanged(m.op)
+		return m, nil
 	case revset.UpdateRevSetMsg:
 		m.revsetValue = string(msg)
-		if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
-			cmds = append(cmds, common.Refresh)
-		} else {
-			cmds = append(cmds, common.Refresh)
-		}
+		return m, common.Refresh
 	case common.RefreshMsg:
 		return m, m.load(m.revsetValue, msg.SelectedRevision)
 	case updateRevisionsMsg:

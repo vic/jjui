@@ -5,10 +5,10 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 )
 
-type RenderPosition int
-
 type SetOperationMsg struct{ Operation Operation }
 type OperationChangedMsg struct{ Operation Operation }
+
+type RenderPosition int
 
 const (
 	RenderPositionNil RenderPosition = iota
@@ -37,16 +37,4 @@ type TracksSelectedRevision interface {
 
 type HandleKey interface {
 	HandleKey(msg tea.KeyMsg) tea.Cmd
-}
-
-func SetOperation(op Operation) tea.Cmd {
-	return func() tea.Msg {
-		return SetOperationMsg{Operation: op}
-	}
-}
-
-func OperationChanged(op Operation) tea.Cmd {
-	return func() tea.Msg {
-		return OperationChangedMsg{Operation: op}
-	}
 }
