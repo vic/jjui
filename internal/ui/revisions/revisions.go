@@ -115,20 +115,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case common.RefreshMsg:
 		return m, m.load(m.revsetValue, msg.SelectedRevision)
 	case updateRevisionsMsg:
-		if msg.rows != nil {
-			currentSelectedRevision := msg.selectedRevision
-			if cur := m.SelectedRevision(); currentSelectedRevision == "" && cur != nil {
-				currentSelectedRevision = cur.GetChangeId()
-			}
-			m.rows = msg.rows
-			m.cursor = m.selectRevision(currentSelectedRevision)
-			if m.cursor == -1 {
-				m.cursor = m.selectRevision("@")
-			}
-			if m.cursor == -1 {
-				m.cursor = 0
-			}
-		}
+		m.updateGraphRows(msg.rows, msg.selectedRevision)
 	}
 
 	if op, ok := m.op.(operations.OperationWithOverlay); ok {
@@ -210,6 +197,25 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.context.SetSelectedItem(context.SelectedRevision{ChangeId: curSelected.ChangeId})
 	}
 	return m, tea.Batch(cmds...)
+}
+
+func (m *Model) updateGraphRows(rows []jj.GraphRow, selectedRevision string) {
+	if rows == nil {
+		return
+	}
+
+	currentSelectedRevision := selectedRevision
+	if cur := m.SelectedRevision(); currentSelectedRevision == "" && cur != nil {
+		currentSelectedRevision = cur.GetChangeId()
+	}
+	m.rows = rows
+	m.cursor = m.selectRevision(currentSelectedRevision)
+	if m.cursor == -1 {
+		m.cursor = m.selectRevision("@")
+	}
+	if m.cursor == -1 {
+		m.cursor = 0
+	}
 }
 
 func (m *Model) View() string {
