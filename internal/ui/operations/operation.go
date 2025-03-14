@@ -5,9 +5,6 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 )
 
-type SetOperationMsg struct{ Operation Operation }
-type OperationChangedMsg struct{ Operation Operation }
-
 type RenderPosition int
 
 const (

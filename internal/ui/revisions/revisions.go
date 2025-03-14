@@ -119,9 +119,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			return m, common.SelectionChanged
 		}
 		return m, nil
-	case operations.SetOperationMsg:
-		m.op = msg.Operation
-		return m, nil
 	case revset.UpdateRevSetMsg:
 		m.revsetValue = string(msg)
 		return m, common.Refresh
