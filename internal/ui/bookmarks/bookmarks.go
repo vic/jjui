@@ -49,20 +49,23 @@ func (m *Model) SetHeight(h int) {
 	m.list.SetHeight(m.height - 6)
 }
 
-type itemPriority int
+type commandType int
 
+// defines the order of actions in the list
 const (
-	move itemPriority = iota
-	delete
-	track
-	untrack
-	forget
+	moveCommand commandType = iota
+	deleteCommand
+	trackCommand
+	untrackCommand
+	forgetCommand
 )
 
 type item struct {
 	name     string
-	priority itemPriority
-	args     []string
+	priority commandType
+	// used to show bookmarks of the selected revision at the top
+	weight int
+	args   []string
 }
 
 func (i item) FilterValue() string {
@@ -118,7 +121,7 @@ func (m *Model) loadMovables() tea.Msg {
 
 		bookmarkItems = append(bookmarkItems, item{
 			name:     name,
-			priority: move,
+			priority: moveCommand,
 			args:     jj.BookmarkMove(m.current.ChangeId, b.Name, extraFlags...),
 		})
 	}
@@ -133,24 +136,31 @@ func (m *Model) loadAll() tea.Msg {
 
 		items := make([]list.Item, 0)
 		for _, b := range bookmarks {
+			weight := 0
+			if slices.Contains(m.current.Bookmarks, b.Name) {
+				weight = 1
+			}
 			if !b.Remote {
 				items = append(items, item{
 					name:     fmt.Sprintf("delete '%s'", b.Name),
-					priority: delete,
+					priority: deleteCommand,
+					weight:   weight,
 					args:     jj.BookmarkDelete(b.Name),
 				})
 			}
 
 			items = append(items, item{
 				name:     fmt.Sprintf("forget '%s'", b.Name),
-				priority: forget,
+				priority: forgetCommand,
+				weight:   weight,
 				args:     jj.BookmarkForget(b.Name),
 			})
 
 			if !b.Tracked && b.Remote {
 				items = append(items, item{
 					name:     fmt.Sprintf("track '%s'", b.Name),
-					priority: track,
+					priority: trackCommand,
+					weight:   weight,
 					args:     jj.BookmarkTrack(b.Name),
 				})
 			}
@@ -158,7 +168,8 @@ func (m *Model) loadAll() tea.Msg {
 			if b.Tracked {
 				items = append(items, item{
 					name:     fmt.Sprintf("untrack '%s'", b.Name),
-					priority: untrack,
+					priority: untrackCommand,
+					weight:   weight,
 					args:     jj.BookmarkUntrack(b.Name),
 				})
 			}
@@ -205,6 +216,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return -1
 			}
 			if ia.priority > ib.priority {
+				return 1
+			}
+			if ia.weight > ib.weight {
+				return -1
+			}
+			if ia.weight < ib.weight {
 				return 1
 			}
 			return strings.Compare(ia.name, ib.name)
