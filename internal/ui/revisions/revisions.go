@@ -108,9 +108,6 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
-	cmds := make([]tea.Cmd, 0)
-
-	preSelectedRevision := m.SelectedRevision()
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
 		m.op = operations.Default(m.context)
@@ -131,10 +128,10 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	if op, ok := m.op.(operations.OperationWithOverlay); ok {
 		var cmd tea.Cmd
 		m.op, cmd = op.Update(msg)
-		cmds = append(cmds, cmd)
-		return m, tea.Batch(cmds...)
+		return m, cmd
 	}
 
+	preSelectedRevision := m.SelectedRevision()
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -150,70 +147,70 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		default:
 			if op, ok := m.op.(operations.HandleKey); ok {
 				cmd = op.HandleKey(msg)
-			} else {
-				switch {
-				case key.Matches(msg, m.keymap.ToggleSelect):
-					m.rows[m.cursor].IsSelected = !m.rows[m.cursor].IsSelected
-				case key.Matches(msg, m.keymap.Cancel):
-					m.op = operations.Default(m.context)
-				case key.Matches(msg, m.keymap.Details.Mode):
-					m.op, cmd = details.NewOperation(m.context, m.SelectedRevision())
-				case key.Matches(msg, m.keymap.New):
-					selections := m.SelectedRevisions()
-					var changeIds []string
-					for _, s := range selections {
-						changeIds = append(changeIds, s.GetChangeId())
-					}
-					cmd = m.context.RunCommand(jj.New(changeIds...), common.RefreshAndSelect("@"))
-				case key.Matches(msg, m.keymap.Edit):
-					cmd = m.context.RunCommand(jj.Edit(m.SelectedRevision().GetChangeId()), common.Refresh)
-				case key.Matches(msg, m.keymap.Diffedit):
-					changeId := m.SelectedRevision().GetChangeId()
-					cmd = m.context.RunInteractiveCommand(jj.DiffEdit(changeId), common.Refresh)
-				case key.Matches(msg, m.keymap.Abandon):
-					m.op, cmd = abandon.NewOperation(m.context, m.SelectedRevisions())
-				case key.Matches(msg, m.keymap.Bookmark.Set):
-					m.op, cmd = bookmark.NewSetBookmarkOperation(m.context, m.SelectedRevision())
-				case key.Matches(msg, m.keymap.Split):
-					currentRevision := m.SelectedRevision().GetChangeId()
-					return m, m.context.RunInteractiveCommand(jj.Split(currentRevision, []string{}), common.Refresh)
-				case key.Matches(msg, m.keymap.Describe):
-					currentRevision := m.SelectedRevision().GetChangeId()
-					return m, m.context.RunInteractiveCommand(jj.Describe(currentRevision), common.Refresh)
-				case key.Matches(msg, m.keymap.Evolog):
-					m.op, cmd = evolog.NewOperation(m.context, m.SelectedRevision().GetChangeId(), m.width, m.height)
-				case key.Matches(msg, m.keymap.Diff):
-					return m, func() tea.Msg {
-						output, _ := m.context.RunCommandImmediate(jj.Diff(m.SelectedRevision().GetChangeId(), ""))
-						return common.ShowDiffMsg(output)
-					}
-				case key.Matches(msg, m.keymap.Refresh):
-					cmd = common.Refresh
-				case key.Matches(msg, m.keymap.Squash):
-					m.op = squash.NewOperation(m.context, m.SelectedRevision().ChangeIdShort)
-					if m.cursor < len(m.rows)-1 {
-						m.cursor++
-					}
-				case key.Matches(msg, m.keymap.Rebase.Mode):
-					m.op = rebase.NewOperation(m.context, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
-				case key.Matches(msg, m.keymap.Quit):
-					return m, tea.Quit
+				break
+			}
+
+			switch {
+			case key.Matches(msg, m.keymap.ToggleSelect):
+				m.rows[m.cursor].IsSelected = !m.rows[m.cursor].IsSelected
+			case key.Matches(msg, m.keymap.Cancel):
+				m.op = operations.Default(m.context)
+			case key.Matches(msg, m.keymap.Details.Mode):
+				m.op, cmd = details.NewOperation(m.context, m.SelectedRevision())
+			case key.Matches(msg, m.keymap.New):
+				selections := m.SelectedRevisions()
+				var changeIds []string
+				for _, s := range selections {
+					changeIds = append(changeIds, s.GetChangeId())
 				}
+				cmd = m.context.RunCommand(jj.New(changeIds...), common.RefreshAndSelect("@"))
+			case key.Matches(msg, m.keymap.Edit):
+				cmd = m.context.RunCommand(jj.Edit(m.SelectedRevision().GetChangeId()), common.Refresh)
+			case key.Matches(msg, m.keymap.Diffedit):
+				changeId := m.SelectedRevision().GetChangeId()
+				cmd = m.context.RunInteractiveCommand(jj.DiffEdit(changeId), common.Refresh)
+			case key.Matches(msg, m.keymap.Abandon):
+				m.op, cmd = abandon.NewOperation(m.context, m.SelectedRevisions())
+			case key.Matches(msg, m.keymap.Bookmark.Set):
+				m.op, cmd = bookmark.NewSetBookmarkOperation(m.context, m.SelectedRevision().GetChangeId())
+			case key.Matches(msg, m.keymap.Split):
+				currentRevision := m.SelectedRevision().GetChangeId()
+				return m, m.context.RunInteractiveCommand(jj.Split(currentRevision, []string{}), common.Refresh)
+			case key.Matches(msg, m.keymap.Describe):
+				currentRevision := m.SelectedRevision().GetChangeId()
+				return m, m.context.RunInteractiveCommand(jj.Describe(currentRevision), common.Refresh)
+			case key.Matches(msg, m.keymap.Evolog):
+				m.op, cmd = evolog.NewOperation(m.context, m.SelectedRevision().GetChangeId(), m.width, m.height)
+			case key.Matches(msg, m.keymap.Diff):
+				return m, func() tea.Msg {
+					output, _ := m.context.RunCommandImmediate(jj.Diff(m.SelectedRevision().GetChangeId(), ""))
+					return common.ShowDiffMsg(output)
+				}
+			case key.Matches(msg, m.keymap.Refresh):
+				cmd = common.Refresh
+			case key.Matches(msg, m.keymap.Squash):
+				m.op = squash.NewOperation(m.context, m.SelectedRevision().ChangeIdShort)
+				if m.cursor < len(m.rows)-1 {
+					m.cursor++
+				}
+			case key.Matches(msg, m.keymap.Rebase.Mode):
+				m.op = rebase.NewOperation(m.context, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
+			case key.Matches(msg, m.keymap.Quit):
+				return m, tea.Quit
 			}
 		}
 	}
-	if cmd != nil {
-		cmds = append(cmds, cmd)
+
+	if curSelected := m.SelectedRevision(); curSelected != nil {
+		if op, ok := m.op.(operations.TracksSelectedRevision); ok {
+			op.SetSelectedRevision(curSelected)
+		}
+		if preSelectedRevision != curSelected && curSelected != nil {
+			m.context.SetSelectedItem(context.SelectedRevision{ChangeId: curSelected.ChangeId})
+			return m, tea.Batch(common.SelectionChanged, cmd)
+		}
 	}
-	if op, ok := m.op.(operations.TracksSelectedRevision); ok {
-		op.SetSelectedRevision(m.SelectedRevision())
-	}
-	curSelected := m.SelectedRevision()
-	if preSelectedRevision != curSelected && curSelected != nil {
-		cmds = append(cmds, common.SelectionChanged)
-		m.context.SetSelectedItem(context.SelectedRevision{ChangeId: curSelected.ChangeId})
-	}
-	return m, tea.Batch(cmds...)
+	return m, cmd
 }
 
 func (m *Model) updateGraphRows(rows []jj.GraphRow, selectedRevision string) {
