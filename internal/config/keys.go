@@ -36,6 +36,7 @@ var DefaultKeyMappings = KeyMappings[keys]{
 	},
 	Details: detailsModeKeys[keys]{
 		Mode:         []string{"l"},
+		Close:        []string{"h"},
 		Split:        []string{"s"},
 		Restore:      []string{"r"},
 		Diff:         []string{"d"},
@@ -97,6 +98,7 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 		},
 		Details: detailsModeKeys[key.Binding]{
 			Mode:         key.NewBinding(key.WithKeys(m.Details.Mode...), key.WithHelp(join(m.Details.Mode), "details")),
+			Close:        key.NewBinding(key.WithKeys(m.Details.Close...), key.WithHelp(join(m.Details.Close), "close")),
 			Split:        key.NewBinding(key.WithKeys(m.Details.Split...), key.WithHelp(join(m.Details.Split), "details split")),
 			Restore:      key.NewBinding(key.WithKeys(m.Details.Restore...), key.WithHelp(join(m.Details.Restore), "details restore")),
 			Diff:         key.NewBinding(key.WithKeys(m.Details.Diff...), key.WithHelp(join(m.Details.Diff), "details diff")),
@@ -187,6 +189,7 @@ type rebaseModeKeys[T any] struct {
 
 type detailsModeKeys[T any] struct {
 	Mode         T `toml:"mode"`
+	Close        T `toml:"close"`
 	Split        T `toml:"split"`
 	Restore      T `toml:"restore"`
 	Diff         T `toml:"diff"`

@@ -26,13 +26,6 @@ var (
 	Renamed  status = 3
 )
 
-var (
-	Cancel  = key.NewBinding(key.WithKeys("esc", "h"), key.WithHelp("esc/h", "cancel"))
-	Mark    = key.NewBinding(key.WithKeys("m", " "), key.WithHelp("m/space", "mark"))
-	Restore = key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "restore"))
-	Split   = key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "split"))
-)
-
 type item struct {
 	status   status
 	name     string
@@ -151,7 +144,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 		switch {
-		case key.Matches(msg, Cancel):
+		case key.Matches(msg, m.keyMap.Cancel), key.Matches(msg, m.keyMap.Details.Close):
 			return m, common.Close
 		case key.Matches(msg, m.keyMap.Details.Diff):
 			v := m.files.SelectedItem().(item).fileName
