@@ -1,6 +1,8 @@
 package undo
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -28,8 +30,12 @@ func (m Model) View() string {
 	return m.confirmation.View()
 }
 
+var style = lipgloss.NewStyle().Width(80)
+
 func NewModel(context context.AppContext) Model {
-	model := confirmation.New("Are you sure you want to undo last change?")
+	output, _ := context.RunCommandImmediate(jj.OpLog(1))
+	message := fmt.Sprintf("%s\n\nAre you sure you want to undo last change?", style.Render(string(output)))
+	model := confirmation.New(message)
 	model.SetBorderStyle(lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(2))
 	model.AddOption("Yes", context.RunCommand(jj.Undo(), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))

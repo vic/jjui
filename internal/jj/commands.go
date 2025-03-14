@@ -2,6 +2,8 @@ package jj
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/idursun/jjui/internal/config"
 )
 
@@ -167,8 +169,8 @@ func Absorb(changeId string) CommandArgs {
 	return []string{"absorb", "--from", changeId}
 }
 
-func OpLog() CommandArgs {
-	return []string{"op", "log", "--color", "always", "--quiet", "--limit", "100"}
+func OpLog(limit int) CommandArgs {
+	return []string{"op", "log", "--color", "always", "--quiet", "--limit", strconv.Itoa(limit)}
 }
 
 func OpShow(operationId string) CommandArgs {

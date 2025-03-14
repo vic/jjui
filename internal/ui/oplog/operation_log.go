@@ -13,6 +13,8 @@ import (
 	"github.com/idursun/jjui/internal/ui/graph"
 )
 
+const OpLogLimit = 100
+
 var normalStyle = lipgloss.NewStyle()
 
 type updateOpLogMsg struct {
@@ -132,7 +134,7 @@ func (m *Model) View() string {
 
 func (m *Model) load() tea.Cmd {
 	return func() tea.Msg {
-		output, err := m.context.RunCommandImmediate(jj.OpLog())
+		output, err := m.context.RunCommandImmediate(jj.OpLog(OpLogLimit))
 		if err != nil {
 			panic(err)
 		}

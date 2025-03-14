@@ -2,16 +2,18 @@ package undo
 
 import (
 	"bytes"
+	"testing"
+	"time"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/test"
-	"testing"
-	"time"
 )
 
 func TestConfirm(t *testing.T) {
 	c := test.NewTestContext(t)
+	c.Expect(jj.OpLog(1))
 	c.Expect(jj.Undo())
 	defer c.Verify()
 
@@ -26,6 +28,7 @@ func TestConfirm(t *testing.T) {
 
 func TestCancel(t *testing.T) {
 	c := test.NewTestContext(t)
+	c.Expect(jj.OpLog(1))
 	defer c.Verify()
 
 	tm := teatest.NewTestModel(t, test.NewShell(NewModel(c)))
