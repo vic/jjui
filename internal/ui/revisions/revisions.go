@@ -170,7 +170,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				changeId := m.SelectedRevision().GetChangeId()
 				cmd = m.context.RunInteractiveCommand(jj.DiffEdit(changeId), common.Refresh)
 			case key.Matches(msg, m.keymap.Abandon):
-				m.op, cmd = abandon.NewOperation(m.context, m.SelectedRevisions())
+				selections := m.SelectedRevisions()
+				var changeIds []string
+				for _, s := range selections {
+					changeIds = append(changeIds, s.GetChangeId())
+				}
+				m.op = abandon.NewOperation(m.context, changeIds)
 			case key.Matches(msg, m.keymap.Bookmark.Set):
 				m.op, cmd = bookmark.NewSetBookmarkOperation(m.context, m.SelectedRevision().GetChangeId())
 			case key.Matches(msg, m.keymap.Split):
