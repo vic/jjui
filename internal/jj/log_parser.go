@@ -37,12 +37,6 @@ type Parser struct {
 	secondRune rune
 }
 
-type GraphRow struct {
-	Connections [][]ConnectionType
-	Commit      *Commit
-	IsSelected  bool
-}
-
 func NewParser(reader io.Reader) *Parser {
 	p := &Parser{
 		reader: bufio.NewReader(reader),

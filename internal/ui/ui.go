@@ -3,9 +3,9 @@ package ui
 import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
-	ui "github.com/idursun/jjui/internal"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
+	ui "github.com/idursun/jjui/internal/screen"
 	"github.com/idursun/jjui/internal/ui/bookmarks"
 	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/git"
