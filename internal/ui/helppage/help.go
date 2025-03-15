@@ -2,6 +2,7 @@ package helppage
 
 import (
 	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -105,6 +106,7 @@ func (h *Model) View() string {
 		printHelpExt("u", "half page up"),
 		"",
 		printHeader("Revisions"),
+		printHelp(h.keyMap.ToggleSelect),
 		printHelp(h.keyMap.New),
 		printHelp(h.keyMap.Describe),
 		printHelp(h.keyMap.Edit),
@@ -112,14 +114,15 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.Diffedit),
 		printHelp(h.keyMap.Split),
 		printHelp(h.keyMap.Abandon),
+		printHelp(h.keyMap.Absorb),
 		printHelp(h.keyMap.Undo),
 		printHelp(h.keyMap.Details.Mode),
-		"",
-		printHeader("Revset"),
-		printHelp(h.keyMap.Revset),
 	)
 
 	rightView := lipgloss.JoinVertical(lipgloss.Left,
+		printHeader("Revset"),
+		printHelp(h.keyMap.Revset),
+		"",
 		printMode(h.keyMap.Details.Mode, "Details"),
 		printHelp(h.keyMap.Details.ToggleSelect),
 		printHelp(h.keyMap.Details.Restore),

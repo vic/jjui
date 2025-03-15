@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/charmbracelet/bubbles/key"
 	"strings"
+
+	"github.com/charmbracelet/bubbles/key"
 )
 
 var DefaultKeyMappings = KeyMappings[keys]{
@@ -20,6 +21,7 @@ var DefaultKeyMappings = KeyMappings[keys]{
 	Edit:         []string{"e"},
 	Diff:         []string{"d"},
 	Diffedit:     []string{"E"},
+	Absorb:       []string{"A"},
 	Split:        []string{"s"},
 	Squash:       []string{"S"},
 	Evolog:       []string{"O"},
@@ -72,7 +74,7 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 		Down:         key.NewBinding(key.WithKeys(m.Down...), key.WithHelp(join(m.Down), "down")),
 		Apply:        key.NewBinding(key.WithKeys(m.Apply...), key.WithHelp(join(m.Apply), "apply")),
 		Cancel:       key.NewBinding(key.WithKeys(m.Cancel...), key.WithHelp(join(m.Cancel), "cancel")),
-		ToggleSelect: key.NewBinding(key.WithKeys(m.ToggleSelect...), key.WithHelp(join(m.Cancel), "toggle selection")),
+		ToggleSelect: key.NewBinding(key.WithKeys(m.ToggleSelect...), key.WithHelp(join(m.ToggleSelect), "toggle selection")),
 		New:          key.NewBinding(key.WithKeys(m.New...), key.WithHelp(join(m.New), "new")),
 		Refresh:      key.NewBinding(key.WithKeys(m.Refresh...), key.WithHelp(join(m.Refresh), "refresh")),
 		Quit:         key.NewBinding(key.WithKeys(m.Quit...), key.WithHelp(join(m.Quit), "quit")),
@@ -82,6 +84,7 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 		Abandon:      key.NewBinding(key.WithKeys(m.Abandon...), key.WithHelp(join(m.Abandon), "abandon")),
 		Edit:         key.NewBinding(key.WithKeys(m.Edit...), key.WithHelp(join(m.Edit), "edit")),
 		Diffedit:     key.NewBinding(key.WithKeys(m.Diffedit...), key.WithHelp(join(m.Diffedit), "diff edit")),
+		Absorb:       key.NewBinding(key.WithKeys(m.Absorb...), key.WithHelp(join(m.Absorb), "absorb")),
 		Split:        key.NewBinding(key.WithKeys(m.Split...), key.WithHelp(join(m.Split), "split")),
 		Squash:       key.NewBinding(key.WithKeys(m.Squash...), key.WithHelp(join(m.Squash), "squash")),
 		Help:         key.NewBinding(key.WithKeys(m.Help...), key.WithHelp(join(m.Help), "help")),
@@ -127,7 +130,6 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 			Fetch: key.NewBinding(key.WithKeys(m.Git.Fetch...), key.WithHelp(join(m.Git.Fetch), "git fetch")),
 		},
 	}
-
 }
 
 func (c *Config) GetKeyMap() KeyMappings[key.Binding] {
@@ -135,7 +137,20 @@ func (c *Config) GetKeyMap() KeyMappings[key.Binding] {
 }
 
 func join(keys []string) string {
-	return strings.Join(keys, "/")
+	var joined []string
+	for _, key := range keys {
+		k := key
+		switch key {
+		case "up":
+			k = "↑"
+		case "down":
+			k = "↓"
+		case " ":
+			k = "space"
+		}
+		joined = append(joined, k)
+	}
+	return strings.Join(joined, "/")
 }
 
 type keys []string
@@ -165,6 +180,7 @@ type KeyMappings[T any] struct {
 	Describe     T                   `toml:"describe"`
 	Edit         T                   `toml:"edit"`
 	Diffedit     T                   `toml:"diffedit"`
+	Absorb       T                   `toml:"absorb"`
 	Split        T                   `toml:"split"`
 	Squash       T                   `toml:"squash"`
 	Undo         T                   `toml:"undo"`
