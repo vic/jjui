@@ -93,12 +93,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.stacked = nil
 		case key.Matches(msg, m.keyMap.Revset):
 			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{Clear: m.state != common.Error})
-		case key.Matches(msg, m.keyMap.Git.Mode):
+		case key.Matches(msg, m.keyMap.Git.Mode) && m.revisions.InNormalMode():
 			m.stacked = git.NewModel(m.context, m.revisions.SelectedRevision(), m.width, m.height)
 		case key.Matches(msg, m.keyMap.Undo):
 			m.stacked = undo.NewModel(m.context)
 			cmds = append(cmds, m.stacked.Init())
-		case key.Matches(msg, m.keyMap.Bookmark.Mode):
+		case key.Matches(msg, m.keyMap.Bookmark.Mode) && m.revisions.InNormalMode():
 			m.stacked = bookmarks.NewModel(m.context, m.revisions.SelectedRevision(), m.width, m.height)
 			cmds = append(cmds, m.stacked.Init())
 		case key.Matches(msg, m.keyMap.Help):

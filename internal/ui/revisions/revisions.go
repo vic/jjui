@@ -57,6 +57,13 @@ func (m *Model) IsFocused() bool {
 	return false
 }
 
+func (m *Model) InNormalMode() bool {
+	if _, ok := m.op.(*operations.Noop); ok {
+		return true
+	}
+	return false
+}
+
 func (m *Model) Width() int {
 	return m.width
 }
