@@ -60,8 +60,9 @@ Additionally,
 * Create a _new_ revision by pressing `n`
 * Split a revision by pressing `s`.
 * Abandon a revision by pressing `a`.
+* Absorb a revision by pressing `A`.
 * _Edit_ a revision by pressing `e`
-* Git _push_/_fetch_ by pressing `g`, followed by `p` or `f`
+* Git _push_/_fetch_ by pressing `g` 
 * Undo last change by pressing `u`
 * Show evolog of a revision by pressing `O`
 
