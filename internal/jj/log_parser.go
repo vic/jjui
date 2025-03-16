@@ -48,7 +48,7 @@ func (p *Parser) Parse() []GraphRow {
 	ret := make([]GraphRow, 0)
 	for p.advance() {
 		if p.firstRune == '\n' {
-			break
+			continue
 		}
 		var connections []ConnectionType
 		for p.firstRune != 0 {

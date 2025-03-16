@@ -27,10 +27,25 @@ func Test_Parse_Line(t *testing.T) {
 	}
 }
 
+func Test_Parse_DisconnectedRevisions(t *testing.T) {
+	p := jj.NewParser(strings.NewReader(`@  x;xrmtvxvm;.;true;false;false;false;false;ibrahim@dursun.cc;17 seconds ago;9c;9c5c7bbd
+│
+~
+
+○  mw;mwlvpylm;.;false;false;false;false;false;ibrahim@dursun.cc;14 minutes ago;e6;e60c0461
+│
+~
+`))
+	rows := p.Parse()
+	assert.Len(t, rows, 2)
+	assert.Equal(t, "x", rows[0].Commit.ChangeIdShort)
+	assert.Equal(t, "mw", rows[1].Commit.ChangeIdShort)
+}
+
 func Test_Parse_SkipInformationLines(t *testing.T) {
 	p := jj.NewParser(strings.NewReader("information\ninformation\ninformation\n○  yskmz;yskmzrpp"))
 	rows := p.Parse()
-	assert.Equal(t, 1, len(rows))
+	assert.Len(t, rows, 1)
 	assert.Equal(t, "yskmz", rows[0].Commit.ChangeIdShort)
 }
 
