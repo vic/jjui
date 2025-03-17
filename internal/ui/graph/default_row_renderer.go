@@ -101,9 +101,6 @@ func (s *DefaultRowRenderer) RenderChangeId(commit *jj.Commit) string {
 }
 
 func (s *DefaultRowRenderer) RenderCommitId(commit *jj.Commit) string {
-	if commit.IsRoot() {
-		return ""
-	}
 	commitIdStyle := s.Palette.CommitId
 	restStyle := s.Palette.Rest
 	if s.IsHighlighted {
