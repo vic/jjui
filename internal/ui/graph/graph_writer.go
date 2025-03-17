@@ -191,9 +191,11 @@ func extendConnections(connections []jj.ConnectionType) []jj.ConnectionType {
 		return nil
 	}
 	extended := make([]jj.ConnectionType, 0)
-	for _, cur := range connections {
-		if cur != jj.MERGE_LEFT && cur != jj.MERGE_BOTH && cur != jj.MERGE_RIGHT {
+	for i, cur := range connections {
+		if cur != jj.MERGE_LEFT && cur != jj.MERGE_BOTH && cur != jj.MERGE_RIGHT && cur != jj.HORIZONTAL && cur != jj.SPACE {
 			extended = append(extended, jj.VERTICAL)
+		} else if i != len(connections)-1 {
+			extended = append(extended, jj.SPACE)
 		}
 	}
 	return extended
