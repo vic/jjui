@@ -320,7 +320,7 @@ func (m *Model) View() string {
 			Op:                  m.op,
 			IsHighlighted:       i == m.cursor,
 			IsSelected:          row.IsSelected,
-			IsAbsorbedInto:      row.IsAffected,
+			IsAffected:          row.IsAffected,
 		}
 
 		w.RenderRow(row, nodeRenderer)
