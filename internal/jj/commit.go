@@ -8,13 +8,7 @@ type Commit struct {
 	ChangeIdShort string
 	ChangeId      string
 	IsWorkingCopy bool
-	Author        string
-	Timestamp     string
 	Bookmarks     []string
-	Description   string
-	Immutable     bool
-	Conflict      bool
-	Empty         bool
 	Hidden        bool
 	CommitIdShort string
 	CommitId      string
