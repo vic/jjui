@@ -6,16 +6,20 @@ on:
 
 jobs:
   build:
-    name: Build and Upload Release Assets
-    runs-on: ubuntu-latest
+    name: Build and Publish
     strategy:
+      fail-fast: false
       matrix:
         os: [darwin, windows, linux]
         arch: [arm64, amd64]
+        include:
+          - os: windows
+            extension: .exe
     permissions:
-        contents: write
-        actions: write
-        id-token: write
+      contents: write
+      actions: write
+      id-token: write
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,16 +36,16 @@ jobs:
       - name: Build binaries
         env:
           VERSION: ${{ steps.get_version.outputs.VERSION }}
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
         run: |
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -ldflags="-X 'main.Version=$VERSION'" -o release/jjui-$VERSION-${{ matrix.os }}-${{ matrix.arch }} cmd/jjui/main.go
-          zip -r release/jjui-$VERSION-${{ matrix.os }}-${{ matrix.arch }}.zip release/jjui-$VERSION-${{ matrix.os }}-${{ matrix.arch }}
+          go build -ldflags="-X 'main.Version=$VERSION'" -o release/jjui-$VERSION-${{ matrix.os }}-${{ matrix.arch }}${{matrix.extension}} cmd/jjui/main.go
+          zip -j release/jjui-$VERSION-${{ matrix.os }}-${{ matrix.arch }}.zip release/jjui-$VERSION-${{ matrix.os }}-${{ matrix.arch }}${{matrix.extension}}
 
       - name: Upload release binaries
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: release/jjui-${{ steps.get_version.outputs.VERSION }}-${{ matrix.os }}-${{ matrix.arch }}.zip
-          asset_name: jjui-${{ steps.get_version.outputs.VERSION }}-${{ matrix.os }}-${{ matrix.arch }}.zip
-          asset_content_type: application/zip
+          files:
+            release/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
