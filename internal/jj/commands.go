@@ -76,7 +76,7 @@ func Undo() CommandArgs {
 }
 
 func Status(revision string) CommandArgs {
-	return []string{"log", "-r", revision, "--summary", "--no-graph", "--color", "never", "--template", ""}
+	return []string{"log", "-r", revision, "--summary", "--no-graph", "--color", "never", "--quiet", "--template", ""}
 }
 
 func BookmarkSet(revision string, name string) CommandArgs {

@@ -17,6 +17,9 @@ func NewGraphRow() GraphRow {
 }
 
 func (r *GraphRow) AddLine(line SegmentedLine) {
+	if r.Commit == nil {
+		return
+	}
 	switch len(r.SegmentLines) {
 	case 0:
 		line.Flags = Revision | Highlightable
