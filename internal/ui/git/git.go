@@ -72,12 +72,16 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.list.SettingFilter() {
+			break
+		}
 		switch {
 		case key.Matches(msg, m.keymap.Apply):
 			action := m.list.SelectedItem().(item)
 			return m, m.context.RunCommand(jj.Args(action.command...), common.Refresh, common.Close)
 		case key.Matches(msg, m.keymap.Cancel):
-			if m.filter != "" {
+			if m.filter != "" || m.list.IsFiltered() {
+				m.list.ResetFilter()
 				return m.filtered("")
 			}
 			return m, common.Close
@@ -116,13 +120,17 @@ func (m *Model) helpView() string {
 	if m.list.SettingFilter() {
 		return ""
 	}
-
-	return " " + lipgloss.JoinHorizontal(0,
-		renderKey(m.keymap.Cancel),
-		renderKey(m.keymap.Apply),
+	bindings := []string{
 		renderKey(m.keymap.Git.Push),
 		renderKey(m.keymap.Git.Fetch),
-	)
+	}
+	if m.list.IsFiltered() {
+		bindings = append(bindings, renderKey(m.keymap.Cancel))
+	} else {
+		bindings = append(bindings, renderKey(m.list.KeyMap.Filter))
+	}
+
+	return " " + lipgloss.JoinHorizontal(0, bindings...)
 }
 
 func (m *Model) filtered(filter string) (tea.Model, tea.Cmd) {
@@ -171,9 +179,9 @@ func NewModel(c context.AppContext, commit *jj.Commit, width int, height int) *M
 	l.Title = "Git Operations"
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
-	l.SetShowFilter(false)
+	l.SetShowFilter(true)
 	l.SetShowPagination(true)
-	l.SetFilteringEnabled(false)
+	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 	l.DisableQuitKeybindings()
 	m := &Model{

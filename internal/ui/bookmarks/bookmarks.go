@@ -186,7 +186,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch {
 		case key.Matches(msg, m.keymap.Cancel):
-			if m.filter != "" {
+			if m.filter != "" || m.list.IsFiltered() {
+				m.list.ResetFilter()
 				return m.filtered("")
 			}
 			return m, common.Close
@@ -260,16 +261,20 @@ func (m *Model) helpView() string {
 	if m.list.SettingFilter() {
 		return ""
 	}
-
-	return " " + lipgloss.JoinHorizontal(0,
-		renderKey(m.keymap.Cancel),
-		renderKey(m.keymap.Apply),
+	bindings := []string{
 		renderKey(m.keymap.Bookmark.Move),
 		renderKey(m.keymap.Bookmark.Delete),
 		renderKey(m.keymap.Bookmark.Forget),
 		renderKey(m.keymap.Bookmark.Track),
 		renderKey(m.keymap.Bookmark.Untrack),
-	)
+	}
+	if m.list.IsFiltered() {
+		bindings = append(bindings, renderKey(m.keymap.Cancel))
+	} else {
+		bindings = append(bindings, renderKey(m.list.KeyMap.Filter))
+	}
+
+	return " " + lipgloss.JoinHorizontal(0, bindings...)
 }
 
 func NewModel(c context.AppContext, current *jj.Commit, width int, height int) *Model {
@@ -278,9 +283,9 @@ func NewModel(c context.AppContext, current *jj.Commit, width int, height int) *
 	l.Title = "Bookmark operations"
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
-	l.SetShowFilter(false)
+	l.SetShowFilter(true)
 	l.SetShowPagination(true)
-	l.SetFilteringEnabled(false)
+	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 	l.DisableQuitKeybindings()
 
