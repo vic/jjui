@@ -245,7 +245,7 @@ func (m *Model) View() string {
 	}
 	listView := m.list.View()
 	helpView := m.helpView()
-	content := lipgloss.JoinVertical(0, title, "", filterView, "", listView, "", helpView)
+	content := lipgloss.JoinVertical(0, title, "", filterView, listView, "", helpView)
 	content = lipgloss.Place(m.Width(), m.Height(), 0, 0, content)
 	return lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Render(content)
 }
