@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-const moveBookmarkTemplate = `separate(";", if(remote, name ++ "@" ++ remote, name), if(remote, "true", "false"), tracked, conflict, normal_target.contained_in('%s')) ++ "\n"`
+const moveBookmarkTemplate = `separate(";", if(remote, name ++ "@" ++ remote, name), if(remote, "true", "false"), tracked, conflict, normal_target.contained_in("%s")) ++ "\n"`
 const allBookmarkTemplate = `separate(";", if(remote, name ++ "@" ++ remote, name), if(remote, "true", "false"), tracked, conflict, 'false') ++ "\n"`
 
 type Bookmark struct {
