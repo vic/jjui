@@ -105,7 +105,7 @@ func (m *Model) loadMovables() tea.Msg {
 	var bookmarkItems []list.Item
 	bookmarks := jj.ParseBookmarkListOutput(string(output))
 	for _, b := range bookmarks {
-		if b.Remote || (!b.Conflict && slices.Contains(m.current.Bookmarks, b.Name)) {
+		if b.Remote || (!b.Conflict && b.CommitIdShort == m.current.CommitIdShort) {
 			continue
 		}
 
@@ -137,7 +137,7 @@ func (m *Model) loadAll() tea.Msg {
 		items := make([]list.Item, 0)
 		for _, b := range bookmarks {
 			weight := 0
-			if slices.Contains(m.current.Bookmarks, b.Name) {
+			if m.current.CommitIdShort == b.CommitIdShort {
 				weight = 1
 			}
 			if !b.Remote {

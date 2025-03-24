@@ -8,7 +8,6 @@ type Commit struct {
 	ChangeIdShort string
 	ChangeId      string
 	IsWorkingCopy bool
-	Bookmarks     []string
 	Hidden        bool
 	CommitIdShort string
 	CommitId      string

@@ -4,15 +4,16 @@ import (
 	"strings"
 )
 
-const moveBookmarkTemplate = `separate(";", if(remote, name ++ "@" ++ remote, name), if(remote, "true", "false"), tracked, conflict, normal_target.contained_in("%s")) ++ "\n"`
-const allBookmarkTemplate = `separate(";", if(remote, name ++ "@" ++ remote, name), if(remote, "true", "false"), tracked, conflict, 'false') ++ "\n"`
+const moveBookmarkTemplate = `separate(";", if(remote, name ++ "@" ++ remote, name), if(remote, "true", "false"), tracked, conflict, normal_target.contained_in("%s"), normal_target.commit_id().shortest(1)) ++ "\n"`
+const allBookmarkTemplate = `separate(";", if(remote, name ++ "@" ++ remote, name), if(remote, "true", "false"), tracked, conflict, 'false', normal_target.commit_id().shortest(1)) ++ "\n"`
 
 type Bookmark struct {
-	Name      string
-	Tracked   bool
-	Remote    bool
-	Conflict  bool
-	Backwards bool
+	Name          string
+	Tracked       bool
+	Remote        bool
+	Conflict      bool
+	Backwards     bool
+	CommitIdShort string
 }
 
 func ParseBookmarkListOutput(output string) []Bookmark {
@@ -24,11 +25,12 @@ func ParseBookmarkListOutput(output string) []Bookmark {
 			continue
 		} else {
 			bookmark := Bookmark{
-				Name:      parts[0],
-				Remote:    parts[1] == "true",
-				Tracked:   parts[2] == "true",
-				Conflict:  parts[3] == "true",
-				Backwards: parts[4] == "true",
+				Name:          parts[0],
+				Remote:        parts[1] == "true",
+				Tracked:       parts[2] == "true",
+				Conflict:      parts[3] == "true",
+				Backwards:     parts[4] == "true",
+				CommitIdShort: parts[5],
 			}
 			result = append(result, bookmark)
 		}
