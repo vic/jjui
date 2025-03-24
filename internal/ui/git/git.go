@@ -146,6 +146,9 @@ func NewModel(c context.AppContext, commit *jj.Commit, width int, height int) *M
 		bytes, _ := c.RunCommandImmediate(jj.BookmarkList(commit.ChangeId))
 		bookmarks := jj.ParseBookmarkListOutput(string(bytes))
 		for _, b := range bookmarks {
+			if b.Remote {
+				continue
+			}
 			b.Name = strings.TrimSuffix(b.Name, "*")
 			items = append(items, item{
 				name:    fmt.Sprintf("git push --bookmark %s", b.Name),
