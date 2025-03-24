@@ -50,7 +50,7 @@ func (s Operation) Name() string {
 
 func NewOperation(context context.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
 	op := Operation{
-		Overlay: New(context, selected.ChangeId),
+		Overlay: New(context, selected.GetChangeId()),
 		keyMap:  context.KeyMap(),
 	}
 	return op, op.Overlay.Init()

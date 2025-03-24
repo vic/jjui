@@ -1,5 +1,7 @@
 package jj
 
+import "strings"
+
 type GraphRow struct {
 	Commit       *Commit
 	IsSelected   bool
@@ -23,7 +25,16 @@ func (r *GraphRow) AddLine(line SegmentedLine) {
 	switch len(r.SegmentLines) {
 	case 0:
 		line.Flags = Revision | Highlightable
+		if r.Commit == nil {
+			break
+		}
 		r.Commit.IsWorkingCopy = line.ContainsRune('@', r.Indent)
+		for i := line.ChangeIdIdx; i < line.CommitIdIdx; i++ {
+			segment := line.Segments[i]
+			if strings.TrimSpace(segment.Text) == "hidden" {
+				r.Commit.Hidden = true
+			}
+		}
 	default:
 		if line.ContainsRune('~', r.Indent) {
 			line.Flags = Elided

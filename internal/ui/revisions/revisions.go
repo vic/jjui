@@ -207,7 +207,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				m.op, cmd = evolog.NewOperation(m.context, m.SelectedRevision().GetChangeId(), m.width, m.height)
 			case key.Matches(msg, m.keymap.Diff):
 				return m, func() tea.Msg {
-					output, _ := m.context.RunCommandImmediate(jj.Diff(m.SelectedRevision().GetChangeId(), ""))
+					changeId := m.SelectedRevision().GetChangeId()
+					output, _ := m.context.RunCommandImmediate(jj.Diff(changeId, ""))
 					return common.ShowDiffMsg(output)
 				}
 			case key.Matches(msg, m.keymap.Refresh):
