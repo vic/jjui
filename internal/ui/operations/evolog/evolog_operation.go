@@ -19,13 +19,13 @@ type viewRange struct {
 }
 
 type updateEvologMsg struct {
-	rows []graph.GraphRow
+	rows []graph.Row
 }
 
 type Operation struct {
 	context   context.AppContext
 	revision  string
-	rows      []graph.GraphRow
+	rows      []graph.Row
 	viewRange *viewRange
 	cursor    int
 	width     int
@@ -83,7 +83,7 @@ func (o Operation) Render() string {
 		return "loading"
 	}
 	h := min(o.height-5, len(o.rows)*2)
-	var w graph.GraphWriter
+	var w graph.Renderer
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range o.rows {
@@ -124,8 +124,7 @@ func (o Operation) Name() string {
 
 func (o Operation) load() tea.Msg {
 	output, _ := o.context.RunCommandImmediate(jj.Evolog(o.revision))
-	parser := graph.NewLogParser(bytes.NewReader(output))
-	rows := parser.Parse()
+	rows := graph.ParseRows(bytes.NewReader(output))
 	return updateEvologMsg{
 		rows: rows,
 	}

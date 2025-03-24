@@ -9,26 +9,26 @@ import (
 	"strings"
 )
 
-type GraphWriter struct {
+type Renderer struct {
 	buffer    bytes.Buffer
 	lineCount int
 	Width     int
 }
 
-func (w *GraphWriter) Write(p []byte) (n int, err error) {
+func (r *Renderer) Write(p []byte) (n int, err error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
-	w.lineCount += bytes.Count(p, []byte("\n"))
-	return w.buffer.Write(p)
+	r.lineCount += bytes.Count(p, []byte("\n"))
+	return r.buffer.Write(p)
 }
 
-func (w *GraphWriter) LineCount() int {
-	return w.lineCount
+func (r *Renderer) LineCount() int {
+	return r.lineCount
 }
 
-func (w *GraphWriter) String(start, end int) string {
-	lines := strings.Split(w.buffer.String(), "\n")
+func (r *Renderer) String(start, end int) string {
+	lines := strings.Split(r.buffer.String(), "\n")
 	for i, line := range lines {
 		lines[i] = strings.TrimSpace(line)
 	}
@@ -44,12 +44,12 @@ func (w *GraphWriter) String(start, end int) string {
 	return strings.Join(lines[start:end], "\n")
 }
 
-func (w *GraphWriter) Reset() {
-	w.buffer.Reset()
-	w.lineCount = 0
+func (r *Renderer) Reset() {
+	r.buffer.Reset()
+	r.lineCount = 0
 }
 
-func (w *GraphWriter) RenderRow(row GraphRow, renderer RowDecorator, highlighted bool) {
+func (r *Renderer) RenderRow(row Row, renderer RowDecorator, highlighted bool) {
 	// will render by extending the previous connections
 	before := renderer.RenderBefore(row.Commit)
 	if before != "" {
@@ -60,9 +60,9 @@ func (w *GraphWriter) RenderRow(row GraphRow, renderer RowDecorator, highlighted
 		lines := strings.Split(before, "\n")
 		for _, line := range lines {
 			for _, segment := range extended.Segments {
-				fmt.Fprint(&w.buffer, segment.String())
+				fmt.Fprint(&r.buffer, segment.String())
 			}
-			fmt.Fprintln(&w.buffer, line)
+			fmt.Fprintln(&r.buffer, line)
 		}
 	}
 
@@ -101,15 +101,15 @@ func (w *GraphWriter) RenderRow(row GraphRow, renderer RowDecorator, highlighted
 			fmt.Fprint(&lw, style.Render(" (affected by last operation)"))
 		}
 		line := lw.String()
-		fmt.Fprint(w, line)
+		fmt.Fprint(r, line)
 		if highlighted {
 			width := lipgloss.Width(line)
-			gap := w.Width - width
+			gap := r.Width - width
 			if gap > 0 {
-				fmt.Fprintf(w, "\033[%sm%s\033[0m", highlightSeq, strings.Repeat(" ", gap))
+				fmt.Fprintf(r, "\033[%sm%s\033[0m", highlightSeq, strings.Repeat(" ", gap))
 			}
 		}
-		fmt.Fprint(w, "\n")
+		fmt.Fprint(r, "\n")
 	}
 
 	if row.Commit.IsRoot() {
@@ -122,16 +122,16 @@ func (w *GraphWriter) RenderRow(row GraphRow, renderer RowDecorator, highlighted
 		lines := strings.Split(afterSection, "\n")
 		for _, line := range lines {
 			for _, segment := range extended.Segments {
-				fmt.Fprint(w, segment.String())
+				fmt.Fprint(r, segment.String())
 			}
-			fmt.Fprintln(w, line)
+			fmt.Fprintln(r, line)
 		}
 	}
 
 	for segmentedLine := range row.SegmentLinesIter(Excluding(Highlightable)) {
 		for _, segment := range segmentedLine.Segments {
-			fmt.Fprint(w, segment.String())
+			fmt.Fprint(r, segment.String())
 		}
-		fmt.Fprint(w, "\n")
+		fmt.Fprint(r, "\n")
 	}
 }

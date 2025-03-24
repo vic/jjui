@@ -14,8 +14,7 @@ import (
 
 func TestParser_Parse(t *testing.T) {
 	file, _ := os.Open("testdata/output.log")
-	parser := graph.NewLogParser(file)
-	rows := parser.Parse()
+	rows := graph.ParseRows(file)
 	assert.Len(t, rows, 11)
 }
 
@@ -27,8 +26,7 @@ func TestParser_Parse_Disconnected(t *testing.T) {
 	lb.write("*   id=abcde author=some@author id=xyrq")
 	lb.write("│   another commit")
 	lb.write("~\n")
-	parser := graph.NewLogParser(strings.NewReader(lb.String()))
-	rows := parser.Parse()
+	rows := graph.ParseRows(strings.NewReader(lb.String()))
 	assert.Len(t, rows, 2)
 }
 
@@ -37,8 +35,7 @@ func TestParser_Parse_Extend(t *testing.T) {
 	lb.write("*   id=abcde author=some@author id=xyrq")
 	lb.write("│   some documentation")
 
-	parser := graph.NewLogParser(strings.NewReader(lb.String()))
-	rows := parser.Parse()
+	rows := graph.ParseRows(strings.NewReader(lb.String()))
 	assert.Len(t, rows, 1)
 	row := rows[0]
 
@@ -53,8 +50,7 @@ func TestParser_Parse_WorkingCopy(t *testing.T) {
 	lb.write("@   id=12cd author=some@author id=kdys")
 	lb.write("│   some documentation")
 
-	parser := graph.NewLogParser(strings.NewReader(lb.String()))
-	rows := parser.Parse()
+	rows := graph.ParseRows(strings.NewReader(lb.String()))
 	assert.Len(t, rows, 2)
 	row := rows[1]
 

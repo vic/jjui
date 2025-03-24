@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-type GraphRow struct {
+type Row struct {
 	Commit     *jj.Commit
 	Lines      []*GraphRowLine
 	IsSelected bool
 	IsAffected bool
 	Indent     int
-	Previous   *GraphRow
+	Previous   *Row
 }
 
 type SegmentedLineFlag int
@@ -101,14 +101,14 @@ func (gr *GraphRowLine) ContainsRune(r rune, indent int) bool {
 	return false
 }
 
-func NewGraphRow() GraphRow {
-	return GraphRow{
+func NewGraphRow() Row {
+	return Row{
 		Commit: &jj.Commit{},
 		Lines:  make([]*GraphRowLine, 0),
 	}
 }
 
-func (r *GraphRow) AddLine(line *GraphRowLine) {
+func (r *Row) AddLine(line *GraphRowLine) {
 	if r.Commit == nil {
 		return
 	}
@@ -133,7 +133,7 @@ func (r *GraphRow) AddLine(line *GraphRowLine) {
 	r.Lines = append(r.Lines, line)
 }
 
-func (r *GraphRow) Last(flag SegmentedLineFlag) *GraphRowLine {
+func (r *Row) Last(flag SegmentedLineFlag) *GraphRowLine {
 	for i := len(r.Lines) - 1; i >= 0; i-- {
 		if r.Lines[i].Flags&flag == flag {
 			return r.Lines[i]
@@ -156,7 +156,7 @@ func Excluding(flags SegmentedLineFlag) SegmentedLineIteratorPredicate {
 	}
 }
 
-func (r *GraphRow) SegmentLinesIter(predicate SegmentedLineIteratorPredicate) func(yield func(line *GraphRowLine) bool) {
+func (r *Row) SegmentLinesIter(predicate SegmentedLineIteratorPredicate) func(yield func(line *GraphRowLine) bool) {
 	return func(yield func(line *GraphRowLine) bool) {
 		for i := range r.Lines {
 			line := r.Lines[i]

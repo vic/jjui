@@ -9,7 +9,7 @@ import (
 
 func TestModel_highlightChanges(t *testing.T) {
 	model := Model{
-		rows: []graph.GraphRow{
+		rows: []graph.Row{
 			{Commit: &jj.Commit{ChangeId: "someother"}},
 			{Commit: &jj.Commit{ChangeId: "nyqzpsmt"}},
 		},

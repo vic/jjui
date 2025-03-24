@@ -1,27 +1,16 @@
 package graph
 
 import (
-	"bufio"
 	"github.com/idursun/jjui/internal/screen"
 	"io"
 	"log"
 	"unicode/utf8"
 )
 
-type LogParser struct {
-	reader *bufio.Reader
-}
-
-func NewLogParser(reader io.Reader) *LogParser {
-	return &LogParser{
-		reader: bufio.NewReader(reader),
-	}
-}
-
-func (p *LogParser) Parse() []GraphRow {
-	var rows []GraphRow
-	var row GraphRow
-	rawSegments := screen.ParseFromReader(p.reader)
+func ParseRows(reader io.Reader) []Row {
+	var rows []Row
+	var row Row
+	rawSegments := screen.ParseFromReader(reader)
 
 	for segmentedLine := range screen.BreakNewLinesIter(rawSegments) {
 		rowLine := NewGraphRowLine(segmentedLine)
