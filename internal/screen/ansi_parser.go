@@ -41,17 +41,6 @@ func (s Segment) WithBackground(bg string) string {
 		isBg := false
 		if (p >= 40 && p <= 49) || (p >= 100 && p <= 109) {
 			isBg = true
-		} else if p == 48 && i+1 < len(parts) {
-			next, err := strconv.Atoi(parts[i+1])
-			if err == nil {
-				if next == 5 && i+2 < len(parts) {
-					i += 3
-					isBg = true
-				} else if next == 2 && i+4 < len(parts) {
-					i += 5
-					isBg = true
-				}
-			}
 		}
 
 		if !isBg {
