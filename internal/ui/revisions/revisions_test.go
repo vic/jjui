@@ -2,13 +2,14 @@ package revisions
 
 import (
 	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/ui/graph"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestModel_highlightChanges(t *testing.T) {
 	model := Model{
-		rows: []jj.GraphRow{
+		rows: []graph.GraphRow{
 			{Commit: &jj.Commit{ChangeId: "someother"}},
 			{Commit: &jj.Commit{ChangeId: "nyqzpsmt"}},
 		},

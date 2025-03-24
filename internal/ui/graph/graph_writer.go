@@ -7,8 +7,6 @@ import (
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/common"
 	"strings"
-
-	"github.com/idursun/jjui/internal/jj"
 )
 
 type GraphWriter struct {
@@ -51,13 +49,13 @@ func (w *GraphWriter) Reset() {
 	w.lineCount = 0
 }
 
-func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowDecorator, highlighted bool) {
+func (w *GraphWriter) RenderRow(row GraphRow, renderer RowDecorator, highlighted bool) {
 	// will render by extending the previous connections
 	before := renderer.RenderBefore(row.Commit)
 	if before != "" {
-		extended := jj.SegmentedLine{}
+		extended := GraphRowLine{}
 		if row.Previous != nil {
-			extended = row.Previous.Last(jj.Highlightable).Extend(row.Indent)
+			extended = row.Previous.Last(Highlightable).Extend(row.Indent)
 		}
 		lines := strings.Split(before, "\n")
 		for _, line := range lines {
@@ -74,8 +72,8 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowDecorator, highligh
 	}
 
 	highlightSeq := lipgloss.ColorProfile().FromColor(highlightColor).Sequence(true)
-	var lastLine *jj.SegmentedLine
-	for segmentedLine := range row.SegmentLinesIter(jj.Including(jj.Highlightable)) {
+	var lastLine *GraphRowLine
+	for segmentedLine := range row.SegmentLinesIter(Including(Highlightable)) {
 		lastLine = segmentedLine
 		lw := strings.Builder{}
 		for i, segment := range segmentedLine.Segments {
@@ -95,7 +93,7 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowDecorator, highligh
 				fmt.Fprint(&lw, segment.String())
 			}
 		}
-		if segmentedLine.Flags&jj.Revision == jj.Revision && row.IsAffected {
+		if segmentedLine.Flags&Revision == Revision && row.IsAffected {
 			style := common.DefaultPalette.Dimmed
 			if highlighted {
 				style = common.DefaultPalette.Dimmed.Background(highlightColor)
@@ -130,7 +128,7 @@ func (w *GraphWriter) RenderRow(row jj.GraphRow, renderer RowDecorator, highligh
 		}
 	}
 
-	for segmentedLine := range row.SegmentLinesIter(jj.Excluding(jj.Highlightable)) {
+	for segmentedLine := range row.SegmentLinesIter(Excluding(Highlightable)) {
 		for _, segment := range segmentedLine.Segments {
 			fmt.Fprint(w, segment.String())
 		}

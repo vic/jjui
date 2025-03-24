@@ -19,13 +19,13 @@ type viewRange struct {
 }
 
 type updateEvologMsg struct {
-	rows []jj.GraphRow
+	rows []graph.GraphRow
 }
 
 type Operation struct {
 	context   context.AppContext
 	revision  string
-	rows      []jj.GraphRow
+	rows      []graph.GraphRow
 	viewRange *viewRange
 	cursor    int
 	width     int
@@ -124,7 +124,7 @@ func (o Operation) Name() string {
 
 func (o Operation) load() tea.Msg {
 	output, _ := o.context.RunCommandImmediate(jj.Evolog(o.revision))
-	parser := jj.NewLogParser(bytes.NewReader(output))
+	parser := graph.NewLogParser(bytes.NewReader(output))
 	rows := parser.Parse()
 	return updateEvologMsg{
 		rows: rows,

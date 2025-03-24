@@ -32,7 +32,7 @@ type viewRange struct {
 var normalStyle = lipgloss.NewStyle()
 
 type Model struct {
-	rows        []jj.GraphRow
+	rows        []graph.GraphRow
 	op          operations.Operation
 	revsetValue string
 	viewRange   *viewRange
@@ -46,7 +46,7 @@ type Model struct {
 }
 
 type updateRevisionsMsg struct {
-	rows             []jj.GraphRow
+	rows             []graph.GraphRow
 	selectedRevision string
 }
 
@@ -266,7 +266,7 @@ func (m *Model) highlightChanges() tea.Msg {
 	return nil
 }
 
-func (m *Model) updateGraphRows(rows []jj.GraphRow, selectedRevision string) {
+func (m *Model) updateGraphRows(rows []graph.GraphRow, selectedRevision string) {
 	if rows == nil {
 		return
 	}
@@ -353,14 +353,14 @@ func (m *Model) load(revset string, selectedRevision string) tea.Cmd {
 				Output: string(output),
 			}
 		}
-		p := jj.NewLogParser(bytes.NewReader(output))
+		p := graph.NewLogParser(bytes.NewReader(output))
 		graphLines := p.Parse()
 		return updateRevisionsMsg{graphLines, selectedRevision}
 	}
 }
 
 func (m *Model) selectRevision(revision string) int {
-	idx := slices.IndexFunc(m.rows, func(row jj.GraphRow) bool {
+	idx := slices.IndexFunc(m.rows, func(row graph.GraphRow) bool {
 		if revision == "@" {
 			return row.Commit.IsWorkingCopy
 		}

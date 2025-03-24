@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/ui/graph"
 	"github.com/muesli/termenv"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -14,7 +14,7 @@ import (
 
 func TestParser_Parse(t *testing.T) {
 	file, _ := os.Open("testdata/output.log")
-	parser := jj.NewLogParser(file)
+	parser := graph.NewLogParser(file)
 	rows := parser.Parse()
 	assert.Len(t, rows, 11)
 }
@@ -27,7 +27,7 @@ func TestParser_Parse_Disconnected(t *testing.T) {
 	lb.write("*   id=abcde author=some@author id=xyrq")
 	lb.write("│   another commit")
 	lb.write("~\n")
-	parser := jj.NewLogParser(strings.NewReader(lb.String()))
+	parser := graph.NewLogParser(strings.NewReader(lb.String()))
 	rows := parser.Parse()
 	assert.Len(t, rows, 2)
 }
@@ -37,12 +37,12 @@ func TestParser_Parse_Extend(t *testing.T) {
 	lb.write("*   id=abcde author=some@author id=xyrq")
 	lb.write("│   some documentation")
 
-	parser := jj.NewLogParser(strings.NewReader(lb.String()))
+	parser := graph.NewLogParser(strings.NewReader(lb.String()))
 	rows := parser.Parse()
 	assert.Len(t, rows, 1)
 	row := rows[0]
 
-	extended := row.SegmentLines[1].Extend(row.Indent)
+	extended := row.Lines[1].Extend(row.Indent)
 	assert.Len(t, extended.Segments, 1)
 }
 
@@ -53,7 +53,7 @@ func TestParser_Parse_WorkingCopy(t *testing.T) {
 	lb.write("@   id=12cd author=some@author id=kdys")
 	lb.write("│   some documentation")
 
-	parser := jj.NewLogParser(strings.NewReader(lb.String()))
+	parser := graph.NewLogParser(strings.NewReader(lb.String()))
 	rows := parser.Parse()
 	assert.Len(t, rows, 2)
 	row := rows[1]
