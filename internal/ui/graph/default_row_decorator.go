@@ -39,7 +39,11 @@ func (s *DefaultRowDecorator) RenderBeforeChangeId() string {
 	}
 	selectedMarker := ""
 	if s.IsSelected {
-		selectedMarker = s.Palette.Added.Render("✓")
+		if s.IsHighlighted {
+			selectedMarker = s.Palette.Added.Background(s.HighlightBackground).Render("✓ ")
+		} else {
+			selectedMarker = s.Palette.Added.Render("✓ ")
+		}
 	}
 	return opMarker + selectedMarker
 }

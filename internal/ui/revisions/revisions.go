@@ -312,8 +312,12 @@ func (m *Model) View() string {
 			selectedLineStart = w.LineCount()
 		}
 		nodeRenderer := &graph.DefaultRowDecorator{
-			Palette:       common.DefaultPalette,
-			Op:            m.op,
+			Palette: common.DefaultPalette,
+			Op:      m.op,
+			HighlightBackground: lipgloss.AdaptiveColor{
+				Light: config.Current.UI.HighlightLight,
+				Dark:  config.Current.UI.HighlightDark,
+			},
 			IsHighlighted: i == m.cursor,
 			IsSelected:    row.IsSelected,
 		}

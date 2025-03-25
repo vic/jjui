@@ -79,7 +79,7 @@ func (r *Renderer) RenderRow(row Row, renderer RowDecorator, highlighted bool) {
 		for i, segment := range segmentedLine.Segments {
 			if i == segmentedLine.ChangeIdIdx {
 				if decoration := renderer.RenderBeforeChangeId(); decoration != "" {
-					fmt.Fprint(&lw, decoration, " ")
+					fmt.Fprint(&lw, decoration)
 				}
 			}
 			if highlighted && i == segmentedLine.CommitIdIdx {
