@@ -151,7 +151,7 @@ func (m *Model) filtered(filter string) (tea.Model, tea.Cmd) {
 func NewModel(c context.AppContext, commit *jj.Commit, width int, height int) *Model {
 	var items []list.Item
 	if commit != nil {
-		bytes, _ := c.RunCommandImmediate(jj.BookmarkList(commit.ChangeId))
+		bytes, _ := c.RunCommandImmediate(jj.BookmarkList(commit.GetChangeId()))
 		bookmarks := jj.ParseBookmarkListOutput(string(bytes))
 		for _, b := range bookmarks {
 			if b.Remote {

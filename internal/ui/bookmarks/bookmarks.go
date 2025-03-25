@@ -101,7 +101,7 @@ func (m *Model) filtered(filter string) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) loadMovables() tea.Msg {
-	output, _ := m.context.RunCommandImmediate(jj.BookmarkListMovable(m.current.ChangeId))
+	output, _ := m.context.RunCommandImmediate(jj.BookmarkListMovable(m.current.GetChangeId()))
 	var bookmarkItems []list.Item
 	bookmarks := jj.ParseBookmarkListOutput(string(output))
 	for _, b := range bookmarks {
@@ -109,20 +109,20 @@ func (m *Model) loadMovables() tea.Msg {
 			continue
 		}
 
-		name := fmt.Sprintf("move '%s' to %s", b.Name, m.current.ChangeId)
+		name := fmt.Sprintf("move '%s' to %s", b.Name, m.current.GetChangeId())
 		if b.Conflict {
-			name = fmt.Sprintf("move conflicted '%s' to %s", b.Name, m.current.ChangeId)
+			name = fmt.Sprintf("move conflicted '%s' to %s", b.Name, m.current.GetChangeId())
 		}
 		var extraFlags []string
 		if b.Backwards {
-			name = fmt.Sprintf("move '%s' backwards to %s", b.Name, m.current.ChangeId)
+			name = fmt.Sprintf("move '%s' backwards to %s", b.Name, m.current.GetChangeId())
 			extraFlags = append(extraFlags, "--allow-backwards")
 		}
 
 		bookmarkItems = append(bookmarkItems, item{
 			name:     name,
 			priority: moveCommand,
-			args:     jj.BookmarkMove(m.current.ChangeId, b.Name, extraFlags...),
+			args:     jj.BookmarkMove(m.current.GetChangeId(), b.Name, extraFlags...),
 		})
 	}
 	return updateItemsMsg{items: bookmarkItems}
