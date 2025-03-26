@@ -10,6 +10,7 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
+	"github.com/idursun/jjui/internal/ui/graph"
 )
 
 var normalStyle = lipgloss.NewStyle()
@@ -100,8 +101,7 @@ func (m *Model) View() string {
 	if viewHeight != h {
 		m.viewRange.end = m.viewRange.start + h
 	}
-	var w Renderer
-	w.Width = m.width
+	var w graph.Renderer
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range m.rows {
@@ -109,7 +109,7 @@ func (m *Model) View() string {
 		if isHighlighted {
 			selectedLineStart = w.LineCount()
 		}
-		w.RenderRow(row, isHighlighted)
+		RenderRow(&w, row, isHighlighted, m.width)
 		if isHighlighted {
 			selectedLineEnd = w.LineCount()
 		}

@@ -296,7 +296,6 @@ func (m *Model) View() string {
 	}
 
 	var w graph.Renderer
-	w.Width = m.width
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range m.rows {
@@ -314,7 +313,7 @@ func (m *Model) View() string {
 			IsSelected:    row.IsSelected,
 		}
 
-		w.RenderRow(row, nodeRenderer, nodeRenderer.IsHighlighted)
+		graph.RenderRow(&w, row, nodeRenderer, nodeRenderer.IsHighlighted, m.width)
 		if i == m.cursor {
 			selectedLineEnd = w.LineCount()
 		}

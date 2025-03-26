@@ -1,54 +1,15 @@
 package oplog
 
 import (
-	"bytes"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/config"
-	"strings"
 )
 
-type Renderer struct {
-	buffer    bytes.Buffer
-	lineCount int
-	Width     int
-}
-
-func (r *Renderer) Write(p []byte) (n int, err error) {
-	if len(p) == 0 {
-		return 0, nil
-	}
-	r.lineCount += bytes.Count(p, []byte("\n"))
-	return r.buffer.Write(p)
-}
-
-func (r *Renderer) LineCount() int {
-	return r.lineCount
-}
-
-func (r *Renderer) String(start, end int) string {
-	lines := strings.Split(r.buffer.String(), "\n")
-	for i, line := range lines {
-		lines[i] = strings.TrimSpace(line)
-	}
-	if start < 0 {
-		start = 0
-	}
-	if end < start {
-		end = start
-	}
-	for end > len(lines) {
-		lines = append(lines, "")
-	}
-	return strings.Join(lines[start:end], "\n")
-}
-
-func (r *Renderer) Reset() {
-	r.buffer.Reset()
-	r.lineCount = 0
-}
-
-func (r *Renderer) RenderRow(row Row, highlighted bool) {
+func RenderRow(r io.Writer, row Row, highlighted bool, width int) {
 	highlightColor := lipgloss.AdaptiveColor{
 		Light: config.Current.UI.HighlightLight,
 		Dark:  config.Current.UI.HighlightDark,
@@ -67,8 +28,8 @@ func (r *Renderer) RenderRow(row Row, highlighted bool) {
 		line := lw.String()
 		fmt.Fprint(r, line)
 		if highlighted {
-			width := lipgloss.Width(line)
-			gap := r.Width - width
+			lineWidth := lipgloss.Width(line)
+			gap := width - lineWidth
 			if gap > 0 {
 				fmt.Fprintf(r, "\033[%sm%s\033[0m", highlightSeq, strings.Repeat(" ", gap))
 			}

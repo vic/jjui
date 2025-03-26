@@ -3,10 +3,12 @@ package graph
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/common"
-	"strings"
 )
 
 type Renderer struct {
@@ -49,7 +51,7 @@ func (r *Renderer) Reset() {
 	r.lineCount = 0
 }
 
-func (r *Renderer) RenderRow(row Row, renderer RowDecorator, highlighted bool) {
+func RenderRow(r io.Writer, row Row, renderer RowDecorator, highlighted bool, width int) {
 	// will render by extending the previous connections
 	before := renderer.RenderBefore(row.Commit)
 	if before != "" {
@@ -60,9 +62,9 @@ func (r *Renderer) RenderRow(row Row, renderer RowDecorator, highlighted bool) {
 		lines := strings.Split(before, "\n")
 		for _, line := range lines {
 			for _, segment := range extended.Segments {
-				fmt.Fprint(&r.buffer, segment.String())
+				fmt.Fprint(r, segment.String())
 			}
-			fmt.Fprintln(&r.buffer, line)
+			fmt.Fprintln(r, line)
 		}
 	}
 
@@ -103,8 +105,8 @@ func (r *Renderer) RenderRow(row Row, renderer RowDecorator, highlighted bool) {
 		line := lw.String()
 		fmt.Fprint(r, line)
 		if highlighted {
-			width := lipgloss.Width(line)
-			gap := r.Width - width
+			lineWidth := lipgloss.Width(line)
+			gap := width - lineWidth
 			if gap > 0 {
 				fmt.Fprintf(r, "\033[%sm%s\033[0m", highlightSeq, strings.Repeat(" ", gap))
 			}

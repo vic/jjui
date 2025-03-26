@@ -88,7 +88,6 @@ func (o Operation) Render() string {
 	}
 	h := min(o.height-5, len(o.rows)*2)
 	var w graph.Renderer
-	w.Width = o.width
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range o.rows {
@@ -101,7 +100,7 @@ func (o Operation) Render() string {
 		if i == o.cursor {
 			selectedLineStart = w.LineCount()
 		}
-		w.RenderRow(row, nodeRenderer, nodeRenderer.IsHighlighted)
+		graph.RenderRow(&w, row, nodeRenderer, nodeRenderer.IsHighlighted, o.width)
 		if i == o.cursor {
 			selectedLineEnd = w.LineCount()
 		}
