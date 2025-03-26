@@ -33,7 +33,7 @@ func (s *DefaultRowDecorator) RenderAfter(*jj.Commit) string {
 func (s *DefaultRowDecorator) RenderBeforeChangeId() string {
 	opMarker := ""
 	if s.IsHighlighted {
-		if s.Op.RenderPosition() == operations.RenderPositionGlyph {
+		if s.Op.RenderPosition() == operations.RenderBeforeChangeId {
 			opMarker = s.Op.Render()
 		}
 	}
@@ -49,7 +49,7 @@ func (s *DefaultRowDecorator) RenderBeforeChangeId() string {
 }
 
 func (s *DefaultRowDecorator) RenderBeforeCommitId() string {
-	if s.Op.RenderPosition() == operations.RenderPositionBookmark {
+	if s.Op.RenderPosition() == operations.RenderBeforeCommitId {
 		return s.Op.Render()
 	}
 	return ""

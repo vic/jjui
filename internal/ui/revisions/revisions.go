@@ -289,15 +289,8 @@ func (m *Model) View() string {
 	if m.rows == nil {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, "loading")
 	}
-	topView := ""
-	topViewHeight := 0
 
-	if m.op.RenderPosition() == operations.RenderPositionTop {
-		topView = m.op.Render()
-		topViewHeight = lipgloss.Height(topView)
-	}
-
-	h := m.height - topViewHeight
+	h := m.height
 	viewHeight := m.viewRange.end - m.viewRange.start
 	if viewHeight != h {
 		m.viewRange.end = m.viewRange.start + h
@@ -342,9 +335,6 @@ func (m *Model) View() string {
 	content := w.String(m.viewRange.start, m.viewRange.end)
 	content = lipgloss.PlaceHorizontal(m.Width(), lipgloss.Left, content)
 
-	if topViewHeight > 0 {
-		return lipgloss.JoinVertical(0, topView, content)
-	}
 	return normalStyle.MaxWidth(m.width).Render(content)
 }
 

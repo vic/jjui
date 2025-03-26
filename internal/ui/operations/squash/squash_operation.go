@@ -36,7 +36,7 @@ func (s *Operation) Render() string {
 }
 
 func (s *Operation) RenderPosition() operations.RenderPosition {
-	return operations.RenderPositionGlyph
+	return operations.RenderBeforeChangeId
 }
 
 func (s *Operation) Name() string {

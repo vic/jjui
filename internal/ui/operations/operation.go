@@ -11,10 +11,8 @@ const (
 	RenderPositionNil RenderPosition = iota
 	RenderPositionAfter
 	RenderPositionBefore
-	RenderPositionGlyph
-	RenderPositionBookmark
-	RenderPositionDescription
-	RenderPositionTop
+	RenderBeforeChangeId
+	RenderBeforeCommitId
 )
 
 type Operation interface {

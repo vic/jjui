@@ -47,7 +47,7 @@ func (s SetBookmarkOperation) Render() string {
 }
 
 func (s SetBookmarkOperation) RenderPosition() operations.RenderPosition {
-	return operations.RenderPositionBookmark
+	return operations.RenderBeforeCommitId
 }
 
 func (s SetBookmarkOperation) Name() string {
