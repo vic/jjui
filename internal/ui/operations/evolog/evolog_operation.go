@@ -89,7 +89,7 @@ func (o Operation) Render() string {
 	for i, row := range o.rows {
 		nodeRenderer := &graph.DefaultRowDecorator{
 			Palette:       common.DefaultPalette,
-			Op:            &operations.Noop{},
+			Op:            &operations.Default{},
 			IsHighlighted: i == o.cursor,
 		}
 

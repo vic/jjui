@@ -58,7 +58,7 @@ func (m *Model) IsFocused() bool {
 }
 
 func (m *Model) InNormalMode() bool {
-	if _, ok := m.op.(*operations.Noop); ok {
+	if _, ok := m.op.(*operations.Default); ok {
 		return true
 	}
 	return false
@@ -84,7 +84,7 @@ func (m *Model) ShortHelp() []key.Binding {
 	if op, ok := m.op.(help.KeyMap); ok {
 		return op.ShortHelp()
 	}
-	return (&operations.Noop{}).ShortHelp()
+	return (&operations.Default{}).ShortHelp()
 }
 
 func (m *Model) FullHelp() [][]key.Binding {
@@ -121,7 +121,7 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
-		m.op = operations.Default(m.context)
+		m.op = operations.NewDefault(m.context)
 		if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
 			m.context.SetSelectedItem(context.SelectedRevision{ChangeId: m.SelectedRevision().GetChangeId()})
 			return m, common.SelectionChanged
@@ -170,7 +170,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			case key.Matches(msg, m.keymap.ToggleSelect):
 				m.rows[m.cursor].IsSelected = !m.rows[m.cursor].IsSelected
 			case key.Matches(msg, m.keymap.Cancel):
-				m.op = operations.Default(m.context)
+				m.op = operations.NewDefault(m.context)
 			case key.Matches(msg, m.keymap.Details.Mode):
 				m.op, cmd = details.NewOperation(m.context, m.SelectedRevision())
 			case key.Matches(msg, m.keymap.New):
@@ -374,7 +374,7 @@ func New(c context.AppContext) Model {
 		keymap:    keymap,
 		rows:      nil,
 		viewRange: &v,
-		op:        operations.Default(c),
+		op:        operations.NewDefault(c),
 		cursor:    0,
 		width:     20,
 		height:    10,
