@@ -2,10 +2,11 @@ package ui
 
 import (
 	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
-	ui "github.com/idursun/jjui/internal/screen"
+	"github.com/idursun/jjui/internal/screen"
 	"github.com/idursun/jjui/internal/ui/bookmarks"
 	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/git"
@@ -242,7 +243,7 @@ func (m Model) View() string {
 		stackedView := m.stacked.View()
 		sx := (m.width - lipgloss.Width(stackedView)) / 2
 		sy := (m.height - lipgloss.Height(stackedView)) / 2
-		centerView = ui.Stacked(centerView, stackedView, sx, sy)
+		centerView = screen.Stacked(centerView, stackedView, sx, sy)
 	}
 	return lipgloss.JoinVertical(0, topView, centerView, footer)
 }
