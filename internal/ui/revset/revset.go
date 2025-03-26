@@ -177,7 +177,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	value := m.textInput.Value()
 	var suggestions []string
 	lastIndex := strings.LastIndexFunc(strings.Trim(value, "() "), func(r rune) bool {
-		return unicode.IsSpace(r) || r == ',' || r == '|' || r == '&' || r == '~' || r == '('
+		return unicode.IsSpace(r) || r == ',' || r == '|' || r == '&' || r == '~' || r == '(' || r == '.' || r == ':'
 	})
 
 	if lastIndex == -1 && value == "" {
