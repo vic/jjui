@@ -2,12 +2,13 @@ package details
 
 import (
 	"fmt"
-	"github.com/idursun/jjui/internal/config"
-	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/context"
 	"io"
 	"path"
 	"strings"
+
+	"github.com/idursun/jjui/internal/config"
+	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/ui/context"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -111,6 +112,7 @@ type Model struct {
 	context      context.AppContext
 	keyMap       config.KeyMappings[key.Binding]
 }
+
 type updateCommitStatusMsg []string
 
 func New(context context.AppContext, revision string) tea.Model {
@@ -233,7 +235,7 @@ func (m Model) parseFiles(content []string) []list.Item {
 
 		actualFileName := fileName
 		if status == Renamed && strings.Contains(actualFileName, "{") {
-			for strings.Index(actualFileName, "{") != -1 {
+			for strings.Contains(actualFileName, "{") {
 				start := strings.Index(actualFileName, "{")
 				end := strings.Index(actualFileName, "}")
 				if end == -1 {
@@ -256,7 +258,7 @@ func (m Model) parseFiles(content []string) []list.Item {
 
 func (m Model) getSelectedFiles() ([]string, bool) {
 	selectedFiles := make([]string, 0)
-	var isVirtuallySelected = false
+	isVirtuallySelected := false
 	for _, f := range m.files.Items() {
 		if f.(item).selected {
 			selectedFiles = append(selectedFiles, f.(item).fileName)

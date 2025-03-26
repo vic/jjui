@@ -2,6 +2,7 @@ package evolog
 
 import (
 	"bytes"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -66,10 +67,15 @@ func (o Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd
 			}
 		}
 	}
-	if o.rows != nil {
-		return o, o.context.SetSelectedItem(context.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
+	return o, o.updateSelection()
+}
+
+func (o Operation) updateSelection() tea.Cmd {
+	if o.rows == nil {
+		return nil
 	}
-	return o, nil
+
+	return o.context.SetSelectedItem(context.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
 }
 
 func (o Operation) RenderPosition() operations.RenderPosition {

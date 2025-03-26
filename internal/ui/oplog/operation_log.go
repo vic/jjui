@@ -2,6 +2,7 @@ package oplog
 
 import (
 	"bytes"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -79,10 +80,14 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			return m, tea.Batch(common.Close, m.context.RunCommand(jj.OpRestore(m.rows[m.cursor].OperationId), common.Refresh))
 		}
 	}
-	if m.cursor < len(m.rows)-1 {
-		return m, m.context.SetSelectedItem(context.SelectedOperation{OperationId: m.rows[m.cursor].OperationId})
+	return m, m.updateSelection()
+}
+
+func (m *Model) updateSelection() tea.Cmd {
+	if m.rows == nil {
+		return nil
 	}
-	return m, nil
+	return m.context.SetSelectedItem(context.SelectedOperation{OperationId: m.rows[m.cursor].OperationId})
 }
 
 func (m *Model) View() string {

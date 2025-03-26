@@ -122,10 +122,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
 		m.op = operations.NewDefault(m.context)
-		if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
-			return m, m.context.SetSelectedItem(context.SelectedRevision{ChangeId: m.SelectedRevision().GetChangeId()})
-		}
-		return m, nil
+		return m, m.updateSelection()
 	case revset.UpdateRevSetMsg:
 		m.revsetValue = string(msg)
 		return m, common.Refresh
@@ -228,9 +225,16 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		if op, ok := m.op.(operations.TracksSelectedRevision); ok {
 			op.SetSelectedRevision(curSelected)
 		}
-		return m, tea.Batch(m.context.SetSelectedItem(context.SelectedRevision{ChangeId: curSelected.GetChangeId()}), cmd)
+		return m, tea.Batch(m.updateSelection(), cmd)
 	}
 	return m, cmd
+}
+
+func (m *Model) updateSelection() tea.Cmd {
+	if selectedRevision := m.SelectedRevision(); selectedRevision != nil {
+		return m.context.SetSelectedItem(context.SelectedRevision{ChangeId: selectedRevision.GetChangeId()})
+	}
+	return nil
 }
 
 func (m *Model) highlightChanges() tea.Msg {
