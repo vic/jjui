@@ -15,17 +15,17 @@ type Row struct {
 	Previous   *Row
 }
 
-type SegmentedLineFlag int
+type RowLineFlags int
 
 const (
-	Revision SegmentedLineFlag = 1 << iota
+	Revision RowLineFlags = 1 << iota
 	Highlightable
 	Elided
 )
 
 type GraphRowLine struct {
 	Segments    []*screen.Segment
-	Flags       SegmentedLineFlag
+	Flags       RowLineFlags
 	ChangeIdIdx int
 	CommitIdIdx int
 }
@@ -133,7 +133,7 @@ func (r *Row) AddLine(line *GraphRowLine) {
 	r.Lines = append(r.Lines, line)
 }
 
-func (r *Row) Last(flag SegmentedLineFlag) *GraphRowLine {
+func (r *Row) Last(flag RowLineFlags) *GraphRowLine {
 	for i := len(r.Lines) - 1; i >= 0; i-- {
 		if r.Lines[i].Flags&flag == flag {
 			return r.Lines[i]
@@ -142,21 +142,21 @@ func (r *Row) Last(flag SegmentedLineFlag) *GraphRowLine {
 	return &GraphRowLine{}
 }
 
-type SegmentedLineIteratorPredicate func(f SegmentedLineFlag) bool
+type RowLinesIteratorPredicate func(f RowLineFlags) bool
 
-func Including(flags SegmentedLineFlag) SegmentedLineIteratorPredicate {
-	return func(f SegmentedLineFlag) bool {
+func Including(flags RowLineFlags) RowLinesIteratorPredicate {
+	return func(f RowLineFlags) bool {
 		return f&flags == flags
 	}
 }
 
-func Excluding(flags SegmentedLineFlag) SegmentedLineIteratorPredicate {
-	return func(f SegmentedLineFlag) bool {
+func Excluding(flags RowLineFlags) RowLinesIteratorPredicate {
+	return func(f RowLineFlags) bool {
 		return f&flags != flags
 	}
 }
 
-func (r *Row) SegmentLinesIter(predicate SegmentedLineIteratorPredicate) func(yield func(line *GraphRowLine) bool) {
+func (r *Row) RowLinesIter(predicate RowLinesIteratorPredicate) func(yield func(line *GraphRowLine) bool) {
 	return func(yield func(line *GraphRowLine) bool) {
 		for i := range r.Lines {
 			line := r.Lines[i]

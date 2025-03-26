@@ -73,7 +73,7 @@ func (r *Renderer) RenderRow(row Row, renderer RowDecorator, highlighted bool) {
 
 	highlightSeq := lipgloss.ColorProfile().FromColor(highlightColor).Sequence(true)
 	var lastLine *GraphRowLine
-	for segmentedLine := range row.SegmentLinesIter(Including(Highlightable)) {
+	for segmentedLine := range row.RowLinesIter(Including(Highlightable)) {
 		lastLine = segmentedLine
 		lw := strings.Builder{}
 		for i, segment := range segmentedLine.Segments {
@@ -128,7 +128,7 @@ func (r *Renderer) RenderRow(row Row, renderer RowDecorator, highlighted bool) {
 		}
 	}
 
-	for segmentedLine := range row.SegmentLinesIter(Excluding(Highlightable)) {
+	for segmentedLine := range row.RowLinesIter(Excluding(Highlightable)) {
 		for _, segment := range segmentedLine.Segments {
 			fmt.Fprint(r, segment.String())
 		}
