@@ -46,7 +46,6 @@ func (o Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd
 	case updateEvologMsg:
 		o.rows = msg.rows
 		o.cursor = 0
-		return o, nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, o.keyMap.Cancel):
@@ -83,6 +82,7 @@ func (o Operation) Render() string {
 	}
 	h := min(o.height-5, len(o.rows)*2)
 	var w graph.Renderer
+	w.Width = o.width
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range o.rows {
