@@ -195,7 +195,14 @@ func (m Model) View() string {
 	}
 	topViewHeight := lipgloss.Height(topView)
 
-	m.status.SetCurrentOperation(m.revisions.CurrentOperation())
+	if m.oplog != nil {
+		m.status.SetMode("oplog")
+		m.status.SetHelp(m.oplog)
+	} else {
+		m.status.SetHelp(m.revisions)
+		m.status.SetMode(m.revisions.CurrentOperation().Name())
+	}
+
 	footer := m.status.View()
 	footerHeight := lipgloss.Height(footer)
 

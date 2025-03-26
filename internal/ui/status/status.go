@@ -2,7 +2,6 @@ package status
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/idursun/jjui/internal/config"
 	"strings"
 	"time"
 
@@ -12,20 +11,21 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
-	"github.com/idursun/jjui/internal/ui/operations"
 )
 
+var cancel = key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "dismiss"))
+
 type Model struct {
-	context          context.AppContext
-	spinner          spinner.Model
-	help             help.Model
-	command          string
-	running          bool
-	output           string
-	error            error
-	width            int
-	keymap           config.KeyMappings[key.Binding]
-	currentOperation operations.Operation
+	context context.AppContext
+	spinner spinner.Model
+	help    help.Model
+	keyMap  help.KeyMap
+	command string
+	running bool
+	output  string
+	error   error
+	width   int
+	mode    string
 }
 
 const CommandClearDuration = 3 * time.Second
@@ -75,7 +75,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		return m, nil
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keymap.Cancel) && m.error != nil:
+		case key.Matches(msg, cancel) && m.error != nil:
 			m.error = nil
 			m.output = ""
 			m.command = ""
@@ -97,15 +97,13 @@ func (m *Model) View() string {
 	} else if m.command != "" {
 		s = common.DefaultPalette.StatusSuccess.Render("✓ ")
 	} else {
-		if o, ok := m.currentOperation.(help.KeyMap); ok {
-			s = m.help.View(o)
-		}
+		s = m.help.View(m.keyMap)
 	}
 	ret := common.DefaultPalette.Normal.Render(m.command)
-	mode := common.DefaultPalette.StatusMode.Width(10).Render("", m.currentOperation.Name())
+	mode := common.DefaultPalette.StatusMode.Width(10).Render("", m.mode)
 	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, " ", s, ret)
 	if m.error != nil {
-		k := m.keymap.Cancel.Help().Key
+		k := cancel.Help().Key
 		return lipgloss.JoinVertical(0,
 			ret,
 			common.DefaultPalette.StatusError.Render(strings.Trim(m.output, "\n")),
@@ -114,8 +112,12 @@ func (m *Model) View() string {
 	return ret
 }
 
-func (m *Model) SetCurrentOperation(op operations.Operation) {
-	m.currentOperation = op
+func (m *Model) SetHelp(keyMap help.KeyMap) {
+	m.keyMap = keyMap
+}
+
+func (m *Model) SetMode(mode string) {
+	m.mode = mode
 }
 
 func New(context context.AppContext) Model {
@@ -132,6 +134,6 @@ func New(context context.AppContext) Model {
 		command: "",
 		running: false,
 		output:  "",
-		keymap:  context.KeyMap(),
+		keyMap:  nil,
 	}
 }

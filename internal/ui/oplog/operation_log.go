@@ -31,6 +31,14 @@ type Model struct {
 	height    int
 }
 
+func (m *Model) ShortHelp() []key.Binding {
+	return []key.Binding{m.keymap.Up, m.keymap.Down, m.keymap.Cancel, m.keymap.OpLog.Restore}
+}
+
+func (m *Model) FullHelp() [][]key.Binding {
+	return [][]key.Binding{m.ShortHelp()}
+}
+
 func (m *Model) Width() int {
 	return m.width
 }
@@ -50,8 +58,6 @@ func (m *Model) SetHeight(h int) {
 func (m *Model) Init() tea.Cmd {
 	return m.load()
 }
-
-var restore = key.NewBinding(key.WithKeys("r"))
 
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
