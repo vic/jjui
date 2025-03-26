@@ -29,7 +29,7 @@ type Model struct {
 	revisions      *revisions.Model
 	oplog          *oplog.Model
 	revsetModel    revset.Model
-	previewModel   tea.Model
+	previewModel   *preview.Model
 	previewVisible bool
 	diff           tea.Model
 	state          common.State
@@ -76,7 +76,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
-		if r, ok := m.previewModel.(common.Focusable); ok && r.IsFocused() {
+		if m.previewModel.IsFocused() {
 			m.previewModel, cmd = m.previewModel.Update(msg)
 			return m, cmd
 		}
@@ -150,9 +150,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.revisions.SetWidth(m.width)
 		}
 		m.revisions.SetHeight(m.height - 4)
-		if p, ok := m.previewModel.(common.Sizable); ok && m.previewVisible {
-			p.SetWidth(m.width / 2)
-			p.SetHeight(m.height - 4)
+		if m.previewVisible {
+			m.previewModel.SetWidth(m.width / 2)
+			m.previewModel.SetHeight(m.height - 4)
 		}
 		if s, ok := m.stacked.(common.Sizable); ok {
 			s.SetWidth(m.width - 2)
@@ -212,7 +212,7 @@ func (m Model) View() string {
 		m.oplog.SetWidth(m.width)
 		if m.previewVisible {
 			m.oplog.SetWidth(m.width / 2)
-			if p, ok := m.previewModel.(common.Focusable); ok && p.IsFocused() {
+			if m.previewModel.IsFocused() {
 				m.oplog.SetWidth(4)
 			}
 		}
@@ -222,7 +222,7 @@ func (m Model) View() string {
 		m.revisions.SetWidth(m.width)
 		if m.previewVisible {
 			m.revisions.SetWidth(m.width / 2)
-			if p, ok := m.previewModel.(common.Focusable); ok && p.IsFocused() {
+			if m.previewModel.IsFocused() {
 				m.revisions.SetWidth(4)
 			}
 		}
@@ -231,9 +231,9 @@ func (m Model) View() string {
 	}
 
 	previewView := ""
-	if p, ok := m.previewModel.(common.Sizable); ok && m.previewVisible {
-		p.SetWidth(m.width - lipgloss.Width(leftView))
-		p.SetHeight(m.height - footerHeight - topViewHeight)
+	if m.previewVisible {
+		m.previewModel.SetWidth(m.width - lipgloss.Width(leftView))
+		m.previewModel.SetHeight(m.height - footerHeight - topViewHeight)
 		previewView = m.previewModel.View()
 	}
 

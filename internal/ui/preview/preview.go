@@ -1,6 +1,8 @@
 package preview
 
 import (
+	"time"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -10,7 +12,6 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
-	"time"
 )
 
 type Model struct {
@@ -27,9 +28,7 @@ type Model struct {
 
 const DebounceTime = 200 * time.Millisecond
 
-var (
-	tab = key.NewBinding(key.WithKeys("tab"))
-)
+var tab = key.NewBinding(key.WithKeys("tab"))
 
 type refreshPreviewContentMsg struct {
 	Tag int
@@ -79,7 +78,7 @@ func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case updatePreviewContentMsg:
 		m.content = msg.Content
