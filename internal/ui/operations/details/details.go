@@ -188,14 +188,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			if len(m.files.Items()) > 0 {
 				var cmd tea.Cmd
-				prevItem := m.files.SelectedItem().(item)
 				m.files, cmd = m.files.Update(msg)
 				curItem := m.files.SelectedItem().(item)
-				if prevItem != curItem {
-					m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: curItem.fileName})
-					return m, common.SelectionChanged
-				}
-				return m, cmd
+				return m, tea.Batch(cmd, m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: curItem.fileName}))
 			}
 		}
 	case confirmation.CloseMsg:
@@ -206,10 +201,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.load(m.revision)
 	case updateCommitStatusMsg:
 		items := m.parseFiles(msg)
+		var selectionChangedCmd tea.Cmd
 		if len(items) > 0 {
-			m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: items[0].(item).fileName})
+			selectionChangedCmd = m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: items[0].(item).fileName})
 		}
-		return m, tea.Batch(common.SelectionChanged, m.files.SetItems(items))
+		return m, tea.Batch(selectionChangedCmd, m.files.SetItems(items))
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 	}

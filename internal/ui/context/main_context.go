@@ -9,10 +9,19 @@ import (
 	"os/exec"
 )
 
-type SelectedItem interface{}
+type SelectedItem interface {
+	Equal(other SelectedItem) bool
+}
 
 type SelectedRevision struct {
 	ChangeId string
+}
+
+func (s SelectedRevision) Equal(other SelectedItem) bool {
+	if o, ok := other.(SelectedRevision); ok {
+		return s.ChangeId == o.ChangeId
+	}
+	return false
 }
 
 type SelectedFile struct {
@@ -20,8 +29,22 @@ type SelectedFile struct {
 	File     string
 }
 
+func (s SelectedFile) Equal(other SelectedItem) bool {
+	if o, ok := other.(SelectedFile); ok {
+		return s.ChangeId == o.ChangeId && s.File == o.File
+	}
+	return false
+}
+
 type SelectedOperation struct {
 	OperationId string
+}
+
+func (s SelectedOperation) Equal(other SelectedItem) bool {
+	if o, ok := other.(SelectedOperation); ok {
+		return s.OperationId == o.OperationId
+	}
+	return false
 }
 
 type MainContext struct {
@@ -38,8 +61,15 @@ func (a *MainContext) SelectedItem() SelectedItem {
 	return a.selectedItem
 }
 
-func (a *MainContext) SetSelectedItem(item SelectedItem) {
+func (a *MainContext) SetSelectedItem(item SelectedItem) tea.Cmd {
+	if item == nil {
+		return nil
+	}
+	if item.Equal(a.selectedItem) {
+		return nil
+	}
 	a.selectedItem = item
+	return common.SelectionChanged
 }
 
 func (a *MainContext) RunCommandImmediate(args []string) ([]byte, error) {

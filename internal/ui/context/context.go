@@ -9,7 +9,7 @@ import (
 type AppContext interface {
 	KeyMap() config.KeyMappings[key.Binding]
 	SelectedItem() SelectedItem
-	SetSelectedItem(item SelectedItem)
+	SetSelectedItem(item SelectedItem) tea.Cmd
 	RunCommandImmediate(args []string) ([]byte, error)
 	RunCommand(args []string, continuations ...tea.Cmd) tea.Cmd
 	RunInteractiveCommand(args []string, continuation tea.Cmd) tea.Cmd

@@ -36,8 +36,9 @@ func (t *TestContext) SelectedItem() context.SelectedItem {
 	return t.selectedItem
 }
 
-func (t *TestContext) SetSelectedItem(item context.SelectedItem) {
+func (t *TestContext) SetSelectedItem(item context.SelectedItem) tea.Cmd {
 	t.selectedItem = item
+	return nil
 }
 
 func (t *TestContext) RunCommandImmediate(args []string) ([]byte, error) {

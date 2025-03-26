@@ -57,7 +57,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case updateOpLogMsg:
 		m.rows = msg.Rows
-		return m, nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keymap.Cancel):
@@ -66,17 +65,16 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			if m.cursor > 0 {
 				m.cursor--
 			}
-			m.context.SetSelectedItem(context.SelectedOperation{OperationId: m.rows[m.cursor].OperationId})
-			return m, common.SelectionChanged
 		case key.Matches(msg, m.keymap.Down):
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
 			}
-			m.context.SetSelectedItem(context.SelectedOperation{OperationId: m.rows[m.cursor].OperationId})
-			return m, common.SelectionChanged
 		case key.Matches(msg, m.keymap.OpLog.Restore):
 			return m, tea.Batch(common.Close, m.context.RunCommand(jj.OpRestore(m.rows[m.cursor].OperationId), common.Refresh))
 		}
+	}
+	if m.cursor < len(m.rows)-1 {
+		return m, m.context.SetSelectedItem(context.SelectedOperation{OperationId: m.rows[m.cursor].OperationId})
 	}
 	return m, nil
 }

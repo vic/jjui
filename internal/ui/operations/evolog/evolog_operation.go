@@ -61,15 +61,14 @@ func (o Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd
 			if o.cursor > 0 {
 				o.cursor--
 			}
-			o.context.SetSelectedItem(context.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
-			return o, common.SelectionChanged
 		case key.Matches(msg, o.keyMap.Down):
 			if o.cursor < len(o.rows)-1 {
 				o.cursor++
 			}
-			o.context.SetSelectedItem(context.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
-			return o, common.SelectionChanged
 		}
+	}
+	if o.rows != nil {
+		return o, o.context.SetSelectedItem(context.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
 	}
 	return o, nil
 }
