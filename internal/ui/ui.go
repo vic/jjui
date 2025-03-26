@@ -10,6 +10,7 @@ import (
 	"github.com/idursun/jjui/internal/ui/context"
 	"github.com/idursun/jjui/internal/ui/git"
 	"github.com/idursun/jjui/internal/ui/helppage"
+	"github.com/idursun/jjui/internal/ui/oplog"
 	"github.com/idursun/jjui/internal/ui/preview"
 	"github.com/idursun/jjui/internal/ui/revset"
 	"github.com/idursun/jjui/internal/ui/undo"
@@ -25,6 +26,7 @@ import (
 
 type Model struct {
 	revisions      *revisions.Model
+	oplog          *oplog.Model
 	revsetModel    revset.Model
 	previewModel   tea.Model
 	previewVisible bool
@@ -45,9 +47,10 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if _, ok := msg.(common.CloseViewMsg); ok && (m.diff != nil || m.stacked != nil) {
+	if _, ok := msg.(common.CloseViewMsg); ok && (m.diff != nil || m.stacked != nil || m.oplog != nil) {
 		m.diff = nil
 		m.stacked = nil
+		m.oplog = nil
 		return m, nil
 	}
 
@@ -69,20 +72,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.revisions.IsFocused() {
 			m.revisions, cmd = m.revisions.Update(msg)
-			cmds = append(cmds, cmd)
-			return m, tea.Batch(cmds...)
+			return m, cmd
 		}
 
 		if r, ok := m.previewModel.(common.Focusable); ok && r.IsFocused() {
 			m.previewModel, cmd = m.previewModel.Update(msg)
-			cmds = append(cmds, cmd)
-			return m, tea.Batch(cmds...)
+			return m, cmd
 		}
 
 		if m.stacked != nil {
 			m.stacked, cmd = m.stacked.Update(msg)
-			cmds = append(cmds, cmd)
-			return m, tea.Batch(cmds...)
+			return m, cmd
 		}
 
 		switch {
@@ -91,6 +91,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.error = nil
 		case key.Matches(msg, m.keyMap.Cancel) && m.stacked != nil:
 			m.stacked = nil
+		case key.Matches(msg, m.keyMap.OpLog.Mode):
+			m.oplog = oplog.New(m.context, m.width, m.height)
+			return m, m.oplog.Init()
 		case key.Matches(msg, m.keyMap.Revset) && m.revisions.InNormalMode():
 			m.revsetModel, _ = m.revsetModel.Update(revset.EditRevSetMsg{Clear: m.state != common.Error})
 		case key.Matches(msg, m.keyMap.Git.Mode) && m.revisions.InNormalMode():
@@ -165,8 +168,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 	}
 
-	m.revisions, cmd = m.revisions.Update(msg)
-	cmds = append(cmds, cmd)
+	if m.oplog != nil {
+		m.oplog, cmd = m.oplog.Update(msg)
+		cmds = append(cmds, cmd)
+	} else {
+		m.revisions, cmd = m.revisions.Update(msg)
+		cmds = append(cmds, cmd)
+	}
 
 	if m.previewVisible {
 		m.previewModel, cmd = m.previewModel.Update(msg)
@@ -191,24 +199,37 @@ func (m Model) View() string {
 	footer := m.status.View()
 	footerHeight := lipgloss.Height(footer)
 
-	m.revisions.SetWidth(m.width)
-	if m.previewVisible {
-		m.revisions.SetWidth(m.width / 2)
-		if p, ok := m.previewModel.(common.Focusable); ok && p.IsFocused() {
-			m.revisions.SetWidth(4)
+	leftView := ""
+	if m.oplog != nil {
+		m.oplog.SetWidth(m.width)
+		if m.previewVisible {
+			m.oplog.SetWidth(m.width / 2)
+			if p, ok := m.previewModel.(common.Focusable); ok && p.IsFocused() {
+				m.oplog.SetWidth(4)
+			}
 		}
+		m.oplog.SetHeight(m.height - footerHeight - topViewHeight)
+		leftView = m.oplog.View()
+	} else {
+		m.revisions.SetWidth(m.width)
+		if m.previewVisible {
+			m.revisions.SetWidth(m.width / 2)
+			if p, ok := m.previewModel.(common.Focusable); ok && p.IsFocused() {
+				m.revisions.SetWidth(4)
+			}
+		}
+		m.revisions.SetHeight(m.height - footerHeight - topViewHeight)
+		leftView = m.revisions.View()
 	}
-	m.revisions.SetHeight(m.height - footerHeight - topViewHeight)
-	revisionsView := m.revisions.View()
 
 	previewView := ""
 	if p, ok := m.previewModel.(common.Sizable); ok && m.previewVisible {
-		p.SetWidth(m.width - lipgloss.Width(revisionsView))
+		p.SetWidth(m.width - lipgloss.Width(leftView))
 		p.SetHeight(m.height - footerHeight - topViewHeight)
 		previewView = m.previewModel.View()
 	}
 
-	centerView := lipgloss.JoinHorizontal(lipgloss.Left, revisionsView, previewView)
+	centerView := lipgloss.JoinHorizontal(lipgloss.Left, leftView, previewView)
 
 	if m.stacked != nil {
 		stackedView := m.stacked.View()

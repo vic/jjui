@@ -109,6 +109,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					output, _ := m.context.RunCommandImmediate(jj.Show(msg.ChangeId))
 					return updatePreviewContentMsg{Content: string(output)}
 				}
+			case context.SelectedOperation:
+				return m, func() tea.Msg {
+					output, _ := m.context.RunCommandImmediate(jj.OpShow(msg.OperationId))
+					return updatePreviewContentMsg{Content: string(output)}
+				}
 			}
 		}
 	case tea.KeyMsg:

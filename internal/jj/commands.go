@@ -163,6 +163,18 @@ func Args(args ...string) CommandArgs {
 	return args
 }
 
-func Absorb(changeId string) []string {
+func Absorb(changeId string) CommandArgs {
 	return []string{"absorb", "--from", changeId}
+}
+
+func OpLog() CommandArgs {
+	return []string{"op", "log", "--color", "always", "--quiet", "--limit", "100"}
+}
+
+func OpShow(operationId string) CommandArgs {
+	return []string{"op", "show", operationId, "--color", "always"}
+}
+
+func OpRestore(operationId string) CommandArgs {
+	return []string{"op", "restore", operationId}
 }

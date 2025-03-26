@@ -20,6 +20,10 @@ type SelectedFile struct {
 	File     string
 }
 
+type SelectedOperation struct {
+	OperationId string
+}
+
 type MainContext struct {
 	selectedItem SelectedItem
 	location     string

@@ -66,6 +66,10 @@ var DefaultKeyMappings = KeyMappings[keys]{
 		Push:  []string{"p"},
 		Fetch: []string{"f"},
 	},
+	OpLog: opLogModeKeys[keys]{
+		Mode:    []string{"o"},
+		Restore: []string{"r"},
+	},
 }
 
 func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
@@ -129,6 +133,10 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 			Push:  key.NewBinding(key.WithKeys(m.Git.Push...), key.WithHelp(join(m.Git.Push), "git push")),
 			Fetch: key.NewBinding(key.WithKeys(m.Git.Fetch...), key.WithHelp(join(m.Git.Fetch), "git fetch")),
 		},
+		OpLog: opLogModeKeys[key.Binding]{
+			Mode:    key.NewBinding(key.WithKeys(m.OpLog.Mode...), key.WithHelp(join(m.OpLog.Mode), "oplog")),
+			Restore: key.NewBinding(key.WithKeys(m.OpLog.Restore...), key.WithHelp(join(m.OpLog.Restore), "restore")),
+		},
 	}
 }
 
@@ -154,16 +162,6 @@ func join(keys []string) string {
 }
 
 type keys []string
-
-type bookmarkModeKeys[T any] struct {
-	Mode    T `toml:"mode"`
-	Set     T `toml:"set"`
-	Delete  T `toml:"delete"`
-	Move    T `toml:"move"`
-	Forget  T `toml:"forget"`
-	Track   T `toml:"track"`
-	Untrack T `toml:"untrack"`
-}
 
 type KeyMappings[T any] struct {
 	Up           T                   `toml:"up"`
@@ -191,6 +189,17 @@ type KeyMappings[T any] struct {
 	Preview      previewModeKeys[T]  `toml:"preview"`
 	Bookmark     bookmarkModeKeys[T] `toml:"bookmark"`
 	Git          gitModeKeys[T]      `toml:"git"`
+	OpLog        opLogModeKeys[T]    `toml:"oplog"`
+}
+
+type bookmarkModeKeys[T any] struct {
+	Mode    T `toml:"mode"`
+	Set     T `toml:"set"`
+	Delete  T `toml:"delete"`
+	Move    T `toml:"move"`
+	Forget  T `toml:"forget"`
+	Track   T `toml:"track"`
+	Untrack T `toml:"untrack"`
 }
 
 type rebaseModeKeys[T any] struct {
@@ -225,4 +234,9 @@ type previewModeKeys[T any] struct {
 	HalfPageDown T `toml:"half_page_down"`
 	HalfPageUp   T `toml:"half_page_up"`
 	ToggleFocus  T `toml:"toggle_focus"`
+}
+
+type opLogModeKeys[T any] struct {
+	Mode    T `toml:"mode"`
+	Restore T `toml:"restore"`
 }
