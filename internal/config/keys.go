@@ -24,7 +24,7 @@ var DefaultKeyMappings = KeyMappings[keys]{
 	Absorb:       []string{"A"},
 	Split:        []string{"s"},
 	Squash:       []string{"S"},
-	Evolog:       []string{"O"},
+	Evolog:       []string{"v"},
 	Help:         []string{"?"},
 	Revset:       []string{"L"},
 	Rebase: rebaseModeKeys[keys]{
