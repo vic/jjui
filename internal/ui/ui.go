@@ -207,28 +207,7 @@ func (m Model) View() string {
 	footer := m.status.View()
 	footerHeight := lipgloss.Height(footer)
 
-	leftView := ""
-	if m.oplog != nil {
-		m.oplog.SetWidth(m.width)
-		if m.previewVisible {
-			m.oplog.SetWidth(m.width / 2)
-			if m.previewModel.IsFocused() {
-				m.oplog.SetWidth(4)
-			}
-		}
-		m.oplog.SetHeight(m.height - footerHeight - topViewHeight)
-		leftView = m.oplog.View()
-	} else {
-		m.revisions.SetWidth(m.width)
-		if m.previewVisible {
-			m.revisions.SetWidth(m.width / 2)
-			if m.previewModel.IsFocused() {
-				m.revisions.SetWidth(4)
-			}
-		}
-		m.revisions.SetHeight(m.height - footerHeight - topViewHeight)
-		leftView = m.revisions.View()
-	}
+	leftView := m.renderLeftView(footerHeight, topViewHeight)
 
 	previewView := ""
 	if m.previewVisible {
@@ -246,6 +225,29 @@ func (m Model) View() string {
 		centerView = screen.Stacked(centerView, stackedView, sx, sy)
 	}
 	return lipgloss.JoinVertical(0, topView, centerView, footer)
+}
+
+func (m Model) renderLeftView(footerHeight int, topViewHeight int) string {
+	leftView := ""
+	w := m.width
+
+	if m.previewVisible {
+		w = m.width / 2
+		if m.previewModel.IsFocused() {
+			w = 4
+		}
+	}
+
+	if m.oplog != nil {
+		m.oplog.SetWidth(w)
+		m.oplog.SetHeight(m.height - footerHeight - topViewHeight)
+		leftView = m.oplog.View()
+	} else {
+		m.revisions.SetWidth(w)
+		m.revisions.SetHeight(m.height - footerHeight - topViewHeight)
+		leftView = m.revisions.View()
+	}
+	return leftView
 }
 
 func New(c context.AppContext) tea.Model {
