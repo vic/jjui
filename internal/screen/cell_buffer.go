@@ -3,6 +3,8 @@ package screen
 import (
 	"log"
 	"strings"
+
+	"github.com/rivo/uniseg"
 )
 
 type cellBuffer struct {
@@ -31,8 +33,10 @@ func (b *cellBuffer) applyANSI(input []byte, offsetX, offsetY int) {
 	currentLine := offsetY
 	currentCol := offsetX
 	for _, st := range parsed {
-		for _, char := range st.Text {
-			if char == '\n' {
+		gr := uniseg.NewGraphemes(st.Text)
+		for gr.Next() {
+			cluster := gr.Str()
+			if cluster == "\n" {
 				currentLine++
 				currentCol = offsetX
 				continue
@@ -51,7 +55,7 @@ func (b *cellBuffer) applyANSI(input []byte, offsetX, offsetY int) {
 				log.Fatalf("line: %d, col: %d", currentLine, currentCol)
 			}
 			b.grid[currentLine][currentCol] = Segment{
-				Text:   string(char),
+				Text:   cluster,
 				Params: st.Params,
 			}
 			currentCol++
