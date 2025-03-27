@@ -21,13 +21,13 @@ You can rebase a revision or a branch onto another revision in the revision tree
 See [Rebase](https://github.com/idursun/jjui/wiki/Rebase) for detailed information.
 
 ### Squash
-You can squash revisions into one revision, by pressing `S`. The following revision will be automatically selected. However, you can change the selection by using `j` and `k`.
+You can squash revisions into one revision, by pressing `S`. The following revision will be automatically selected. However, you can change the selection using `j` and `k`.
 
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_squash.gif)
 
 ### Show revision details
 
-Pressing `l` (as in going right into details of a revision) will open the details view of the revision you selected.
+Pressing `l` (as in going right into the details of a revision) will open the details view of the revision you selected.
 
 In this mode, you can:
 - Split selected files using `s`
@@ -43,10 +43,16 @@ You can move bookmarks to the revision you selected.
 
 ![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_bookmarks.gif)
 
-### Preview
-You can open the preview window by pressing `p`. Preview window displays output of the `jj show` command of the selected revision. If the currenlty selected item is a file, then `jj diff` output is displayed. 
 
-While the preview window is showing, you can press; `ctrl+n` to scroll one line down, `ctrl+p` to scroll one line up, `ctrl+n` to scroll half page down, `ctrl+u` to scroll half page up. 
+### Op Log
+You can switch to op log view by pressing `o`. Pressing `r` restores the selected operation. For more information, see [Op log](https://github.com/idursun/jjui/wiki/Oplog) wiki page.
+
+![GIF](https://github.com/idursun/jjui/wiki/gifs/jjui_oplog.gif)
+
+### Preview
+You can open the preview window by pressing `p`. If the selected item is a revision, then the output of `jj show` command is displayed. Similarly, `jj diff` output is displayed for selected files,  and `jj op show` output is displayed for selected operations. 
+
+While the preview window is showing, you can press; `ctrl+n` to scroll one line down, `ctrl+p` to scroll one line up, `ctrl+n` to scroll half a page down, `ctrl+u` to scroll half a page up. 
 
 Additionally, you can press `tab` to focus in and out of the preview window. Once in the focus mode, you can use normal (e.g. `j`, `k`, `d`, `u`) navigation keys as they are not bound to the revision tree view. 
 
@@ -56,15 +62,15 @@ For detailed information, see [Preview](https://github.com/idursun/jjui/wiki/Pre
 
 Additionally,
 * View the diff of a revision by pressing `d`.
-* Edit description of a revision by pressing `D`
+* Edit the description of a revision by pressing `D`
 * Create a _new_ revision by pressing `n`
 * Split a revision by pressing `s`.
 * Abandon a revision by pressing `a`.
 * Absorb a revision by pressing `A`.
 * _Edit_ a revision by pressing `e`
 * Git _push_/_fetch_ by pressing `g` 
-* Undo last change by pressing `u`
-* Show evolog of a revision by pressing `O`
+* Undo the last change by pressing `u`
+* Show evolog of a revision by pressing `v`
 
 ## Configuration
 
@@ -93,7 +99,7 @@ To install the latest commit from `main`:
 ```shell
 go install github.com/idursun/jjui/cmd/jjui@HEAD
 ```
-To install the latest commit from `main` bypassing local cache:
+To install the latest commit from `main` bypassing the local cache:
 
 ```shell
 GOPROXY=direct go install github.com/idursun/jjui/cmd/jjui@HEAD
