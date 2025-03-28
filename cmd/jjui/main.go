@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,6 +17,11 @@ import (
 
 var Version = "unknown"
 
+var (
+	versionFlag = flag.Bool("version", false, "show version")
+	configFlag  = flag.Bool("config", false, "edit config")
+)
+
 func getVersion() string {
 	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
 		return info.Main.Version
@@ -24,6 +30,16 @@ func getVersion() string {
 }
 
 func main() {
+	flag.Parse()
+	if *versionFlag {
+		println(getVersion())
+		os.Exit(0)
+	}
+	if *configFlag {
+		exitCode := config.Edit()
+		os.Exit(exitCode)
+	}
+
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "--version":
