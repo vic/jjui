@@ -40,29 +40,20 @@ func main() {
 		os.Exit(exitCode)
 	}
 
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
-		case "--version":
-			println(getVersion())
-			os.Exit(0)
-		case "--config":
-			exitCode := config.Edit()
-			os.Exit(exitCode)
-		}
-	}
-	location, err := getJJRootDir()
-	if err != nil {
-		location = os.Getenv("PWD")
-	}
+	var location string
 	if len(os.Args) > 1 {
 		location = os.Args[1]
+	} else {
+		location = os.Getenv("PWD")
 	}
-	if _, err = os.Stat(location + "/.jj"); os.IsNotExist(err) {
+
+	rootLocation, err := getJJRootDir(location)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: There is no jj repo in \"%s\".\n", location)
 		os.Exit(1)
 	}
 
-	appContext := context.NewAppContext(location)
+	appContext := context.NewAppContext(rootLocation)
 
 	p := tea.NewProgram(ui.New(appContext), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
@@ -71,8 +62,9 @@ func main() {
 	}
 }
 
-func getJJRootDir() (string, error) {
+func getJJRootDir(location string) (string, error) {
 	cmd := exec.Command("jj", "root")
+	cmd.Dir = location
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
