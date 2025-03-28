@@ -282,6 +282,8 @@ func (m *Model) updateGraphRows(rows []graph.Row, selectedRevision string) {
 	if m.cursor == -1 {
 		m.cursor = 0
 	}
+	m.viewRange.start = 0
+	m.viewRange.end = 0
 }
 
 func (m *Model) View() string {
@@ -295,22 +297,30 @@ func (m *Model) View() string {
 		m.viewRange.end = m.viewRange.start + h
 	}
 
+	highlightBackground := lipgloss.AdaptiveColor{
+		Light: config.Current.UI.HighlightLight,
+		Dark:  config.Current.UI.HighlightDark,
+	}
+
 	var w graph.Renderer
 	selectedLineStart := -1
 	selectedLineEnd := -1
 	for i, row := range m.rows {
 		if i == m.cursor {
 			selectedLineStart = w.LineCount()
+		} else {
+			rowLineCount := len(row.Lines)
+			if rowLineCount+w.LineCount() < m.viewRange.start {
+				w.SkipLines(rowLineCount)
+				continue
+			}
 		}
 		nodeRenderer := &graph.DefaultRowDecorator{
-			Palette: common.DefaultPalette,
-			Op:      m.op,
-			HighlightBackground: lipgloss.AdaptiveColor{
-				Light: config.Current.UI.HighlightLight,
-				Dark:  config.Current.UI.HighlightDark,
-			},
-			IsHighlighted: i == m.cursor,
-			IsSelected:    row.IsSelected,
+			Palette:             common.DefaultPalette,
+			Op:                  m.op,
+			HighlightBackground: highlightBackground,
+			IsHighlighted:       i == m.cursor,
+			IsSelected:          row.IsSelected,
 		}
 
 		graph.RenderRow(&w, row, nodeRenderer, nodeRenderer.IsHighlighted, m.width)

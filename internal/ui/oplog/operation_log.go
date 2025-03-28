@@ -67,6 +67,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case updateOpLogMsg:
 		m.rows = msg.Rows
+		m.viewRange.start = 0
+		m.viewRange.end = 0
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keymap.Cancel):
@@ -110,6 +112,12 @@ func (m *Model) View() string {
 		isHighlighted := m.cursor == i
 		if isHighlighted {
 			selectedLineStart = w.LineCount()
+		} else {
+			rowLineCount := len(row.Lines)
+			if rowLineCount+w.LineCount() < m.viewRange.start {
+				w.SkipLines(rowLineCount)
+				continue
+			}
 		}
 		RenderRow(&w, row, isHighlighted, m.width)
 		if isHighlighted {

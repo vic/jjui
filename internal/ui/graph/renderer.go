@@ -12,9 +12,14 @@ import (
 )
 
 type Renderer struct {
-	buffer    bytes.Buffer
-	lineCount int
-	Width     int
+	buffer           bytes.Buffer
+	skippedLineCount int
+	lineCount        int
+	Width            int
+}
+
+func (r *Renderer) SkipLines(amount int) {
+	r.skippedLineCount = r.skippedLineCount + amount
 }
 
 func (r *Renderer) Write(p []byte) (n int, err error) {
@@ -26,10 +31,12 @@ func (r *Renderer) Write(p []byte) (n int, err error) {
 }
 
 func (r *Renderer) LineCount() int {
-	return r.lineCount
+	return r.lineCount + r.skippedLineCount
 }
 
 func (r *Renderer) String(start, end int) string {
+	start = start - r.skippedLineCount
+	end = end - r.skippedLineCount
 	lines := strings.Split(r.buffer.String(), "\n")
 	for i, line := range lines {
 		lines[i] = strings.TrimSpace(line)
