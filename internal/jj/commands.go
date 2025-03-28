@@ -9,8 +9,6 @@ import (
 
 type Commands interface{}
 
-const TEMPLATE = `separate(";", change_id.shortest(1), change_id.shortest(8), coalesce(bookmarks.join(","), "."), current_working_copy, immutable, conflict, empty, hidden, coalesce(author.email(), "(no email set)"), author.timestamp().ago(), commit_id.shortest(1), commit_id.shortest(8), description.first_line())`
-
 type CommandArgs []string
 
 func ConfigGet(key string) CommandArgs {
