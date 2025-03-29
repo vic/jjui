@@ -7,8 +7,6 @@ import (
 	"github.com/idursun/jjui/internal/config"
 )
 
-type Commands interface{}
-
 type CommandArgs []string
 
 func ConfigGet(key string) CommandArgs {
