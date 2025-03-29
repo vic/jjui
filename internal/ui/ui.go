@@ -43,6 +43,8 @@ type Model struct {
 	stacked        tea.Model
 }
 
+var normalStyle = lipgloss.NewStyle()
+
 func (m Model) Init() tea.Cmd {
 	return tea.Sequence(tea.SetWindowTitle("jjui"), m.revisions.Init())
 }
@@ -208,15 +210,17 @@ func (m Model) View() string {
 	footerHeight := lipgloss.Height(footer)
 
 	leftView := m.renderLeftView(footerHeight, topViewHeight)
+	centerView := leftView
 
-	previewView := ""
 	if m.previewVisible {
-		m.previewModel.SetWidth(m.width - lipgloss.Width(leftView))
+		m.previewModel.SetWidth(m.width - m.revisions.Width())
 		m.previewModel.SetHeight(m.height - footerHeight - topViewHeight)
-		previewView = m.previewModel.View()
+		centerView = lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			normalStyle.MaxWidth(m.revisions.Width()).Render(leftView),
+			m.previewModel.View(),
+		)
 	}
-
-	centerView := lipgloss.JoinHorizontal(lipgloss.Left, leftView, previewView)
 
 	if m.stacked != nil {
 		stackedView := m.stacked.View()
