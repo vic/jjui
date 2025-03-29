@@ -341,8 +341,6 @@ func (m *Model) View() string {
 	}
 
 	content := w.String(m.viewRange.start, m.viewRange.end)
-	content = lipgloss.PlaceHorizontal(m.Width(), lipgloss.Left, content)
-
 	return normalStyle.MaxWidth(m.width).Render(content)
 }
 

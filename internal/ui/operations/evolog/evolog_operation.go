@@ -5,7 +5,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
@@ -118,7 +117,6 @@ func (o Operation) Render() string {
 	}
 
 	content := w.String(o.viewRange.start, o.viewRange.end)
-	content = lipgloss.PlaceHorizontal(o.width, lipgloss.Left, content)
 	return content
 }
 
