@@ -51,7 +51,10 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(common.CloseViewMsg); ok && (m.diff != nil || m.stacked != nil || m.oplog != nil) {
-		m.diff = nil
+		if m.diff != nil {
+			m.diff = nil
+			return m, nil
+		}
 		m.stacked = nil
 		m.oplog = nil
 		return m, nil
@@ -135,8 +138,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case common.ShowDiffMsg:
 		m.diff = diff.New(string(msg), m.width, m.height)
-		cmds = append(cmds, m.diff.Init())
-		return m, tea.Batch(cmds...)
+		return m, m.diff.Init()
 	case common.CommandCompletedMsg:
 		m.output = msg.Output
 	case common.UpdateRevisionsFailedMsg:

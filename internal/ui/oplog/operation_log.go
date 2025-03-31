@@ -36,7 +36,7 @@ type Model struct {
 }
 
 func (m *Model) ShortHelp() []key.Binding {
-	return []key.Binding{m.keymap.Up, m.keymap.Down, m.keymap.Cancel, m.keymap.OpLog.Restore}
+	return []key.Binding{m.keymap.Up, m.keymap.Down, m.keymap.Cancel, m.keymap.Diff, m.keymap.OpLog.Restore}
 }
 
 func (m *Model) FullHelp() [][]key.Binding {
@@ -80,6 +80,11 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.Down):
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
+			}
+		case key.Matches(msg, m.keymap.Diff):
+			return m, func() tea.Msg {
+				output, _ := m.context.RunCommandImmediate(jj.OpShow(m.rows[m.cursor].OperationId))
+				return common.ShowDiffMsg(output)
 			}
 		case key.Matches(msg, m.keymap.OpLog.Restore):
 			return m, tea.Batch(common.Close, m.context.RunCommand(jj.OpRestore(m.rows[m.cursor].OperationId), common.Refresh))
