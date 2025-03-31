@@ -226,8 +226,9 @@ func (m Model) View() string {
 
 	if m.stacked != nil {
 		stackedView := m.stacked.View()
-		sx := (m.width - lipgloss.Width(stackedView)) / 2
-		sy := (m.height - lipgloss.Height(stackedView)) / 2
+		w, h := lipgloss.Size(stackedView)
+		sx := (m.width - w) / 2
+		sy := (m.height - h) / 2
 		centerView = screen.Stacked(centerView, stackedView, sx, sy)
 	}
 	return lipgloss.JoinVertical(0, topView, centerView, footer)
