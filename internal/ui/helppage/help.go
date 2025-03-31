@@ -91,12 +91,6 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.Cancel),
 		printHelp(h.keyMap.Quit),
 		printHelp(h.keyMap.Revset),
-		"",
-		printMode(h.keyMap.Preview.Mode, "Preview"),
-		printHelpExt("ctrl+p", "line up"),
-		printHelpExt("ctrl+n", "line down"),
-		printHelpExt("ctrl+d", "half page down"),
-		printHelpExt("ctrl+u", "half page up"),
 		printHeader("Revisions"),
 		printHelp(h.keyMap.ToggleSelect),
 		printHelp(h.keyMap.New),
@@ -112,6 +106,12 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.Details.Mode),
 		printHelp(h.keyMap.Evolog),
 		printHelp(h.keyMap.Bookmark.Set),
+		"",
+		printMode(h.keyMap.Preview.Mode, "Preview"),
+		printHelp(h.keyMap.Preview.ScrollUp),
+		printHelp(h.keyMap.Preview.ScrollDown),
+		printHelp(h.keyMap.Preview.HalfPageDown),
+		printHelp(h.keyMap.Preview.HalfPageUp),
 	)
 
 	rightView := lipgloss.JoinVertical(lipgloss.Left,
@@ -142,6 +142,7 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.Apply),
 		"",
 		printMode(h.keyMap.OpLog.Mode, "Oplog"),
+		printHelp(h.keyMap.Diff),
 		printHelp(h.keyMap.OpLog.Restore),
 	)
 
