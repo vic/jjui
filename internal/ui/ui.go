@@ -79,11 +79,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
-		if m.previewModel.IsFocused() {
-			m.previewModel, cmd = m.previewModel.Update(msg)
-			return m, cmd
-		}
-
 		if m.stacked != nil {
 			m.stacked, cmd = m.stacked.Update(msg)
 			return m, cmd
@@ -114,13 +109,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keyMap.Preview.Mode):
 			m.previewVisible = !m.previewVisible
 			cmds = append(cmds, common.SelectionChanged)
-			return m, tea.Batch(cmds...)
-		case key.Matches(msg, m.keyMap.Preview.ToggleFocus):
-			if !m.previewVisible {
-				cmds = append(cmds, common.SelectionChanged)
-			}
-			m.previewVisible = true
-			cmds = append(cmds, preview.Focus)
 			return m, tea.Batch(cmds...)
 		}
 	case common.ToggleHelpMsg:
@@ -236,9 +224,6 @@ func (m Model) renderLeftView(footerHeight int, topViewHeight int) string {
 
 	if m.previewVisible {
 		w = m.width / 2
-		if m.previewModel.IsFocused() {
-			w = 4
-		}
 	}
 
 	if m.oplog != nil {

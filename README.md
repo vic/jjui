@@ -54,7 +54,7 @@ You can open the preview window by pressing `p`. If the selected item is a revis
 
 While the preview window is showing, you can press; `ctrl+n` to scroll one line down, `ctrl+p` to scroll one line up, `ctrl+n` to scroll half a page down, `ctrl+u` to scroll half a page up. 
 
-Additionally, you can press `tab` to focus in and out of the preview window. Once in the focus mode, you can use normal (e.g. `j`, `k`, `d`, `u`) navigation keys as they are not bound to the revision tree view. 
+Additionally, you can press `d` to show the contents of preview in diff view. 
 
 For detailed information, see [Preview](https://github.com/idursun/jjui/wiki/Preview) wiki page.
 

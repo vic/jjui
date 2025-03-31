@@ -16,7 +16,6 @@ import (
 
 type Model struct {
 	tag     int
-	focused bool
 	view    viewport.Model
 	help    help.Model
 	width   int
@@ -28,19 +27,12 @@ type Model struct {
 
 const DebounceTime = 200 * time.Millisecond
 
-var tab = key.NewBinding(key.WithKeys("tab"))
-
 type refreshPreviewContentMsg struct {
 	Tag int
 }
 
 type updatePreviewContentMsg struct {
 	Content string
-}
-type focusMsg struct{}
-
-func (m *Model) IsFocused() bool {
-	return m.focused
 }
 
 func (m *Model) ShortHelp() []key.Binding {
@@ -91,10 +83,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		return m, tea.Tick(DebounceTime, func(t time.Time) tea.Msg {
 			return refreshPreviewContentMsg{Tag: tag}
 		})
-	case focusMsg:
-		m.focused = true
-		m.view.KeyMap = viewport.DefaultKeyMap()
-		return m, nil
 	case refreshPreviewContentMsg:
 		if m.tag == msg.Tag {
 			switch msg := m.context.SelectedItem().(type) {
@@ -115,13 +103,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				}
 			}
 		}
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.keyMap.Cancel), key.Matches(msg, tab):
-			m.focused = false
-			m.view.KeyMap = unfocusedKeyMap(m.keyMap)
-			return m, nil
-		}
 	}
 	var cmd tea.Cmd
 	m.view, cmd = m.view.Update(msg)
@@ -132,11 +113,7 @@ func (m *Model) View() string {
 	return m.view.View()
 }
 
-func Focus() tea.Msg {
-	return focusMsg{}
-}
-
-func unfocusedKeyMap(km config.KeyMappings[key.Binding]) viewport.KeyMap {
+func viewPortKeyMap(km config.KeyMappings[key.Binding]) viewport.KeyMap {
 	return viewport.KeyMap{
 		PageDown:     key.NewBinding(key.WithDisabled()),
 		PageUp:       key.NewBinding(key.WithDisabled()),
@@ -151,7 +128,7 @@ func New(context context.AppContext) Model {
 	view := viewport.New(0, 0)
 	view.Style = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 	keyMap := context.KeyMap()
-	view.KeyMap = unfocusedKeyMap(keyMap)
+	view.KeyMap = viewPortKeyMap(keyMap)
 	return Model{
 		context: context,
 		keyMap:  keyMap,
