@@ -119,7 +119,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keyMap.Cancel), key.Matches(msg, tab):
 			m.focused = false
-			m.view.KeyMap = unfocusedKeyMap()
+			m.view.KeyMap = unfocusedKeyMap(m.keyMap)
 			return m, nil
 		}
 	}
@@ -136,24 +136,25 @@ func Focus() tea.Msg {
 	return focusMsg{}
 }
 
-func unfocusedKeyMap() viewport.KeyMap {
+func unfocusedKeyMap(km config.KeyMappings[key.Binding]) viewport.KeyMap {
 	return viewport.KeyMap{
 		PageDown:     key.NewBinding(key.WithDisabled()),
 		PageUp:       key.NewBinding(key.WithDisabled()),
-		HalfPageUp:   key.NewBinding(key.WithKeys("ctrl+u")),
-		HalfPageDown: key.NewBinding(key.WithKeys("ctrl+d")),
-		Up:           key.NewBinding(key.WithKeys("ctrl+p")),
-		Down:         key.NewBinding(key.WithKeys("ctrl+n")),
+		HalfPageUp:   km.Preview.HalfPageUp,
+		HalfPageDown: km.Preview.HalfPageDown,
+		Up:           km.Preview.ScrollUp,
+		Down:         km.Preview.ScrollDown,
 	}
 }
 
 func New(context context.AppContext) Model {
 	view := viewport.New(0, 0)
 	view.Style = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
-	view.KeyMap = unfocusedKeyMap()
+	keyMap := context.KeyMap()
+	view.KeyMap = unfocusedKeyMap(keyMap)
 	return Model{
 		context: context,
-		keyMap:  context.KeyMap(),
+		keyMap:  keyMap,
 		view:    view,
 		help:    help.New(),
 	}
