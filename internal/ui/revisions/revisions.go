@@ -374,17 +374,17 @@ func (m *Model) CurrentOperation() operations.Operation {
 	return m.op
 }
 
-func New(c context.AppContext) Model {
+func New(c context.AppContext, revset string) Model {
 	v := viewRange{start: 0, end: 0}
 	keymap := c.KeyMap()
-	return Model{
-		context:   c,
-		keymap:    keymap,
-		rows:      nil,
-		viewRange: &v,
-		op:        operations.NewDefault(c),
-		cursor:    0,
-		width:     20,
-		height:    10,
+	return Model{context: c,
+		keymap:      keymap,
+		revsetValue: revset,
+		rows:        nil,
+		viewRange:   &v,
+		op:          operations.NewDefault(c),
+		cursor:      0,
+		width:       20,
+		height:      10,
 	}
 }

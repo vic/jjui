@@ -238,9 +238,12 @@ func (m Model) renderLeftView(footerHeight int, topViewHeight int) string {
 	return leftView
 }
 
-func New(c context.AppContext) tea.Model {
-	defaultRevSet, _ := c.RunCommandImmediate(jj.ConfigGet("revsets.log"))
-	revisionsModel := revisions.New(c)
+func New(c context.AppContext, initialRevset string) tea.Model {
+	if initialRevset == "" {
+		defaultRevset, _ := c.RunCommandImmediate(jj.ConfigGet("revsets.log"))
+		initialRevset = string(defaultRevset)
+	}
+	revisionsModel := revisions.New(c, initialRevset)
 	previewModel := preview.New(c)
 	statusModel := status.New(c)
 	return Model{
@@ -250,6 +253,6 @@ func New(c context.AppContext) tea.Model {
 		revisions:    &revisionsModel,
 		previewModel: &previewModel,
 		status:       &statusModel,
-		revsetModel:  revset.New(string(defaultRevSet)),
+		revsetModel:  revset.New(initialRevset),
 	}
 }
