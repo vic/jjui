@@ -34,7 +34,19 @@ func ParseRows(reader io.Reader) []Row {
 				row.Commit.CommitIdShort = rowLine.Segments[commitIdIdx].Text
 				row.Commit.CommitId = row.Commit.CommitIdShort + rowLine.Segments[commitIdIdx+1].Text
 			} else {
-				log.Fatalln("commit id not found")
+				// it is possible that the commit id short is the whole commit id
+				// in that case, we take the segment with length 8
+				for i := len(rowLine.Segments) - 1; i >= 0; i-- {
+					segment := rowLine.Segments[i]
+					if len(segment.Text) == 8 {
+						row.Commit.CommitIdShort = segment.Text
+						row.Commit.CommitId = segment.Text
+						break
+					}
+				}
+				if row.Commit.CommitIdShort == "" {
+					log.Fatalln("commit id not found")
+				}
 			}
 		}
 		row.AddLine(&rowLine)

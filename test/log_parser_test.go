@@ -18,6 +18,12 @@ func TestParser_Parse(t *testing.T) {
 	assert.Len(t, rows, 11)
 }
 
+func TestParser_Parse_NoCommitId(t *testing.T) {
+	file, _ := os.Open("testdata/no-commit-id.log")
+	rows := graph.ParseRows(file)
+	assert.Len(t, rows, 1)
+}
+
 func TestParser_Parse_Disconnected(t *testing.T) {
 	var lb logBuilder
 	lb.write("*   id=abcde author=some@author id=xyrq")
