@@ -247,12 +247,13 @@ func New(c context.AppContext, initialRevset string) tea.Model {
 	previewModel := preview.New(c)
 	statusModel := status.New(c)
 	return Model{
-		context:      c,
-		keyMap:       c.KeyMap(),
-		state:        common.Loading,
-		revisions:    &revisionsModel,
-		previewModel: &previewModel,
-		status:       &statusModel,
-		revsetModel:  revset.New(initialRevset),
+		context:        c,
+		keyMap:         c.KeyMap(),
+		state:          common.Loading,
+		revisions:      &revisionsModel,
+		previewModel:   &previewModel,
+		previewVisible: config.Current.Preview.ShowAtStart,
+		status:         &statusModel,
+		revsetModel:    revset.New(initialRevset),
 	}
 }

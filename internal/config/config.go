@@ -16,7 +16,8 @@ var Current = &Config{
 		HighlightDark:  "#282a36",
 	},
 	Preview: PreviewConfig{
-		ExtraArgs: []string{},
+		ExtraArgs:   []string{},
+		ShowAtStart: false,
 	},
 	OpLog: OpLogConfig{
 		Limit: 200,
@@ -36,7 +37,8 @@ type UIConfig struct {
 }
 
 type PreviewConfig struct {
-	ExtraArgs []string `toml:"extra_args"`
+	ExtraArgs   []string `toml:"extra_args"`
+	ShowAtStart bool     `toml:"show_at_start"`
 }
 
 type OpLogConfig struct {
