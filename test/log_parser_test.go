@@ -53,7 +53,7 @@ func TestParser_Parse_WorkingCopy(t *testing.T) {
 	var lb logBuilder
 	lb.write("*   id=abcde author=some@author id=xyrq")
 	lb.write("│   some documentation")
-	lb.write("@   id=12cd author=some@author id=kdys")
+	lb.write("@   id=kdys author=some@author id=12cd")
 	lb.write("│   some documentation")
 
 	rows := graph.ParseRows(strings.NewReader(lb.String()))

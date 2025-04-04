@@ -14,7 +14,7 @@ func ParseRows(reader io.Reader) []Row {
 
 	for segmentedLine := range screen.BreakNewLinesIter(rawSegments) {
 		rowLine := NewGraphRowLine(segmentedLine)
-		if changeIdIdx := rowLine.FindIdIndex(0); changeIdIdx != -1 {
+		if changeIdIdx := rowLine.FindPossibleChangeIdIdx(); changeIdIdx != -1 {
 			rowLine.Flags = Revision | Highlightable
 			previousRow := row
 			row = NewGraphRow()
@@ -27,23 +27,11 @@ func ParseRows(reader io.Reader) []Row {
 			}
 			rowLine.ChangeIdIdx = changeIdIdx
 			row.Commit.ChangeId = rowLine.Segments[changeIdIdx].Text
-			commitIdIdx := rowLine.FindIdIndex(changeIdIdx + 2)
-			if commitIdIdx != -1 {
+			if commitIdIdx := rowLine.FindPossibleCommitIdIdx(changeIdIdx); commitIdIdx != -1 {
 				rowLine.CommitIdIdx = commitIdIdx
 				row.Commit.CommitId = rowLine.Segments[commitIdIdx].Text
 			} else {
-				// it is possible that the commit id short is the whole commit id
-				// in that case, we take the segment with length 8
-				for i := len(rowLine.Segments) - 1; i >= 0; i-- {
-					segment := rowLine.Segments[i]
-					if len(segment.Text) == 8 {
-						row.Commit.CommitId = segment.Text
-						break
-					}
-				}
-				if row.Commit.CommitId == "" {
-					log.Fatalln("commit id not found")
-				}
+				log.Fatalln("commit id not found")
 			}
 		}
 		row.AddLine(&rowLine)
