@@ -209,12 +209,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			case key.Matches(msg, m.keymap.Refresh):
 				cmd = common.Refresh
 			case key.Matches(msg, m.keymap.Squash):
-				m.op = squash.NewOperation(m.context, m.SelectedRevision().ChangeIdShort)
+				m.op = squash.NewOperation(m.context, m.SelectedRevision().ChangeId)
 				if m.cursor < len(m.rows)-1 {
 					m.cursor++
 				}
 			case key.Matches(msg, m.keymap.Rebase.Mode):
-				m.op = rebase.NewOperation(m.context, m.SelectedRevision().ChangeIdShort, rebase.SourceRevision, rebase.TargetDestination)
+				m.op = rebase.NewOperation(m.context, m.SelectedRevision().ChangeId, rebase.SourceRevision, rebase.TargetDestination)
 			case key.Matches(msg, m.keymap.Quit):
 				return m, tea.Quit
 			}
@@ -365,7 +365,7 @@ func (m *Model) selectRevision(revision string) int {
 		if revision == "@" {
 			return row.Commit.IsWorkingCopy
 		}
-		return row.Commit.GetChangeId() == revision || row.Commit.ChangeIdShort == revision
+		return row.Commit.GetChangeId() == revision || row.Commit.ChangeId == revision
 	})
 	return idx
 }

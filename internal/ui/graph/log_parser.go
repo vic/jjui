@@ -26,25 +26,22 @@ func ParseRows(reader io.Reader) []Row {
 				row.Indent += utf8.RuneCountInString(rowLine.Segments[j].Text)
 			}
 			rowLine.ChangeIdIdx = changeIdIdx
-			row.Commit.ChangeIdShort = rowLine.Segments[changeIdIdx].Text
-			row.Commit.ChangeId = row.Commit.ChangeIdShort + rowLine.Segments[changeIdIdx+1].Text
+			row.Commit.ChangeId = rowLine.Segments[changeIdIdx].Text
 			commitIdIdx := rowLine.FindIdIndex(changeIdIdx + 2)
 			if commitIdIdx != -1 {
 				rowLine.CommitIdIdx = commitIdIdx
-				row.Commit.CommitIdShort = rowLine.Segments[commitIdIdx].Text
-				row.Commit.CommitId = row.Commit.CommitIdShort + rowLine.Segments[commitIdIdx+1].Text
+				row.Commit.CommitId = rowLine.Segments[commitIdIdx].Text
 			} else {
 				// it is possible that the commit id short is the whole commit id
 				// in that case, we take the segment with length 8
 				for i := len(rowLine.Segments) - 1; i >= 0; i-- {
 					segment := rowLine.Segments[i]
 					if len(segment.Text) == 8 {
-						row.Commit.CommitIdShort = segment.Text
 						row.Commit.CommitId = segment.Text
 						break
 					}
 				}
-				if row.Commit.CommitIdShort == "" {
+				if row.Commit.CommitId == "" {
 					log.Fatalln("commit id not found")
 				}
 			}
