@@ -74,6 +74,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
+		if m.status.IsFocused() {
+			m.status, cmd = m.status.Update(msg)
+			return m, cmd
+		}
+
 		if m.revisions.IsFocused() {
 			m.revisions, cmd = m.revisions.Update(msg)
 			return m, cmd
@@ -111,6 +116,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.previewVisible = !m.previewVisible
 			cmds = append(cmds, common.SelectionChanged)
 			return m, tea.Batch(cmds...)
+		case key.Matches(msg, m.keyMap.QuickSearch) && m.oplog != nil:
+			//HACK: prevents quick search from activating in op log view
+			return m, nil
 		}
 	case common.ToggleHelpMsg:
 		if m.stacked == nil {
