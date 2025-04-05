@@ -43,6 +43,7 @@ type Model struct {
 	keymap      config.KeyMappings[key.Binding]
 	output      string
 	err         error
+	quickSearch string
 }
 
 type updateRevisionsMsg struct {
@@ -127,7 +128,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.revsetValue = string(msg)
 		return m, common.Refresh
 	case common.QuickSearchMsg:
-		m.cursor = m.search(string(msg))
+		m.quickSearch = string(msg)
+		m.cursor = m.search(0)
 		m.op = operations.NewDefault(m.context)
 		m.viewRange = &viewRange{start: 0, end: 0}
 		return m, nil
@@ -171,6 +173,10 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				m.rows[m.cursor].IsSelected = !m.rows[m.cursor].IsSelected
 			case key.Matches(msg, m.keymap.Cancel):
 				m.op = operations.NewDefault(m.context)
+			case key.Matches(msg, m.keymap.QuickSearchCycle):
+				m.cursor = m.search(m.cursor + 1)
+				m.viewRange = &viewRange{start: 0, end: 0}
+				return m, nil
 			case key.Matches(msg, m.keymap.Details.Mode):
 				m.op, cmd = details.NewOperation(m.context, m.SelectedRevision())
 			case key.Matches(msg, m.keymap.New):
@@ -375,23 +381,22 @@ func (m *Model) selectRevision(revision string) int {
 	return idx
 }
 
-func (m *Model) search(query string) int {
-	if query == "" {
+func (m *Model) search(startIndex int) int {
+	if m.quickSearch == "" {
 		return m.cursor
 	}
 
-	idx := slices.IndexFunc(m.rows, func(row graph.Row) bool {
+	n := len(m.rows)
+	for i := startIndex; i < n+startIndex; i++ {
+		c := i % n
+		row := &m.rows[c]
 		for _, line := range row.Lines {
 			for _, segment := range line.Segments {
-				if segment.Text != "" && strings.Contains(segment.Text, query) {
-					return true
+				if segment.Text != "" && strings.Contains(segment.Text, m.quickSearch) {
+					return c
 				}
 			}
 		}
-		return false
-	})
-	if idx != -1 {
-		return idx
 	}
 	return m.cursor
 }
