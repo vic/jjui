@@ -24,6 +24,16 @@ func TestParser_Parse_NoCommitId(t *testing.T) {
 	assert.Len(t, rows, 1)
 }
 
+func TestParser_Parse_ShortId(t *testing.T) {
+	file, _ := os.Open("testdata/short-id.log")
+	rows := graph.ParseRows(file)
+	assert.Len(t, rows, 2)
+	assert.Equal(t, "X", rows[0].Commit.ChangeId)
+	assert.Equal(t, "E", rows[0].Commit.CommitId)
+	assert.Equal(t, "T", rows[1].Commit.ChangeId)
+	assert.Equal(t, "79", rows[1].Commit.CommitId)
+}
+
 func TestParser_Parse_Disconnected(t *testing.T) {
 	var lb logBuilder
 	lb.write("*   id=abcde author=some@author id=xyrq")
@@ -93,6 +103,11 @@ func (l *logBuilder) write(line string) {
 	scanner.Split(bufio.ScanWords)
 	for scanner.Scan() {
 		text := scanner.Text()
+		if strings.HasPrefix(text, "short_id=") {
+			text = strings.TrimPrefix(text, "short_id=")
+			l.shortId(text)
+			continue
+		}
 		if strings.HasPrefix(text, "id=") {
 			text = strings.TrimPrefix(text, "id=")
 			l.id(text[:1], text[1:])
@@ -115,6 +130,10 @@ func (l *logBuilder) write(line string) {
 
 func (l *logBuilder) append(value string) {
 	fmt.Fprintf(&l.w, "%s ", styles[normal].Render(value))
+}
+
+func (l *logBuilder) shortId(sid string) {
+	fmt.Fprintf(&l.w, " %s ", styles[id].Render(sid))
 }
 
 func (l *logBuilder) id(short string, rest string) {
