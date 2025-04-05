@@ -34,6 +34,8 @@ type Model struct {
 
 const DebounceTime = 200 * time.Millisecond
 
+var border = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
+
 type refreshPreviewContentMsg struct {
 	Tag int
 }
@@ -55,7 +57,7 @@ func (m *Model) SetWidth(w int) {
 }
 
 func (m *Model) SetHeight(h int) {
-	m.viewRange.end = min(m.viewRange.start+h-4, m.contentLineCount)
+	m.viewRange.end = min(m.viewRange.start+h-3, m.contentLineCount)
 	m.height = h
 }
 
@@ -147,7 +149,7 @@ func (m *Model) View() string {
 		}
 	}
 	view := lipgloss.Place(m.width-2, m.height-2, 0, 0, w.String())
-	return lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Render(view)
+	return border.Render(view)
 }
 
 func (m *Model) reset() {
