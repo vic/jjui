@@ -2,6 +2,7 @@ package details
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/ui/revset"
 	"io"
 	"path"
 	"strings"
@@ -26,6 +27,8 @@ var (
 	Modified status = 2
 	Renamed  status = 3
 )
+
+var starKey = key.NewBinding(key.WithKeys("*"))
 
 type item struct {
 	status   status
@@ -187,6 +190,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, m.files.SetItem(oldIndex, item)
 			}
 			return m, nil
+		case key.Matches(msg, starKey):
+			if item, ok := m.files.SelectedItem().(item); ok {
+				return m, tea.Batch(common.Close, revset.UpdateRevSet(fmt.Sprintf("files(%s)", item.fileName)))
+			}
 		default:
 			if len(m.files.Items()) > 0 {
 				var cmd tea.Cmd
