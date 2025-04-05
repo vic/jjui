@@ -326,15 +326,17 @@ func (m *Model) View() string {
 				continue
 			}
 		}
-		nodeRenderer := &graph.DefaultRowDecorator{
+		nodeRenderer := graph.DefaultRowDecorator{
 			Palette:             common.DefaultPalette,
 			Op:                  m.op,
 			HighlightBackground: highlightBackground,
+			SearchText:          m.quickSearch,
 			IsHighlighted:       i == m.cursor,
 			IsSelected:          row.IsSelected,
+			Width:               m.width,
 		}
 
-		graph.RenderRow(&w, row, nodeRenderer, nodeRenderer.IsHighlighted, m.width)
+		graph.RenderRow(&w, row, nodeRenderer)
 		if i == m.cursor {
 			selectedLineEnd = w.LineCount()
 		}
