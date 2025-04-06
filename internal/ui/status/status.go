@@ -124,21 +124,23 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	s := common.DefaultPalette.Normal.Render(" ")
-	if m.editing {
-		s = m.input.View()
-	} else if m.running {
-		s = common.DefaultPalette.Normal.Render(m.spinner.View())
+	commandStatusMark := common.DefaultPalette.Normal.Render(" ")
+	if m.running {
+		commandStatusMark = common.DefaultPalette.Normal.Render(m.spinner.View())
 	} else if m.error != nil {
-		s = common.DefaultPalette.StatusError.Render("✗ ")
+		commandStatusMark = common.DefaultPalette.StatusError.Render("✗ ")
 	} else if m.command != "" {
-		s = common.DefaultPalette.StatusSuccess.Render("✓ ")
+		commandStatusMark = common.DefaultPalette.StatusSuccess.Render("✓ ")
 	} else {
-		s = m.help.View(m.keyMap)
+		commandStatusMark = m.help.View(m.keyMap)
 	}
 	ret := common.DefaultPalette.Normal.Render(m.command)
+	if m.editing {
+		commandStatusMark = ""
+		ret = m.input.View()
+	}
 	mode := common.DefaultPalette.StatusMode.Width(10).Render("", m.mode)
-	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, " ", s, ret)
+	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, " ", commandStatusMark, ret)
 	if m.error != nil {
 		k := cancel.Help().Key
 		return lipgloss.JoinVertical(0,
