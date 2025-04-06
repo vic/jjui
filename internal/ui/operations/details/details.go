@@ -28,8 +28,6 @@ var (
 	Renamed  status = 3
 )
 
-var starKey = key.NewBinding(key.WithKeys("*"))
-
 type item struct {
 	status   status
 	name     string
@@ -190,7 +188,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, m.files.SetItem(oldIndex, item)
 			}
 			return m, nil
-		case key.Matches(msg, starKey):
+		case key.Matches(msg, m.keyMap.Details.RevisionsChangingFile):
 			if item, ok := m.files.SelectedItem().(item); ok {
 				return m, tea.Batch(common.Close, revset.UpdateRevSet(fmt.Sprintf("files(%s)", item.fileName)))
 			}
