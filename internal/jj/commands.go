@@ -29,6 +29,10 @@ func New(revisions ...string) CommandArgs {
 	return args
 }
 
+func CommitWorkingCopy() CommandArgs {
+	return []string{"commit"}
+}
+
 func Edit(changeId string) CommandArgs {
 	return []string{"edit", "-r", changeId}
 }

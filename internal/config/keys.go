@@ -13,6 +13,7 @@ var DefaultKeyMappings = KeyMappings[keys]{
 	Cancel:           []string{"esc"},
 	ToggleSelect:     []string{" "},
 	New:              []string{"n"},
+	Commit:           []string{"c"},
 	Refresh:          []string{"ctrl+r"},
 	Quit:             []string{"q"},
 	Undo:             []string{"u"},
@@ -82,6 +83,7 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 		Cancel:           key.NewBinding(key.WithKeys(m.Cancel...), key.WithHelp(join(m.Cancel), "cancel")),
 		ToggleSelect:     key.NewBinding(key.WithKeys(m.ToggleSelect...), key.WithHelp(join(m.ToggleSelect), "toggle selection")),
 		New:              key.NewBinding(key.WithKeys(m.New...), key.WithHelp(join(m.New), "new")),
+		Commit:           key.NewBinding(key.WithKeys(m.Commit...), key.WithHelp(join(m.Commit), "commit")),
 		Refresh:          key.NewBinding(key.WithKeys(m.Refresh...), key.WithHelp(join(m.Refresh), "refresh")),
 		Quit:             key.NewBinding(key.WithKeys(m.Quit...), key.WithHelp(join(m.Quit), "quit")),
 		Diff:             key.NewBinding(key.WithKeys(m.Diff...), key.WithHelp(join(m.Diff), "diff")),
@@ -174,6 +176,7 @@ type KeyMappings[T any] struct {
 	Cancel           T                   `toml:"cancel"`
 	ToggleSelect     T                   `toml:"toggle_select"`
 	New              T                   `toml:"new"`
+	Commit           T                   `toml:"commit"`
 	Refresh          T                   `toml:"refresh"`
 	Abandon          T                   `toml:"abandon"`
 	Diff             T                   `toml:"diff"`

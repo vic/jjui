@@ -96,6 +96,7 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.QuickSearch),
 		printHelp(h.keyMap.QuickSearchCycle),
 		printHelp(h.keyMap.New),
+		printHelp(h.keyMap.Commit),
 		printHelp(h.keyMap.Describe),
 		printHelp(h.keyMap.Edit),
 		printHelp(h.keyMap.Diff),

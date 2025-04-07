@@ -186,6 +186,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 					changeIds = append(changeIds, s.GetChangeId())
 				}
 				cmd = m.context.RunCommand(jj.New(changeIds...), common.RefreshAndSelect("@"))
+			case key.Matches(msg, m.keymap.Commit):
+				cmd = m.context.RunInteractiveCommand(jj.CommitWorkingCopy(), common.Refresh)
 			case key.Matches(msg, m.keymap.Edit):
 				cmd = m.context.RunCommand(jj.Edit(m.SelectedRevision().GetChangeId()), common.Refresh)
 			case key.Matches(msg, m.keymap.Diffedit):
