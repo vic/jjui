@@ -34,6 +34,13 @@ func TestParser_Parse_ShortId(t *testing.T) {
 	assert.Equal(t, "79", rows[1].Commit.CommitId)
 }
 
+func TestParser_Parse_ConflictedIds(t *testing.T) {
+	file, _ := os.Open("testdata/conflicted-id.log")
+	rows := graph.ParseRows(file)
+	assert.Len(t, rows, 1)
+	assert.Equal(t, "P??", rows[0].Commit.ChangeId)
+}
+
 func TestParser_Parse_Disconnected(t *testing.T) {
 	var lb logBuilder
 	lb.write("*   id=abcde author=some@author id=xyrq")

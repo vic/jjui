@@ -27,6 +27,9 @@ func ParseRows(reader io.Reader) []Row {
 			}
 			rowLine.ChangeIdIdx = changeIdIdx
 			row.Commit.ChangeId = rowLine.Segments[changeIdIdx].Text
+			if changeIdIdx+1 < len(rowLine.Segments) && rowLine.Segments[changeIdIdx+1].Text == "??" {
+				row.Commit.ChangeId += "??"
+			}
 			if commitIdIdx := rowLine.FindPossibleCommitIdIdx(changeIdIdx); commitIdIdx != -1 {
 				rowLine.CommitIdIdx = commitIdIdx
 				row.Commit.CommitId = rowLine.Segments[commitIdIdx].Text
