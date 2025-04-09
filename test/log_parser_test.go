@@ -37,9 +37,10 @@ func TestParser_Parse_ShortId(t *testing.T) {
 func TestParser_Parse_ConflictedLongIds(t *testing.T) {
 	file, _ := os.Open("testdata/conflicted-change-id.log")
 	rows := graph.ParseRows(file)
-	assert.Len(t, rows, 2)
+	assert.Len(t, rows, 3)
 	assert.Equal(t, "p??", rows[0].Commit.ChangeId)
-	assert.Equal(t, "q??", rows[1].Commit.ChangeId)
+	assert.Equal(t, "qusvoztl??", rows[1].Commit.ChangeId)
+	assert.Equal(t, "tyoqvzlm??", rows[2].Commit.ChangeId)
 }
 
 func TestParser_Parse_Disconnected(t *testing.T) {
