@@ -45,6 +45,16 @@ func init() {
 	}
 }
 
+func getJJRootDir(location string) (string, error) {
+	cmd := exec.Command("jj", "root")
+	cmd.Dir = location
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(output)), nil
+}
+
 func main() {
 	flag.Parse()
 	switch {
@@ -81,14 +91,4 @@ func main() {
 		fmt.Printf("Error running program: %v\n", err)
 		os.Exit(1)
 	}
-}
-
-func getJJRootDir(location string) (string, error) {
-	cmd := exec.Command("jj", "root")
-	cmd.Dir = location
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(output)), nil
 }
