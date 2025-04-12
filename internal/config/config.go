@@ -16,8 +16,10 @@ var Current = &Config{
 		HighlightDark:  "#282a36",
 	},
 	Preview: PreviewConfig{
-		ExtraArgs:   []string{},
-		ShowAtStart: false,
+		ExtraArgs:                []string{},
+		ShowAtStart:              false,
+		WidthPercentage:          50,
+		WidthIncrementPercentage: 5,
 	},
 	OpLog: OpLogConfig{
 		Limit: 200,
@@ -37,8 +39,10 @@ type UIConfig struct {
 }
 
 type PreviewConfig struct {
-	ExtraArgs   []string `toml:"extra_args"`
-	ShowAtStart bool     `toml:"show_at_start"`
+	ExtraArgs                []string `toml:"extra_args"`
+	ShowAtStart              bool     `toml:"show_at_start"`
+	WidthPercentage          float64  `toml:"width_percentage"`
+	WidthIncrementPercentage float64  `toml:"width_increment_percentage"`
 }
 
 type OpLogConfig struct {

@@ -26,21 +26,22 @@ import (
 )
 
 type Model struct {
-	revisions      *revisions.Model
-	oplog          *oplog.Model
-	revsetModel    revset.Model
-	previewModel   *preview.Model
-	previewVisible bool
-	diff           tea.Model
-	state          common.State
-	error          error
-	status         *status.Model
-	output         string
-	width          int
-	height         int
-	context        context.AppContext
-	keyMap         config.KeyMappings[key.Binding]
-	stacked        tea.Model
+	revisions               *revisions.Model
+	oplog                   *oplog.Model
+	revsetModel             revset.Model
+	previewModel            *preview.Model
+	previewVisible          bool
+	previewWindowPercentage float64
+	diff                    tea.Model
+	state                   common.State
+	error                   error
+	status                  *status.Model
+	output                  string
+	width                   int
+	height                  int
+	context                 context.AppContext
+	keyMap                  config.KeyMappings[key.Binding]
+	stacked                 tea.Model
 }
 
 func (m Model) Init() tea.Cmd {
@@ -116,6 +117,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.previewVisible = !m.previewVisible
 			cmds = append(cmds, common.SelectionChanged)
 			return m, tea.Batch(cmds...)
+		case key.Matches(msg, m.keyMap.Preview.Expand):
+			m.previewWindowPercentage += config.Current.Preview.WidthIncrementPercentage
+		case key.Matches(msg, m.keyMap.Preview.Shrink):
+			m.previewWindowPercentage -= config.Current.Preview.WidthIncrementPercentage
 		case key.Matches(msg, m.keyMap.QuickSearch) && m.oplog != nil:
 			//HACK: prevents quick search from activating in op log view
 			return m, nil
@@ -143,16 +148,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		if m.previewVisible {
-			m.revisions.SetWidth(m.width / 2)
-		} else {
-			m.revisions.SetWidth(m.width)
-		}
-		m.revisions.SetHeight(m.height - 4)
-		if m.previewVisible {
-			m.previewModel.SetWidth(m.width / 2)
-			m.previewModel.SetHeight(m.height - 4)
-		}
 		if s, ok := m.stacked.(common.Sizable); ok {
 			s.SetWidth(m.width - 2)
 			s.SetHeight(m.height - 2)
@@ -235,7 +230,7 @@ func (m Model) renderLeftView(footerHeight int, topViewHeight int) string {
 	w := m.width
 
 	if m.previewVisible {
-		w = m.width / 2
+		w = m.width - int(float64(m.width)*(m.previewWindowPercentage/100.0))
 	}
 
 	if m.oplog != nil {
@@ -259,13 +254,14 @@ func New(c context.AppContext, initialRevset string) tea.Model {
 	previewModel := preview.New(c)
 	statusModel := status.New(c)
 	return Model{
-		context:        c,
-		keyMap:         c.KeyMap(),
-		state:          common.Loading,
-		revisions:      &revisionsModel,
-		previewModel:   &previewModel,
-		previewVisible: config.Current.Preview.ShowAtStart,
-		status:         &statusModel,
-		revsetModel:    revset.New(initialRevset),
+		context:                 c,
+		keyMap:                  c.KeyMap(),
+		state:                   common.Loading,
+		revisions:               &revisionsModel,
+		previewModel:            &previewModel,
+		previewVisible:          config.Current.Preview.ShowAtStart,
+		previewWindowPercentage: config.Current.Preview.WidthPercentage,
+		status:                  &statusModel,
+		revsetModel:             revset.New(initialRevset),
 	}
 }

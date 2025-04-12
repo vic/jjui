@@ -54,6 +54,8 @@ var DefaultKeyMappings = KeyMappings[keys]{
 		ScrollDown:   []string{"ctrl+n"},
 		HalfPageDown: []string{"ctrl+d"},
 		HalfPageUp:   []string{"ctrl+u"},
+		Expand:       []string{"ctrl+h"},
+		Shrink:       []string{"ctrl+l"},
 	},
 	Bookmark: bookmarkModeKeys[keys]{
 		Mode:    []string{"b"},
@@ -133,6 +135,8 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 			ScrollDown:   key.NewBinding(key.WithKeys(m.Preview.ScrollDown...), key.WithHelp(join(m.Preview.ScrollDown), "preview scroll down")),
 			HalfPageDown: key.NewBinding(key.WithKeys(m.Preview.HalfPageDown...), key.WithHelp(join(m.Preview.HalfPageDown), "preview half page down")),
 			HalfPageUp:   key.NewBinding(key.WithKeys(m.Preview.HalfPageUp...), key.WithHelp(join(m.Preview.HalfPageUp), "preview half page up")),
+			Expand:       key.NewBinding(key.WithKeys(m.Preview.Expand...), key.WithHelp(join(m.Preview.Expand), "expand width")),
+			Shrink:       key.NewBinding(key.WithKeys(m.Preview.Shrink...), key.WithHelp(join(m.Preview.Shrink), "shrink width")),
 		},
 		Git: gitModeKeys[key.Binding]{
 			Mode:  key.NewBinding(key.WithKeys(m.Git.Mode...), key.WithHelp(join(m.Git.Mode), "git")),
@@ -243,6 +247,8 @@ type previewModeKeys[T any] struct {
 	ScrollDown   T `toml:"scroll_down"`
 	HalfPageDown T `toml:"half_page_down"`
 	HalfPageUp   T `toml:"half_page_up"`
+	Expand       T `toml:"expand"`
+	Shrink       T `toml:"shrink"`
 }
 
 type opLogModeKeys[T any] struct {
