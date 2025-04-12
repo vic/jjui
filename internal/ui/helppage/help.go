@@ -115,6 +115,8 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.Preview.ScrollDown),
 		printHelp(h.keyMap.Preview.HalfPageDown),
 		printHelp(h.keyMap.Preview.HalfPageUp),
+		printHelp(h.keyMap.Preview.Expand),
+		printHelp(h.keyMap.Preview.Shrink),
 	)
 
 	rightView := lipgloss.JoinVertical(lipgloss.Left,
