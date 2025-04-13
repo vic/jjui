@@ -1,12 +1,13 @@
 package config
 
 import (
-	"github.com/BurntSushi/toml"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 )
 
 var Current = &Config{
@@ -96,7 +97,7 @@ func Edit() int {
 	if os.IsNotExist(err) {
 		configPath := path.Dir(configFile)
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
-			err = os.MkdirAll(configPath, 0755)
+			err = os.MkdirAll(configPath, 0o755)
 			if err != nil {
 				log.Fatal(err)
 				return -1
@@ -120,6 +121,6 @@ func Edit() int {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+	_ = cmd.Run()
 	return cmd.ProcessState.ExitCode()
 }

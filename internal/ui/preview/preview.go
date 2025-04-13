@@ -119,11 +119,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			m.viewRange.start += halfPageSize
 			m.viewRange.end += halfPageSize
 		case key.Matches(msg, m.keyMap.Preview.HalfPageUp):
-			halfPageSize := m.height / 2
-			if halfPageSize > m.viewRange.start {
-				halfPageSize = m.viewRange.start
-			}
-
+			halfPageSize := min(m.height/2, m.viewRange.start)
 			m.viewRange.start -= halfPageSize
 			m.viewRange.end -= halfPageSize
 		}
