@@ -3,8 +3,6 @@ package jj
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/idursun/jjui/internal/config"
 )
 
 type CommandArgs []string
@@ -59,10 +57,13 @@ func Abandon(revision ...string) CommandArgs {
 	return args
 }
 
-func Diff(revision string, fileName string) CommandArgs {
+func Diff(revision string, fileName string, extraArgs ...string) CommandArgs {
 	args := []string{"diff", "-r", revision, "--color", "always"}
 	if fileName != "" {
 		args = append(args, fileName)
+	}
+	if extraArgs != nil {
+		args = append(args, extraArgs...)
 	}
 	return args
 }
@@ -145,10 +146,10 @@ func GitPush(flags ...string) CommandArgs {
 	return args
 }
 
-func Show(revision string) CommandArgs {
+func Show(revision string, extraArgs ...string) CommandArgs {
 	args := []string{"show", "-r", revision, "--color", "always"}
-	if config.Current.Preview.ExtraArgs != nil {
-		args = append(args, config.Current.Preview.ExtraArgs...)
+	if extraArgs != nil {
+		args = append(args, extraArgs...)
 	}
 	return args
 }

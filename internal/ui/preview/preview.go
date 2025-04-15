@@ -82,12 +82,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			switch msg := m.context.SelectedItem().(type) {
 			case context.SelectedFile:
 				return m, func() tea.Msg {
-					output, _ := m.context.RunCommandImmediate(jj.Diff(msg.ChangeId, msg.File))
+					output, _ := m.context.RunCommandImmediate(jj.Diff(msg.ChangeId, msg.File, config.Current.Preview.ExtraArgs...))
 					return updatePreviewContentMsg{Content: string(output)}
 				}
 			case context.SelectedRevision:
 				return m, func() tea.Msg {
-					output, _ := m.context.RunCommandImmediate(jj.Show(msg.ChangeId))
+					output, _ := m.context.RunCommandImmediate(jj.Show(msg.ChangeId, config.Current.Preview.ExtraArgs...))
 					return updatePreviewContentMsg{Content: string(output)}
 				}
 			case context.SelectedOperation:
