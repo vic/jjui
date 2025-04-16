@@ -10,6 +10,7 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
+	"math"
 	"slices"
 	"strings"
 )
@@ -19,14 +20,15 @@ type updateItemsMsg struct {
 }
 
 type Model struct {
-	context context.AppContext
-	current *jj.Commit
-	filter  string
-	list    list.Model
-	items   []list.Item
-	keymap  config.KeyMappings[key.Binding]
-	width   int
-	height  int
+	context     context.AppContext
+	current     *jj.Commit
+	filter      string
+	list        list.Model
+	items       []list.Item
+	keymap      config.KeyMappings[key.Binding]
+	width       int
+	height      int
+	distanceMap map[string]int
 }
 
 func (m *Model) Width() int {
@@ -63,9 +65,8 @@ const (
 type item struct {
 	name     string
 	priority commandType
-	// used to show bookmarks of the selected revision at the top
-	weight int
-	args   []string
+	dist     int
+	args     []string
 }
 
 func (i item) FilterValue() string {
@@ -105,7 +106,7 @@ func (m *Model) loadMovables() tea.Msg {
 	var bookmarkItems []list.Item
 	bookmarks := jj.ParseBookmarkListOutput(string(output))
 	for _, b := range bookmarks {
-		if b.Remote || (!b.Conflict && b.CommitIdShort == m.current.CommitId) {
+		if b.Remote || (!b.Conflict && b.CommitId == m.current.CommitId) {
 			continue
 		}
 
@@ -118,11 +119,11 @@ func (m *Model) loadMovables() tea.Msg {
 			name = fmt.Sprintf("move '%s' backwards to %s", b.Name, m.current.GetChangeId())
 			extraFlags = append(extraFlags, "--allow-backwards")
 		}
-
 		bookmarkItems = append(bookmarkItems, item{
 			name:     name,
 			priority: moveCommand,
 			args:     jj.BookmarkMove(m.current.GetChangeId(), b.Name, extraFlags...),
+			dist:     m.distance(b.CommitId),
 		})
 	}
 	return updateItemsMsg{items: bookmarkItems}
@@ -136,15 +137,12 @@ func (m *Model) loadAll() tea.Msg {
 
 		items := make([]list.Item, 0)
 		for _, b := range bookmarks {
-			weight := 0
-			if m.current.CommitId == b.CommitIdShort {
-				weight = 1
-			}
+			weight := m.distance(b.CommitId)
 			if !b.Remote {
 				items = append(items, item{
 					name:     fmt.Sprintf("delete '%s'", b.Name),
 					priority: deleteCommand,
-					weight:   weight,
+					dist:     weight,
 					args:     jj.BookmarkDelete(b.Name),
 				})
 			}
@@ -152,7 +150,7 @@ func (m *Model) loadAll() tea.Msg {
 			items = append(items, item{
 				name:     fmt.Sprintf("forget '%s'", b.Name),
 				priority: forgetCommand,
-				weight:   weight,
+				dist:     weight,
 				args:     jj.BookmarkForget(b.Name),
 			})
 
@@ -160,7 +158,7 @@ func (m *Model) loadAll() tea.Msg {
 				items = append(items, item{
 					name:     fmt.Sprintf("track '%s'", b.Name),
 					priority: trackCommand,
-					weight:   weight,
+					dist:     weight,
 					args:     jj.BookmarkTrack(b.Name),
 				})
 			}
@@ -169,7 +167,7 @@ func (m *Model) loadAll() tea.Msg {
 				items = append(items, item{
 					name:     fmt.Sprintf("untrack '%s'", b.Name),
 					priority: untrackCommand,
-					weight:   weight,
+					dist:     weight,
 					args:     jj.BookmarkUntrack(b.Name),
 				})
 			}
@@ -210,28 +208,30 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case updateItemsMsg:
 		m.items = append(m.items, msg.items...)
-		slices.SortFunc(m.items, func(a, b list.Item) int {
-			ia := a.(item)
-			ib := b.(item)
-			if ia.priority < ib.priority {
-				return -1
-			}
-			if ia.priority > ib.priority {
-				return 1
-			}
-			if ia.weight > ib.weight {
-				return -1
-			}
-			if ia.weight < ib.weight {
-				return 1
-			}
-			return strings.Compare(ia.name, ib.name)
-		})
+		slices.SortFunc(m.items, itemSorter)
 		return m, m.list.SetItems(m.items)
 	}
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
+}
+
+func itemSorter(a list.Item, b list.Item) int {
+	ia := a.(item)
+	ib := b.(item)
+	if ia.priority != ib.priority {
+		return int(ib.priority) - int(ia.priority)
+	}
+	if ia.dist == ib.dist {
+		return strings.Compare(ia.name, ib.name)
+	}
+	if ia.dist > 0 && ib.dist > 0 {
+		return ia.dist - ib.dist
+	}
+	if ia.dist < 0 && ib.dist < 0 {
+		return ib.dist - ia.dist
+	}
+	return ib.dist - ia.dist
 }
 
 var filterStyle = common.DefaultPalette.ChangeId.PaddingLeft(2)
@@ -277,7 +277,14 @@ func (m *Model) helpView() string {
 	return " " + lipgloss.JoinHorizontal(0, bindings...)
 }
 
-func NewModel(c context.AppContext, current *jj.Commit, width int, height int) *Model {
+func (m *Model) distance(commitId string) int {
+	if dist, ok := m.distanceMap[commitId]; ok {
+		return dist
+	}
+	return math.MinInt32
+}
+
+func NewModel(c context.AppContext, current *jj.Commit, commitIds []string, width int, height int) *Model {
 	var items []list.Item
 	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	l.Title = "Bookmark operations"
@@ -290,12 +297,29 @@ func NewModel(c context.AppContext, current *jj.Commit, width int, height int) *
 	l.DisableQuitKeybindings()
 
 	m := &Model{
-		context: c,
-		keymap:  c.KeyMap(),
-		list:    l,
-		current: current,
+		context:     c,
+		keymap:      c.KeyMap(),
+		list:        l,
+		current:     current,
+		distanceMap: calcDistanceMap(current.CommitId, commitIds),
 	}
 	m.SetWidth(width)
 	m.SetHeight(height)
 	return m
+}
+
+func calcDistanceMap(current string, commitIds []string) map[string]int {
+	distanceMap := make(map[string]int)
+	currentPos := -1
+	for i, id := range commitIds {
+		if id == current {
+			currentPos = i
+			break
+		}
+	}
+	for i, id := range commitIds {
+		dist := i - currentPos
+		distanceMap[id] = dist
+	}
+	return distanceMap
 }

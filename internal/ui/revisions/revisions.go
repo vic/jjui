@@ -409,6 +409,14 @@ func (m *Model) CurrentOperation() operations.Operation {
 	return m.op
 }
 
+func (m *Model) GetCommitIds() []string {
+	var commitIds []string
+	for _, row := range m.rows {
+		commitIds = append(commitIds, row.Commit.CommitId)
+	}
+	return commitIds
+}
+
 func New(c context.AppContext, revset string) Model {
 	v := viewRange{start: 0, end: 0}
 	keymap := c.KeyMap()
