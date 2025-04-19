@@ -3,7 +3,6 @@ package graph
 import (
 	"github.com/idursun/jjui/internal/screen"
 	"io"
-	"log"
 	"strings"
 	"unicode/utf8"
 )
@@ -38,8 +37,6 @@ func ParseRows(reader io.Reader) []Row {
 			if commitIdIdx := rowLine.FindPossibleCommitIdIdx(changeIdIdx); commitIdIdx != -1 {
 				rowLine.CommitIdIdx = commitIdIdx
 				row.Commit.CommitId = rowLine.Segments[commitIdIdx].Text
-			} else {
-				log.Fatalln("commit id not found")
 			}
 		}
 		row.AddLine(&rowLine)

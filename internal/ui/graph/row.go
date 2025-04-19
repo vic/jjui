@@ -152,6 +152,14 @@ func (r *Row) AddLine(line *GraphRowLine) {
 		if line.ContainsRune('~', r.Indent) {
 			line.Flags = Elided
 		} else {
+			if r.Commit.CommitId == "" {
+				commitIdIdx := line.FindPossibleCommitIdIdx(0)
+				if commitIdIdx != -1 {
+					line.CommitIdIdx = commitIdIdx
+					r.Commit.CommitId = line.Segments[commitIdIdx].Text
+					line.Flags = Revision | Highlightable
+				}
+			}
 			lastLine := r.Lines[len(r.Lines)-1]
 			line.Flags = lastLine.Flags & ^Revision & ^Elided
 		}
