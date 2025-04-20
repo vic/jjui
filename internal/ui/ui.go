@@ -54,7 +54,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.diff = nil
 			return m, nil
 		}
-		m.stacked = nil
+		if m.stacked != nil {
+			m.stacked = nil
+			return m, nil
+		}
+		if m.oplog != nil {
+			m.oplog = nil
+			return m, common.SelectionChanged
+		}
 		m.oplog = nil
 		return m, nil
 	}
