@@ -100,9 +100,9 @@ func (m *Model) View() string {
 func NewModel(ctx context.AppContext, width int, height int) *Model {
 	var items []list.Item
 
-	for command := range getCommandManager().Iter(ctx) {
+	for command := range GetCommandManager().IterApplicable(ctx) {
 		invokableCmd := command.Prepare(ctx)
-		items = append(items, item{name: command.name, desc: strings.Join(invokableCmd.args, " "), command: invokableCmd})
+		items = append(items, item{name: command.Name, desc: "jj " + strings.Join(invokableCmd.args, " "), command: invokableCmd})
 	}
 	keyMap := ctx.KeyMap()
 	l := list.New(items, list.NewDefaultDelegate(), 0, 0)

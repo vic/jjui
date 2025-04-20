@@ -11,10 +11,10 @@ import (
 )
 
 type CustomCommand struct {
-	name           string
-	key            key.Binding
-	args           []string
-	show           config.ShowOption
+	Name           string
+	Key            key.Binding
+	Args           []string
+	Show           config.ShowOption
 	hasChangeId    bool
 	hasFile        bool
 	hasOperationId bool
@@ -31,7 +31,7 @@ const (
 	OperationIdPlaceholder = "$operation_id"
 )
 
-func NewCustomCommand(name string, definition config.CustomCommandDefinition) CustomCommand {
+func newCustomCommand(name string, definition config.CustomCommandDefinition) CustomCommand {
 	var hasChangeId, hasFile, hasOperationId bool
 	for _, arg := range definition.Args {
 		if strings.Contains(arg, ChangeIdPlaceholder) {
@@ -44,11 +44,13 @@ func NewCustomCommand(name string, definition config.CustomCommandDefinition) Cu
 			hasOperationId = true
 		}
 	}
+
+	binding := key.NewBinding(key.WithKeys(definition.Key...), key.WithHelp(config.JoinKeys(definition.Key), name))
 	return CustomCommand{
-		name:           name,
-		key:            key.NewBinding(key.WithKeys(definition.Key...)),
-		args:           definition.Args,
-		show:           definition.Show,
+		Name:           name,
+		Key:            binding,
+		Args:           definition.Args,
+		Show:           definition.Show,
 		hasChangeId:    hasChangeId,
 		hasFile:        hasFile,
 		hasOperationId: hasOperationId,
@@ -68,7 +70,7 @@ func (cc CustomCommand) Prepare(ctx context.AppContext) InvokableCustomCommand {
 		replacements[OperationIdPlaceholder] = selectedItem.OperationId
 	}
 	var args []string
-	for _, arg := range cc.args {
+	for _, arg := range cc.Args {
 		for k, v := range replacements {
 			arg = strings.ReplaceAll(arg, k, v)
 		}
@@ -77,7 +79,7 @@ func (cc CustomCommand) Prepare(ctx context.AppContext) InvokableCustomCommand {
 
 	return InvokableCustomCommand{
 		args: args,
-		show: cc.show,
+		show: cc.Show,
 	}
 }
 

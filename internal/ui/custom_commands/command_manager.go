@@ -19,7 +19,7 @@ type CommandManager struct {
 	commands []CustomCommand
 }
 
-func (cm *CommandManager) Iter(ctx context.AppContext) iter.Seq[CustomCommand] {
+func (cm *CommandManager) IterApplicable(ctx context.AppContext) iter.Seq[CustomCommand] {
 	return func(yield func(CustomCommand) bool) {
 		for _, command := range cm.commands {
 			if !command.applicableTo(ctx.SelectedItem()) {
@@ -32,11 +32,21 @@ func (cm *CommandManager) Iter(ctx context.AppContext) iter.Seq[CustomCommand] {
 	}
 }
 
-func getCommandManager() *CommandManager {
+func (cm *CommandManager) Iter() iter.Seq[CustomCommand] {
+	return func(yield func(CustomCommand) bool) {
+		for _, command := range cm.commands {
+			if !yield(command) {
+				return
+			}
+		}
+	}
+}
+
+func GetCommandManager() *CommandManager {
 	commandManagerOnce.Do(func() {
 		var commands []CustomCommand
 		for name, def := range config.Current.CustomCommands {
-			commands = append(commands, NewCustomCommand(name, def))
+			commands = append(commands, newCustomCommand(name, def))
 		}
 		commandManager = &CommandManager{commands: commands}
 	})
@@ -44,8 +54,8 @@ func getCommandManager() *CommandManager {
 }
 
 func Matches(msg tea.KeyMsg) *CustomCommand {
-	for _, v := range getCommandManager().commands {
-		if key.Matches(msg, v.key) {
+	for _, v := range GetCommandManager().commands {
+		if key.Matches(msg, v.Key) {
 			return &v
 		}
 	}

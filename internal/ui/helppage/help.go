@@ -2,19 +2,20 @@ package helppage
 
 import (
 	"fmt"
-
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
+	customcommands "github.com/idursun/jjui/internal/ui/custom_commands"
 )
 
 type Model struct {
-	width  int
-	height int
-	keyMap config.KeyMappings[key.Binding]
+	width   int
+	height  int
+	keyMap  config.KeyMappings[key.Binding]
+	context context.AppContext
 }
 
 func (h *Model) Width() int {
@@ -151,7 +152,21 @@ func (h *Model) View() string {
 		printMode(h.keyMap.OpLog.Mode, "Oplog"),
 		printHelp(h.keyMap.Diff),
 		printHelp(h.keyMap.OpLog.Restore),
+		printMode(h.keyMap.CustomCommands, "Custom Commands"),
 	)
+
+	var customCommands []string
+	for command := range customcommands.GetCommandManager().Iter() {
+		if command.Key.Enabled() {
+			customCommands = append(customCommands, printHelp(command.Key))
+		}
+	}
+	if len(customCommands) > 0 {
+		rightView = lipgloss.JoinVertical(lipgloss.Left,
+			rightView,
+			lipgloss.JoinVertical(lipgloss.Left, customCommands...),
+		)
+	}
 
 	content := lipgloss.JoinHorizontal(lipgloss.Left, leftView, "  ", rightView)
 
@@ -161,6 +176,7 @@ func (h *Model) View() string {
 func New(context context.AppContext) *Model {
 	keyMap := context.KeyMap()
 	return &Model{
-		keyMap: keyMap,
+		context: context,
+		keyMap:  keyMap,
 	}
 }

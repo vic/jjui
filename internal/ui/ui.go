@@ -25,8 +25,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/undo"
 )
 
-var customCommandsKey = key.NewBinding(key.WithKeys("x"))
-
 type Model struct {
 	revisions               *revisions.Model
 	oplog                   *oplog.Model
@@ -133,7 +131,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.previewWindowPercentage += config.Current.Preview.WidthIncrementPercentage
 		case key.Matches(msg, m.keyMap.Preview.Shrink):
 			m.previewWindowPercentage -= config.Current.Preview.WidthIncrementPercentage
-		case key.Matches(msg, customCommandsKey):
+		case key.Matches(msg, m.keyMap.CustomCommands):
 			m.stacked = customcommands.NewModel(m.context, m.width, m.height)
 			cmds = append(cmds, m.stacked.Init())
 		case key.Matches(msg, m.keyMap.QuickSearch) && m.oplog != nil:
