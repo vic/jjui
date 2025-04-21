@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/config"
@@ -44,8 +45,10 @@ type Model struct {
 	stacked                 tea.Model
 }
 
+type autoRefreshMsg struct{}
+
 func (m Model) Init() tea.Cmd {
-	return tea.Sequence(tea.SetWindowTitle("jjui"), m.revisions.Init())
+	return tea.Sequence(tea.SetWindowTitle("jjui"), m.revisions.Init(), m.scheduleAutoRefresh())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -153,6 +156,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = common.Error
 		m.output = msg.Output
 		m.error = msg.Err
+	case autoRefreshMsg:
+		return m, tea.Batch(m.scheduleAutoRefresh(), common.Refresh)
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -251,6 +256,16 @@ func (m Model) renderLeftView(footerHeight int, topViewHeight int) string {
 		leftView = m.revisions.View()
 	}
 	return leftView
+}
+
+func (m Model) scheduleAutoRefresh() tea.Cmd {
+	interval := config.Current.UI.AutoRefreshInterval
+	if interval > 0 {
+		return tea.Tick(time.Duration(interval)*time.Second, func(time.Time) tea.Msg {
+			return autoRefreshMsg{}
+		})
+	}
+	return nil
 }
 
 func New(c context.AppContext, initialRevset string) tea.Model {

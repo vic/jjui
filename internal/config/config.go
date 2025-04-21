@@ -35,8 +35,9 @@ type Config struct {
 }
 
 type UIConfig struct {
-	HighlightLight string `toml:"highlight_light"`
-	HighlightDark  string `toml:"highlight_dark"`
+	HighlightLight      string `toml:"highlight_light"`
+	HighlightDark       string `toml:"highlight_dark"`
+	AutoRefreshInterval int    `toml:"auto_refresh_interval"`
 }
 
 type PreviewConfig struct {
