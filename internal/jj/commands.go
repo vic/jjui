@@ -158,6 +158,10 @@ func Rebase(from string, to string, source string, target string) CommandArgs {
 	return []string{"rebase", source, from, target, to}
 }
 
+func RebaseInsert(from string, insertAfter string, insertBefore string) CommandArgs {
+	return []string{"rebase", "--revisions", from, "--insert-before", insertBefore, "--insert-after", insertAfter}
+}
+
 func Evolog(revision string) CommandArgs {
 	return []string{"evolog", "-r", revision, "--color", "always", "--quiet"}
 }

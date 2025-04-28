@@ -25,6 +25,7 @@ const (
 	TargetDestination Target = iota
 	TargetAfter
 	TargetBefore
+	TargetInsert
 )
 
 var (
@@ -41,12 +42,13 @@ var (
 )
 
 type Operation struct {
-	context context.AppContext
-	From    string
-	To      *jj.Commit
-	Source  Source
-	Target  Target
-	keyMap  config.KeyMappings[key.Binding]
+	context     context.AppContext
+	From        string
+	InsertStart *jj.Commit
+	To          *jj.Commit
+	Source      Source
+	Target      Target
+	keyMap      config.KeyMappings[key.Binding]
 }
 
 func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
@@ -63,10 +65,17 @@ func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 		r.Target = TargetAfter
 	case key.Matches(msg, r.keyMap.Rebase.Before):
 		r.Target = TargetBefore
+	case key.Matches(msg, r.keyMap.Rebase.Insert):
+		r.Target = TargetInsert
+		r.InsertStart = r.To
 	case key.Matches(msg, r.keyMap.Apply):
-		source := sourceToFlags[r.Source]
-		target := targetToFlags[r.Target]
-		return r.context.RunCommand(jj.Rebase(r.From, r.To.ChangeId, source, target), common.RefreshAndSelect(r.From), common.Close)
+		if r.Target == TargetInsert {
+			return r.context.RunCommand(jj.RebaseInsert(r.From, r.InsertStart.GetChangeId(), r.To.GetChangeId()), common.RefreshAndSelect(r.From), common.Close)
+		} else {
+			source := sourceToFlags[r.Source]
+			target := targetToFlags[r.Target]
+			return r.context.RunCommand(jj.Rebase(r.From, r.To.GetChangeId(), source, target), common.RefreshAndSelect(r.From), common.Close)
+		}
 	case key.Matches(msg, r.keyMap.Cancel):
 		return common.Close
 	}
@@ -85,6 +94,7 @@ func (r *Operation) ShortHelp() []key.Binding {
 		r.keyMap.Rebase.Before,
 		r.keyMap.Rebase.After,
 		r.keyMap.Rebase.Onto,
+		r.keyMap.Rebase.Insert,
 	}
 }
 
@@ -103,16 +113,6 @@ func (r *Operation) RenderPosition() operations.RenderPosition {
 }
 
 func (r *Operation) Render() string {
-	var ret string
-	if r.Target == TargetDestination {
-		ret = "onto"
-	}
-	if r.Target == TargetAfter {
-		ret = "after"
-	}
-	if r.Target == TargetBefore {
-		ret = "before"
-	}
 	var source string
 	if r.Source == SourceBranch {
 		source = "branch of "
@@ -123,6 +123,34 @@ func (r *Operation) Render() string {
 	if r.Source == SourceRevision {
 		source = "only "
 	}
+	var ret string
+	if r.Target == TargetDestination {
+		ret = "onto"
+	}
+	if r.Target == TargetAfter {
+		ret = "after"
+	}
+	if r.Target == TargetBefore {
+		ret = "before"
+	}
+	if r.Target == TargetInsert {
+		ret = "insert"
+	}
+
+	if r.Target == TargetInsert {
+		return lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			common.DropStyle.Render("<< insert >>"),
+			" ",
+			common.DefaultPalette.Dimmed.Render(source),
+			common.DefaultPalette.ChangeId.Render(r.From),
+			common.DefaultPalette.Dimmed.Render(" between "),
+			common.DefaultPalette.ChangeId.Render(r.InsertStart.GetChangeId()),
+			common.DefaultPalette.Dimmed.Render(" and "),
+			common.DefaultPalette.ChangeId.Render(r.To.GetChangeId()),
+		)
+	}
+
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
 		common.DropStyle.Render("<< "+ret+" >>"),
@@ -134,7 +162,7 @@ func (r *Operation) Render() string {
 		" ",
 		common.DefaultPalette.Dimmed.Render(ret),
 		" ",
-		common.DefaultPalette.ChangeId.Render(r.To.ChangeId),
+		common.DefaultPalette.ChangeId.Render(r.To.GetChangeId()),
 	)
 }
 

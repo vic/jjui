@@ -147,6 +147,7 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.Rebase.Before),
 		printHelp(h.keyMap.Rebase.After),
 		printHelp(h.keyMap.Rebase.Onto),
+		printHelp(h.keyMap.Rebase.Insert),
 		printHelp(h.keyMap.Apply),
 		"",
 		printMode(h.keyMap.OpLog.Mode, "Oplog"),

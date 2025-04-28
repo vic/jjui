@@ -39,6 +39,7 @@ var DefaultKeyMappings = KeyMappings[keys]{
 		After:    []string{"a"},
 		Before:   []string{"b"},
 		Onto:     []string{"d"},
+		Insert:   []string{"i"},
 	},
 	Details: detailsModeKeys[keys]{
 		Mode:                  []string{"l"},
@@ -106,12 +107,13 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 		CustomCommands:   key.NewBinding(key.WithKeys(m.CustomCommands...), key.WithHelp(JoinKeys(m.CustomCommands), "custom commands menu")),
 		Rebase: rebaseModeKeys[key.Binding]{
 			Mode:     key.NewBinding(key.WithKeys(m.Rebase.Mode...), key.WithHelp(JoinKeys(m.Rebase.Mode), "rebase")),
-			Revision: key.NewBinding(key.WithKeys(m.Rebase.Revision...), key.WithHelp(JoinKeys(m.Rebase.Revision), "change source to revision")),
-			Source:   key.NewBinding(key.WithKeys(m.Rebase.Source...), key.WithHelp(JoinKeys(m.Rebase.Source), "change source to descendants")),
-			Branch:   key.NewBinding(key.WithKeys(m.Rebase.Branch...), key.WithHelp(JoinKeys(m.Rebase.Branch), "change source to branch")),
-			After:    key.NewBinding(key.WithKeys(m.Rebase.After...), key.WithHelp(JoinKeys(m.Rebase.After), "change target to after")),
-			Before:   key.NewBinding(key.WithKeys(m.Rebase.Before...), key.WithHelp(JoinKeys(m.Rebase.Before), "change target to before")),
-			Onto:     key.NewBinding(key.WithKeys(m.Rebase.Onto...), key.WithHelp(JoinKeys(m.Rebase.Onto), "change target to onto")),
+			Revision: key.NewBinding(key.WithKeys(m.Rebase.Revision...), key.WithHelp(JoinKeys(m.Rebase.Revision), "revision")),
+			Source:   key.NewBinding(key.WithKeys(m.Rebase.Source...), key.WithHelp(JoinKeys(m.Rebase.Source), "source")),
+			Branch:   key.NewBinding(key.WithKeys(m.Rebase.Branch...), key.WithHelp(JoinKeys(m.Rebase.Branch), "branch")),
+			After:    key.NewBinding(key.WithKeys(m.Rebase.After...), key.WithHelp(JoinKeys(m.Rebase.After), "insert after")),
+			Before:   key.NewBinding(key.WithKeys(m.Rebase.Before...), key.WithHelp(JoinKeys(m.Rebase.Before), "insert before")),
+			Onto:     key.NewBinding(key.WithKeys(m.Rebase.Onto...), key.WithHelp(JoinKeys(m.Rebase.Onto), "onto")),
+			Insert:   key.NewBinding(key.WithKeys(m.Rebase.Insert...), key.WithHelp(JoinKeys(m.Rebase.Insert), "insert between")),
 		},
 		Details: detailsModeKeys[key.Binding]{
 			Mode:                  key.NewBinding(key.WithKeys(m.Details.Mode...), key.WithHelp(JoinKeys(m.Details.Mode), "details")),
@@ -226,6 +228,7 @@ type rebaseModeKeys[T any] struct {
 	After    T `toml:"after"`
 	Before   T `toml:"before"`
 	Onto     T `toml:"onto"`
+	Insert   T `toml:"insert"`
 }
 
 type detailsModeKeys[T any] struct {
