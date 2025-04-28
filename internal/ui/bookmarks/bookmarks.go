@@ -220,7 +220,7 @@ func itemSorter(a list.Item, b list.Item) int {
 	ia := a.(item)
 	ib := b.(item)
 	if ia.priority != ib.priority {
-		return int(ib.priority) - int(ia.priority)
+		return int(ia.priority) - int(ib.priority)
 	}
 	if ia.dist == ib.dist {
 		return strings.Compare(ia.name, ib.name)
