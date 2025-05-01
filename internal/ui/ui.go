@@ -47,7 +47,7 @@ type Model struct {
 type autoRefreshMsg struct{}
 
 func (m Model) Init() tea.Cmd {
-	return tea.Sequence(tea.SetWindowTitle("jjui"), m.revisions.Init(), m.scheduleAutoRefresh())
+	return tea.Sequence(tea.SetWindowTitle(fmt.Sprintf("jjui - %s", m.context.Location())), m.revisions.Init(), m.scheduleAutoRefresh())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

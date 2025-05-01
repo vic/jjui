@@ -28,6 +28,10 @@ type TestContext struct {
 	expectations map[string][]*ExpectedCommand
 }
 
+func (t *TestContext) Location() string {
+	return "test"
+}
+
 func (t *TestContext) KeyMap() config.KeyMappings[key.Binding] {
 	return config.Convert(config.DefaultKeyMappings)
 }

@@ -7,6 +7,7 @@ import (
 )
 
 type AppContext interface {
+	Location() string
 	KeyMap() config.KeyMappings[key.Binding]
 	SelectedItem() SelectedItem
 	SetSelectedItem(item SelectedItem) tea.Cmd

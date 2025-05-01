@@ -53,6 +53,10 @@ type MainContext struct {
 	config       *config.Config
 }
 
+func (a *MainContext) Location() string {
+	return a.location
+}
+
 func (a *MainContext) KeyMap() config.KeyMappings[key.Binding] {
 	return a.config.GetKeyMap()
 }
