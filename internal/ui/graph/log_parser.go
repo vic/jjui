@@ -29,7 +29,7 @@ func ParseRows(reader io.Reader) []Row {
 			row.Commit.ChangeId = rowLine.Segments[changeIdIdx].Text
 			for nextIdx := changeIdIdx + 1; nextIdx < len(rowLine.Segments); nextIdx++ {
 				nextSegment := rowLine.Segments[nextIdx]
-				if strings.TrimSpace(nextSegment.Text) == "" {
+				if strings.TrimSpace(nextSegment.Text) == "" || strings.ContainsAny(nextSegment.Text, "\n\t\r ") {
 					break
 				}
 				row.Commit.ChangeId += nextSegment.Text
