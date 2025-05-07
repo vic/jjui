@@ -222,8 +222,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			case key.Matches(msg, m.keymap.Refresh):
 				cmd = common.Refresh
 			case key.Matches(msg, m.keymap.Squash):
+				parent, _ := m.context.RunCommandImmediate(jj.GetParent(m.SelectedRevision().GetChangeId()))
 				m.op = squash.NewOperation(m.context, m.SelectedRevision().ChangeId)
-				if m.cursor < len(m.rows)-1 {
+				parentIdx := m.selectRevision(string(parent))
+				if parentIdx != -1 {
+					m.cursor = parentIdx
+				} else if m.cursor < len(m.rows)-1 {
 					m.cursor++
 				}
 			case key.Matches(msg, m.keymap.Rebase.Mode):
@@ -380,7 +384,7 @@ func (m *Model) selectRevision(revision string) int {
 		if revision == "@" {
 			return row.Commit.IsWorkingCopy
 		}
-		return row.Commit.GetChangeId() == revision || row.Commit.ChangeId == revision
+		return row.Commit.GetChangeId() == revision || row.Commit.ChangeId == revision || row.Commit.CommitId == revision
 	})
 	return idx
 }

@@ -189,3 +189,7 @@ func OpShow(operationId string) CommandArgs {
 func OpRestore(operationId string) CommandArgs {
 	return []string{"op", "restore", operationId}
 }
+
+func GetParent(revision string) CommandArgs {
+	return []string{"log", "-r", fmt.Sprintf("%s-", revision), "--color", "never", "--no-graph", "--quiet", "--template", "commit_id.shortest()"}
+}
