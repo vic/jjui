@@ -26,15 +26,17 @@ var Current = &Config{
 	OpLog: OpLogConfig{
 		Limit: 200,
 	},
-	CustomCommands: map[string]CustomCommandDefinition{},
+	CustomCommands:                 map[string]CustomCommandDefinition{},
+	ExperimentalLogBatchingEnabled: false,
 }
 
 type Config struct {
-	Keys           KeyMappings[keys]                  `toml:"keys"`
-	UI             UIConfig                           `toml:"ui"`
-	Preview        PreviewConfig                      `toml:"preview"`
-	OpLog          OpLogConfig                        `toml:"oplog"`
-	CustomCommands map[string]CustomCommandDefinition `toml:"custom_commands"`
+	Keys                           KeyMappings[keys]                  `toml:"keys"`
+	UI                             UIConfig                           `toml:"ui"`
+	Preview                        PreviewConfig                      `toml:"preview"`
+	OpLog                          OpLogConfig                        `toml:"oplog"`
+	CustomCommands                 map[string]CustomCommandDefinition `toml:"custom_commands"`
+	ExperimentalLogBatchingEnabled bool                               `toml:"experimental_log_batching_enabled"`
 }
 
 type UIConfig struct {

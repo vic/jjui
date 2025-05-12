@@ -2,6 +2,7 @@ package revisions
 
 import (
 	"bufio"
+	"bytes"
 	"slices"
 	"strings"
 
@@ -160,7 +161,11 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.err = msg.Err
 		return m, nil
 	case common.RefreshMsg:
-		return m, m.load(m.revsetValue, msg.SelectedRevision)
+		if config.Current.ExperimentalLogBatchingEnabled {
+			return m, m.loadStreaming(m.revsetValue, msg.SelectedRevision)
+		} else {
+			return m, m.load(m.revsetValue, msg.SelectedRevision)
+		}
 	case updateRevisionsMsg:
 		m.updateGraphRows(msg.rows, msg.selectedRevision)
 		return m, m.highlightChanges
@@ -430,6 +435,20 @@ func (m *Model) View() string {
 }
 
 func (m *Model) load(revset string, selectedRevision string) tea.Cmd {
+	return func() tea.Msg {
+		output, err := m.context.RunCommandImmediate(jj.Log(revset))
+		if err != nil {
+			return common.UpdateRevisionsFailedMsg{
+				Err:    err,
+				Output: string(output),
+			}
+		}
+		rows := graph.ParseRows(bytes.NewReader(output))
+		return updateRevisionsMsg{rows, selectedRevision}
+	}
+}
+
+func (m *Model) loadStreaming(revset string, selectedRevision string) tea.Cmd {
 	if m.hasMore {
 		m.controlChan <- graph.Close
 		close(m.controlChan)
