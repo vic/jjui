@@ -25,6 +25,8 @@ import (
 	"github.com/idursun/jjui/internal/ui/revset"
 )
 
+const defaultBatchSize = 50
+
 type viewRange struct {
 	start        int
 	end          int
@@ -466,7 +468,7 @@ func (m *Model) loadStreaming(revset string, selectedRevision string) tea.Cmd {
 			}
 		}
 		m.controlChan = make(chan graph.ControlMsg, 1)
-		rowsChan, _ := graph.ParseRowsStreaming(bufio.NewReader(output), m.controlChan)
+		rowsChan, _ := graph.ParseRowsStreaming(bufio.NewReader(output), m.controlChan, defaultBatchSize)
 		return startRowsStreamingMsg{rowsChan, selectedRevision}
 	}
 }
