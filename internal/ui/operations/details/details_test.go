@@ -19,6 +19,7 @@ const (
 
 func TestModel_Init_ExecutesStatusCommand(t *testing.T) {
 	context := test.NewTestContext(t)
+	context.Expect(jj.Snapshot())
 	context.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
 	defer context.Verify()
 
@@ -30,6 +31,7 @@ func TestModel_Init_ExecutesStatusCommand(t *testing.T) {
 
 func TestModel_Update_RestoresSelectedFiles(t *testing.T) {
 	c := test.NewTestContext(t)
+	c.Expect(jj.Snapshot())
 	c.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
 	c.Expect(jj.Restore(Revision, []string{"file.txt"}))
 	defer c.Verify()
@@ -47,6 +49,7 @@ func TestModel_Update_RestoresSelectedFiles(t *testing.T) {
 
 func TestModel_Update_SplitsSelectedFiles(t *testing.T) {
 	c := test.NewTestContext(t)
+	c.Expect(jj.Snapshot())
 	c.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
 	c.Expect(jj.Split(Revision, []string{"file.txt"}))
 	defer c.Verify()
@@ -64,6 +67,7 @@ func TestModel_Update_SplitsSelectedFiles(t *testing.T) {
 
 func TestModel_Update_HandlesMovedFiles(t *testing.T) {
 	c := test.NewTestContext(t)
+	c.Expect(jj.Snapshot())
 	c.Expect(jj.Status(Revision)).SetOutput([]byte("R internal/ui/{revisions => }/file.go\nR {file => sub/newfile}\n"))
 	c.Expect(jj.Restore(Revision, []string{"internal/ui/file.go", "sub/newfile"}))
 	defer c.Verify()
