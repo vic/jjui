@@ -228,6 +228,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			} else if m.hasMore {
 				return m, m.requestMoreRows(m.rowsChan)
 			}
+		case key.Matches(msg, m.keymap.JumpToParent):
+			immediate, _ := m.context.RunCommandImmediate(jj.GetParent(m.SelectedRevision().GetChangeId()))
+			parentIndex := m.selectRevision(string(immediate))
+			if parentIndex != -1 {
+				m.cursor = parentIndex
+			}
 		default:
 			if op, ok := m.op.(operations.HandleKey); ok {
 				cmd = op.HandleKey(msg)

@@ -9,6 +9,7 @@ import (
 var DefaultKeyMappings = KeyMappings[keys]{
 	Up:               []string{"up", "k"},
 	Down:             []string{"down", "j"},
+	JumpToParent:     []string{"J"},
 	Apply:            []string{"enter"},
 	Cancel:           []string{"esc"},
 	ToggleSelect:     []string{" "},
@@ -83,6 +84,7 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 	return KeyMappings[key.Binding]{
 		Up:               key.NewBinding(key.WithKeys(m.Up...), key.WithHelp(JoinKeys(m.Up), "up")),
 		Down:             key.NewBinding(key.WithKeys(m.Down...), key.WithHelp(JoinKeys(m.Down), "down")),
+		JumpToParent:     key.NewBinding(key.WithKeys(m.JumpToParent...), key.WithHelp(JoinKeys(m.JumpToParent), "jump to parent")),
 		Apply:            key.NewBinding(key.WithKeys(m.Apply...), key.WithHelp(JoinKeys(m.Apply), "apply")),
 		Cancel:           key.NewBinding(key.WithKeys(m.Cancel...), key.WithHelp(JoinKeys(m.Cancel), "cancel")),
 		ToggleSelect:     key.NewBinding(key.WithKeys(m.ToggleSelect...), key.WithHelp(JoinKeys(m.ToggleSelect), "toggle selection")),
@@ -180,6 +182,7 @@ type keys []string
 type KeyMappings[T any] struct {
 	Up               T                   `toml:"up"`
 	Down             T                   `toml:"down"`
+	JumpToParent     T                   `toml:"jump_to_parent"`
 	Apply            T                   `toml:"apply"`
 	Cancel           T                   `toml:"cancel"`
 	ToggleSelect     T                   `toml:"toggle_select"`
