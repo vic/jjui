@@ -26,38 +26,42 @@ func (b Bookmark) IsLocal() bool {
 }
 
 func ParseBookmarkListOutput(output string) []Bookmark {
-	bookmarks := strings.Split(output, "\n")
-	var result []Bookmark
-	for _, b := range bookmarks {
+	lines := strings.Split(output, "\n")
+	var bookmarks []Bookmark
+	for _, b := range lines {
 		parts := strings.Split(b, ";")
 		if len(parts) < 5 {
 			continue
 		} else {
 			name := parts[0]
-			remote := parts[1]
+			remoteName := parts[1]
 			tracked := parts[2] == "true"
 			conflict := parts[3] == "true"
 			backwards := parts[4] == "true"
 			commitId := parts[5]
-			if remote == "." {
+			if remoteName == "." {
 				bookmark := Bookmark{
 					Name:      name,
 					Conflict:  conflict,
 					Backwards: backwards,
 					CommitId:  commitId,
 				}
-				result = append(result, bookmark)
-			} else if len(result) > 0 {
-				previous := &result[len(result)-1]
+				bookmarks = append(bookmarks, bookmark)
+			} else if len(bookmarks) > 0 {
+				previous := &bookmarks[len(bookmarks)-1]
 				remote := BookmarkRemote{
-					Remote:   remote,
+					Remote:   remoteName,
 					Tracked:  tracked,
 					CommitId: commitId,
 				}
-				previous.Remotes = append(previous.Remotes, remote)
+				if remoteName == "origin" && len(previous.Remotes) > 0 {
+					// add the origin remote to the front of the list
+					previous.Remotes = append([]BookmarkRemote{remote}, previous.Remotes...)
+				} else {
+					previous.Remotes = append(previous.Remotes, remote)
+				}
 			}
 		}
 	}
-	return result
-
+	return bookmarks
 }
