@@ -47,7 +47,7 @@ func (gr *GraphRowLine) Extend(indent int) GraphRowLine {
 		}
 		text := ""
 		for _, p := range s.Text {
-			if p == '│' || p == '╭' || p == '├' || p == '┐' || p == '┤' || p == '┌' { // curved, square style
+			if p == '│' || p == '╭' || p == '├' || p == '┐' || p == '┤' || p == '┌' || p == '╮' { // curved, square style
 				p = '│'
 			} else if p == '|' { //ascii style
 				p = '|'
