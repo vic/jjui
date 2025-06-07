@@ -236,7 +236,7 @@ func itemSorter(a list.Item, b list.Item) int {
 	return ib.dist - ia.dist
 }
 
-var filterStyle = common.DefaultPalette.ChangeId.PaddingLeft(2)
+var filterStyle = common.DefaultPalette.Shortcut.PaddingLeft(2)
 var filterValueStyle = common.DefaultPalette.Normal.Bold(true)
 
 func (m *Model) View() string {
@@ -256,7 +256,7 @@ func renderKey(k key.Binding) string {
 	if !k.Enabled() {
 		return ""
 	}
-	return lipgloss.JoinHorizontal(0, common.DefaultPalette.ChangeId.Render(k.Help().Key, ""), common.DefaultPalette.Dimmed.Render(k.Help().Desc, ""))
+	return lipgloss.JoinHorizontal(0, common.DefaultPalette.Shortcut.Render(k.Help().Key, ""), common.DefaultPalette.Dimmed.Render(k.Help().Desc, ""))
 }
 
 func (m *Model) helpView() string {
@@ -288,7 +288,13 @@ func (m *Model) distance(commitId string) int {
 
 func NewModel(c context.AppContext, current *jj.Commit, commitIds []string, width int, height int) *Model {
 	var items []list.Item
-	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	delegate := list.NewDefaultDelegate()
+	delegate.Styles.DimmedTitle = common.DefaultPalette.Dimmed
+	delegate.Styles.NormalTitle = common.DefaultPalette.Normal.PaddingLeft(2)
+	delegate.Styles.DimmedDesc = common.DefaultPalette.Dimmed.PaddingLeft(2)
+	delegate.Styles.NormalDesc = common.DefaultPalette.Dimmed.PaddingLeft(2)
+
+	l := list.New(items, delegate, 0, 0)
 	l.Title = "Bookmark operations"
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)

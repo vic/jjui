@@ -75,7 +75,7 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		style = common.DefaultPalette.Renamed
 	}
 	if index == m.Index() {
-		style = style.Bold(true).Background(common.IntenseBlack)
+		style = style.Bold(true).Background(common.BrightBlack)
 	}
 
 	title := item.Title()
@@ -94,7 +94,7 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		}
 	}
 
-	fmt.Fprint(w, style.PaddingRight(1).Render(title), common.DefaultPalette.Hint.Render(hint))
+	fmt.Fprint(w, style.PaddingRight(1).Render(title), common.DefaultPalette.Dimmed.Render(hint))
 }
 
 func (i itemDelegate) Height() int                         { return 1 }

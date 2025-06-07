@@ -57,18 +57,13 @@ func (h *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return h, nil
 }
 
-var (
-	keyStyle  = common.DefaultPalette.ChangeId
-	descStyle = common.DefaultPalette.Dimmed
-)
-
 func printHelp(k key.Binding) string {
 	return printHelpExt(k.Help().Key, k.Help().Desc)
 }
 
 func printHelpExt(key string, desc string) string {
 	keyAligned := fmt.Sprintf("%9s", key)
-	help := fmt.Sprintf("%s %s", keyStyle.Render(keyAligned), descStyle.Render(desc))
+	help := fmt.Sprintf("%s %s", common.DefaultPalette.Shortcut.Render(keyAligned), common.DefaultPalette.Dimmed.Render(desc))
 	return help
 }
 
@@ -78,7 +73,7 @@ func printHeader(header string) string {
 
 func printMode(key key.Binding, name string) string {
 	keyAligned := fmt.Sprintf("%9s", key.Help().Key)
-	help := fmt.Sprintf("%v %s", keyStyle.Render(keyAligned), common.DefaultPalette.EmptyPlaceholder.Render(name))
+	help := fmt.Sprintf("%v %s", common.DefaultPalette.Shortcut.Render(keyAligned), common.DefaultPalette.EmptyPlaceholder.Render(name))
 	return help
 }
 

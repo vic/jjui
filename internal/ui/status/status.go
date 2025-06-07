@@ -146,7 +146,7 @@ func (m *Model) View() string {
 		return lipgloss.JoinVertical(0,
 			ret,
 			common.DefaultPalette.StatusError.Render(strings.Trim(m.output, "\n")),
-			common.DefaultPalette.ChangeId.Render("press ", k, " to dismiss"))
+			common.DefaultPalette.Shortcut.Render("press ", k, " to dismiss"))
 	}
 	return ret
 }
@@ -168,8 +168,10 @@ func New(context context.AppContext) Model {
 	s.Spinner = spinner.Dot
 
 	h := help.New()
-	h.Styles.ShortKey = common.DefaultPalette.ChangeId
+	h.Styles.ShortKey = common.DefaultPalette.Shortcut
 	h.Styles.ShortDesc = common.DefaultPalette.Dimmed
+	h.Styles.ShortSeparator = common.DefaultPalette.Dimmed
+	h.Styles.FullSeparator = common.DefaultPalette.Dimmed
 
 	t := textinput.New()
 	t.Width = 50

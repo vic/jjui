@@ -128,7 +128,7 @@ func New(defaultRevSet string) Model {
 	ti.SetValue(defaultRevSet)
 
 	h := help.New()
-	h.Styles.ShortKey = common.DefaultPalette.ChangeId
+	h.Styles.ShortKey = common.DefaultPalette.Shortcut
 	h.Styles.ShortDesc = common.DefaultPalette.Dimmed
 	return Model{
 		Editing:       false,

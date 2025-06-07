@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-var filterStyle = common.DefaultPalette.ChangeId.PaddingLeft(2)
+var filterStyle = common.DefaultPalette.Shortcut.PaddingLeft(2)
 var filterValueStyle = common.DefaultPalette.Normal.Bold(true)
 
 type item struct {
@@ -113,7 +113,7 @@ func renderKey(k key.Binding) string {
 	if !k.Enabled() {
 		return ""
 	}
-	return lipgloss.JoinHorizontal(0, common.DefaultPalette.ChangeId.Render(k.Help().Key, ""), common.DefaultPalette.Dimmed.Render(k.Help().Desc, ""))
+	return lipgloss.JoinHorizontal(0, common.DefaultPalette.Shortcut.Render(k.Help().Key, ""), common.DefaultPalette.Dimmed.Render(k.Help().Desc, ""))
 }
 
 func (m *Model) helpView() string {
@@ -189,7 +189,16 @@ func NewModel(c context.AppContext, commit *jj.Commit, width int, height int) *M
 		item{name: "git fetch", desc: "Fetch from remote", command: jj.GitFetch()},
 		item{name: "git fetch --all-remotes", desc: "Fetch from all remotes", command: jj.GitFetch("--all-remotes")},
 	)
-	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
+
+	delegate := list.NewDefaultDelegate()
+	delegate.Styles.DimmedTitle = common.DefaultPalette.Dimmed
+	delegate.Styles.NormalTitle = common.DefaultPalette.Normal.PaddingLeft(2)
+	delegate.Styles.DimmedDesc = common.DefaultPalette.Dimmed.PaddingLeft(2)
+	delegate.Styles.NormalDesc = common.DefaultPalette.Dimmed.PaddingLeft(2)
+	delegate.Styles.SelectedTitle = common.DefaultPalette.ChangeId.PaddingLeft(2)
+	delegate.Styles.SelectedDesc = common.DefaultPalette.ChangeId.Bold(false).PaddingLeft(2)
+
+	l := list.New(items, delegate, 0, 0)
 	l.SetShowTitle(true)
 	l.Title = "Git Operations"
 	l.SetShowTitle(false)
@@ -199,6 +208,8 @@ func NewModel(c context.AppContext, commit *jj.Commit, width int, height int) *M
 	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 	l.DisableQuitKeybindings()
+	l.Styles.NoItems = common.DefaultPalette.Dimmed
+
 	m := &Model{
 		context: c,
 		list:    l,

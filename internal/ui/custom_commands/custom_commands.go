@@ -105,7 +105,12 @@ func NewModel(ctx context.AppContext, width int, height int) *Model {
 		items = append(items, item{name: command.Name, desc: "jj " + strings.Join(invokableCmd.args, " "), command: invokableCmd})
 	}
 	keyMap := ctx.KeyMap()
-	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	delegate := list.NewDefaultDelegate()
+	delegate.Styles.DimmedTitle = common.DefaultPalette.Dimmed
+	delegate.Styles.NormalTitle = common.DefaultPalette.Normal.PaddingLeft(2)
+	delegate.Styles.DimmedDesc = common.DefaultPalette.Dimmed.PaddingLeft(2)
+	delegate.Styles.NormalDesc = common.DefaultPalette.Dimmed.PaddingLeft(2)
+	l := list.New(items, delegate, 0, 0)
 	l.Title = "Custom Commands"
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
@@ -116,7 +121,7 @@ func NewModel(ctx context.AppContext, width int, height int) *Model {
 	l.DisableQuitKeybindings()
 
 	h := help.New()
-	h.Styles.ShortKey = common.DefaultPalette.ChangeId
+	h.Styles.ShortKey = common.DefaultPalette.Shortcut
 	h.Styles.ShortDesc = common.DefaultPalette.Dimmed
 
 	m := &Model{
