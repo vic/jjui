@@ -13,8 +13,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/graph"
 )
 
-var normalStyle = lipgloss.NewStyle()
-
 type updateOpLogMsg struct {
 	Rows []Row
 }
@@ -140,7 +138,7 @@ func (m *Model) View() string {
 
 	content := w.String(m.viewRange.start, m.viewRange.end)
 	content = lipgloss.PlaceHorizontal(m.width, lipgloss.Left, content)
-	return normalStyle.MaxWidth(m.width).Render(content)
+	return common.DefaultPalette.Normal.MaxWidth(m.width).Render(content)
 }
 
 func (m *Model) load() tea.Cmd {

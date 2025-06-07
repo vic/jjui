@@ -39,8 +39,6 @@ func (v *viewRange) reset() {
 	v.lastRowIndex = -1
 }
 
-var normalStyle = lipgloss.NewStyle()
-
 type Model struct {
 	rows             []graph.Row
 	revisionToSelect string
@@ -439,7 +437,7 @@ func (m *Model) View() string {
 	content := w.String(m.viewRange.start, m.viewRange.end)
 	content = lipgloss.PlaceHorizontal(m.Width(), lipgloss.Left, content)
 
-	return normalStyle.MaxWidth(m.width).Render(content)
+	return common.DefaultPalette.Normal.MaxWidth(m.width).Render(content)
 }
 
 func (m *Model) load(revset string, selectedRevision string) tea.Cmd {
