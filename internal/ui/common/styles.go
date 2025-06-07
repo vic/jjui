@@ -23,11 +23,6 @@ var (
 	IntenseWhite   = lipgloss.Color("15")
 )
 
-var DropStyle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(Black).
-	Background(Red)
-
 var DefaultPalette = Palette{
 	Normal:           lipgloss.NewStyle(),
 	ChangeId:         lipgloss.NewStyle().Foreground(Magenta).Bold(true),
@@ -45,6 +40,7 @@ var DefaultPalette = Palette{
 	StatusSuccess:    lipgloss.NewStyle().Foreground(Green),
 	StatusError:      lipgloss.NewStyle().Foreground(Red),
 	StatusMode:       lipgloss.NewStyle().Foreground(Black).Bold(true).Background(Magenta),
+	Drop:             lipgloss.NewStyle().Bold(true).Foreground(Black).Background(Red),
 }
 
 type Palette struct {
@@ -66,4 +62,5 @@ type Palette struct {
 	StatusMode       lipgloss.Style
 	StatusSuccess    lipgloss.Style
 	StatusError      lipgloss.Style
+	Drop             lipgloss.Style
 }

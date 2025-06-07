@@ -32,7 +32,7 @@ func (s *Operation) SetSelectedRevision(commit *jj.Commit) {
 }
 
 func (s *Operation) Render() string {
-	return common.DropStyle.Render("<< into >>")
+	return common.DefaultPalette.Drop.Render("<< into >>")
 }
 
 func (s *Operation) RenderPosition() operations.RenderPosition {

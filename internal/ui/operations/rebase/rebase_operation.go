@@ -140,7 +140,7 @@ func (r *Operation) Render() string {
 	if r.Target == TargetInsert {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			common.DropStyle.Render("<< insert >>"),
+			common.DefaultPalette.Drop.Render("<< insert >>"),
 			" ",
 			common.DefaultPalette.Dimmed.Render(source),
 			common.DefaultPalette.ChangeId.Render(r.From),
@@ -153,7 +153,7 @@ func (r *Operation) Render() string {
 
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		common.DropStyle.Render("<< "+ret+" >>"),
+		common.DefaultPalette.Drop.Render("<< "+ret+" >>"),
 		" ",
 		common.DefaultPalette.Dimmed.Render("rebase"),
 		" ",
