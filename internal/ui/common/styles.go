@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/config"
 	"strconv"
 	"strings"
 
@@ -71,44 +71,43 @@ type Palette struct {
 	CompletionSelected lipgloss.Style
 }
 
-type jjStyleMap map[string]jj.Color
+type jjStyleMap map[string]config.Color
 
 func (p *Palette) Update(jjStyles jjStyleMap) {
-	if style, ok := jjStyles.createStyleFrom("change_id"); ok {
-		p.ChangeId = style
+	p.Dimmed = createStyleFrom(config.Current.UI.Colors.Dimmed)
+	p.Shortcut = createStyleFrom(config.Current.UI.Colors.Shortcut)
+	if color, ok := jjStyles["change_id"]; ok {
+		p.ChangeId = createStyleFrom(color)
 	}
-	if style, ok := jjStyles.createStyleFrom("rest"); ok {
-		p.Dimmed = style
+	if color, ok := jjStyles["rest"]; ok {
+		p.Dimmed = createStyleFrom(color)
 	}
-	if style, ok := jjStyles.createStyleFrom("diff renamed"); ok {
-		p.Renamed = style
+	if color, ok := jjStyles["diff renamed"]; ok {
+		p.Renamed = createStyleFrom(color)
 	}
-	if style, ok := jjStyles.createStyleFrom("diff modified"); ok {
-		p.Modified = style
+	if color, ok := jjStyles["diff modified"]; ok {
+		p.Modified = createStyleFrom(color)
 	}
-	if style, ok := jjStyles.createStyleFrom("diff removed"); ok {
-		p.Deleted = style
+	if color, ok := jjStyles["diff removed"]; ok {
+		p.Deleted = createStyleFrom(color)
 	}
 }
 
-func (p jjStyleMap) createStyleFrom(name string) (lipgloss.Style, bool) {
-	if color, ok := p[name]; ok {
-		style := lipgloss.NewStyle()
-		if color.Fg != "" {
-			style = style.Foreground(parseColor(color.Fg))
-		}
-		if color.Bg != "" {
-			style = style.Background(parseColor(color.Bg))
-		}
-		if color.Bold {
-			style = style.Bold(true)
-		}
-		if color.Underline {
-			style = style.Underline(true)
-		}
-		return style, true
+func createStyleFrom(color config.Color) lipgloss.Style {
+	style := lipgloss.NewStyle()
+	if color.Fg != "" {
+		style = style.Foreground(parseColor(color.Fg))
 	}
-	return lipgloss.NewStyle(), false
+	if color.Bg != "" {
+		style = style.Background(parseColor(color.Bg))
+	}
+	if color.Bold {
+		style = style.Bold(true)
+	}
+	if color.Underline {
+		style = style.Underline(true)
+	}
+	return style
 }
 
 func parseColor(color string) lipgloss.Color {

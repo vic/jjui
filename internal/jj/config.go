@@ -2,27 +2,21 @@ package jj
 
 import (
 	"github.com/BurntSushi/toml"
+	"github.com/idursun/jjui/internal/config"
 )
 
-type Color struct {
-	Fg        string `toml:"fg"`
-	Bg        string `toml:"bg"`
-	Bold      bool   `toml:"bold"`
-	Underline bool   `toml:"underline"`
-}
-
 type Config struct {
-	Colors        map[string]Color
+	Colors        map[string]config.Color
 	RevsetAliases map[string]string
 	Revsets       struct {
 		Log string
 	}
 }
 
-func decodeColors(md toml.MetaData, rawColors map[string]toml.Primitive) map[string]Color {
-	colorMap := make(map[string]Color)
+func decodeColors(md toml.MetaData, rawColors map[string]toml.Primitive) map[string]config.Color {
+	colorMap := make(map[string]config.Color)
 	for name, prim := range rawColors {
-		var c Color
+		var c config.Color
 		if err := md.PrimitiveDecode(prim, &c); err != nil {
 			var fg string
 			if err := md.PrimitiveDecode(prim, &fg); err == nil {

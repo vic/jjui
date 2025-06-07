@@ -23,6 +23,10 @@ var Current = &Config{
 	UI: UIConfig{
 		HighlightLight: "#a0a0a0",
 		HighlightDark:  "#282a36",
+		Colors: colors{
+			Dimmed:   Color{Fg: "bright red"},
+			Shortcut: Color{Fg: "magenta"},
+		},
 	},
 	Preview: PreviewConfig{
 		ExtraArgs:                []string{},
@@ -49,9 +53,22 @@ type Config struct {
 	ExperimentalLogBatchingEnabled bool                               `toml:"experimental_log_batching_enabled"`
 }
 
+type Color struct {
+	Fg        string `toml:"fg"`
+	Bg        string `toml:"bg"`
+	Bold      bool   `toml:"bold"`
+	Underline bool   `toml:"underline"`
+}
+
+type colors struct {
+	Shortcut Color `toml:"shortcut"`
+	Dimmed   Color `toml:"dimmed"`
+}
+
 type UIConfig struct {
 	HighlightLight      string `toml:"highlight_light"`
 	HighlightDark       string `toml:"highlight_dark"`
+	Colors              colors `toml:"colors"`
 	AutoRefreshInterval int    `toml:"auto_refresh_interval"`
 }
 
