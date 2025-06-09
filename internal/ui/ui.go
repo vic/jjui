@@ -113,6 +113,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case key.Matches(msg, m.keyMap.Git.Mode) && m.revisions.InNormalMode():
 			m.stacked = git.NewModel(m.context, m.revisions.SelectedRevision(), m.width, m.height)
+			return m, m.stacked.Init()
 		case key.Matches(msg, m.keyMap.Undo) && m.revisions.InNormalMode():
 			m.stacked = undo.NewModel(m.context)
 			cmds = append(cmds, m.stacked.Init())
