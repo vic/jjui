@@ -1,6 +1,8 @@
 package bookmark
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
@@ -39,6 +41,10 @@ func (s SetBookmarkOperation) Update(msg tea.Msg) (operations.OperationWithOverl
 	}
 	var cmd tea.Cmd
 	s.name, cmd = s.name.Update(msg)
+	if s.name.Length() >= s.name.Width() {
+		s.name.SetWidth(s.name.Length() + 3)
+	}
+	s.name.SetValue(strings.ReplaceAll(s.name.Value(), " ", "-"))
 	return s, cmd
 }
 
@@ -59,7 +65,7 @@ func NewSetBookmarkOperation(context context.AppContext, changeId string) (opera
 	t.CharLimit = 120
 	t.ShowLineNumbers = false
 	t.SetValue("")
-	t.SetWidth(20)
+	t.SetWidth(30)
 	t.SetHeight(1)
 	t.Focus()
 
