@@ -4,8 +4,10 @@ import (
 	"strings"
 )
 
-const moveBookmarkTemplate = `separate(";", name, if(remote, "remote", "."), tracked, conflict, normal_target.contained_in("%s"), normal_target.commit_id().shortest(1)) ++ "\n"`
-const allBookmarkTemplate = `separate(";", name, if(remote, remote, "."), tracked, conflict, 'false', normal_target.commit_id().shortest(1)) ++ "\n"`
+const (
+	moveBookmarkTemplate = `separate(";", name, if(remote, "remote", "."), tracked, conflict, normal_target.contained_in("%s"), normal_target.commit_id().shortest(1)) ++ "\n"`
+	allBookmarkTemplate  = `separate(";", name, if(remote, remote, "."), tracked, conflict, 'false', normal_target.commit_id().shortest(1)) ++ "\n"`
+)
 
 type BookmarkRemote struct {
 	Remote   string
@@ -39,7 +41,9 @@ func ParseBookmarkListOutput(output string) []Bookmark {
 			conflict := parts[3] == "true"
 			backwards := parts[4] == "true"
 			commitId := parts[5]
-			if remoteName == "." {
+			if remoteName == "git" {
+				continue
+			} else if remoteName == "." {
 				bookmark := Bookmark{
 					Name:      name,
 					Conflict:  conflict,
