@@ -232,6 +232,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			if parentIndex != -1 {
 				m.cursor = parentIndex
 			}
+		case key.Matches(msg, m.keymap.JumpToWorkingCopy):
+			workingCopyIndex := m.selectRevision("@")
+			if workingCopyIndex != -1 {
+				m.cursor = workingCopyIndex
+			}
+			return m, m.updateSelection()
 		default:
 			if op, ok := m.op.(operations.HandleKey); ok {
 				cmd = op.HandleKey(msg)

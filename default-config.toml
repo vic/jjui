@@ -4,6 +4,7 @@ experimental_log_batching_enabled = false
   up = ["up", "k"]
   down = ["down", "j"]
   jump_to_parent = ["J"]
+  jump_to_working_copy = ["@"]
   apply = ["enter"]
   cancel = ["esc"]
   toggle_select = [" "]
