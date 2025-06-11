@@ -85,12 +85,6 @@ func (s *ShowOption) UnmarshalText(text []byte) error {
 func getConfigFilePath() string {
 	var configDirs []string
 
-	configDir, err := os.UserConfigDir()
-	if err != nil {
-		return ""
-	}
-	configDirs = append(configDirs, configDir)
-
 	// os.UserConfigDir() already does this for linux leaving darwin to handle
 	if runtime.GOOS == "darwin" {
 		configDirs = append(configDirs, path.Join(os.Getenv("HOME"), ".config"))
@@ -100,15 +94,23 @@ func getConfigFilePath() string {
 		}
 	}
 
-	var resolvedConfigPath string
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return ""
+	}
+	configDirs = append(configDirs, configDir)
+
 	for _, dir := range configDirs {
 		configPath := filepath.Join(dir, "jjui", "config.toml")
 		if _, err := os.Stat(configPath); err == nil {
-			resolvedConfigPath = configPath
+			return configPath
 		}
 	}
 
-	return resolvedConfigPath
+	if len(configDirs) > 0 {
+		return filepath.Join(configDirs[0], "jjui", "config.toml")
+	}
+	return ""
 }
 
 func getDefaultEditor() string {
