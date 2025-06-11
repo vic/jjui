@@ -137,6 +137,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keyMap.QuickSearch) && m.oplog != nil:
 			//HACK: prevents quick search from activating in op log view
 			return m, nil
+		case key.Matches(msg, m.keyMap.Suspend):
+			return m, tea.Suspend
 		default:
 			if matched := customcommands.Matches(msg); matched != nil {
 				command := *matched
