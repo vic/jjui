@@ -142,7 +142,7 @@ func Load() (*Config, error) {
 	configFile := getConfigFilePath()
 	_, err := os.Stat(configFile)
 	if err != nil {
-		return Current, err
+		return Current, nil
 	}
 	data, err := os.ReadFile(configFile)
 	if err != nil {
