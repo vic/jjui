@@ -7,6 +7,7 @@ import (
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/common"
 	"io"
+	"log"
 	"os/exec"
 )
 
@@ -130,7 +131,10 @@ func (a *MainContext) RunInteractiveCommand(args []string, continuation tea.Cmd)
 }
 
 func NewAppContext(location string) AppContext {
-	configuration := config.Load()
+	configuration, err := config.Load()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
 	return &MainContext{
 		location: location,
 		config:   configuration,
