@@ -50,7 +50,7 @@ func Describe(revision string) CommandArgs {
 }
 
 func Abandon(revision ...string) CommandArgs {
-	args := []string{"abandon"}
+	args := []string{"abandon", "--retain-bookmarks"}
 	for _, rev := range revision {
 		args = append(args, "-r", rev)
 	}
