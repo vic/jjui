@@ -196,5 +196,5 @@ func OpRestore(operationId string) CommandArgs {
 }
 
 func GetParent(revision string) CommandArgs {
-	return []string{"log", "-r", fmt.Sprintf("%s-", revision), "--color", "never", "--no-graph", "--quiet", "--ignore-working-copy", "--template", "commit_id.shortest()"}
+	return []string{"log", "-r", fmt.Sprintf("parents(%s)", revision), "-n", "1", "--color", "never", "--no-graph", "--quiet", "--ignore-working-copy", "--template", "commit_id.shortest()"}
 }
