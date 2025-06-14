@@ -110,6 +110,9 @@ func NewModel(ctx context.AppContext, width int, height int) *Model {
 	delegate.Styles.NormalTitle = common.DefaultPalette.Normal.PaddingLeft(2)
 	delegate.Styles.DimmedDesc = common.DefaultPalette.Dimmed.PaddingLeft(2)
 	delegate.Styles.NormalDesc = common.DefaultPalette.Dimmed.PaddingLeft(2)
+	delegate.Styles.SelectedTitle = common.DefaultPalette.ChangeId.PaddingLeft(2)
+	delegate.Styles.SelectedDesc = common.DefaultPalette.ChangeId.Bold(false).PaddingLeft(2)
+
 	l := list.New(items, delegate, 0, 0)
 	l.Title = "Custom Commands"
 	l.SetShowTitle(false)
