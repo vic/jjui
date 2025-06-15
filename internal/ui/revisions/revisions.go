@@ -41,6 +41,7 @@ func (v *viewRange) reset() {
 
 type Model struct {
 	rows             []graph.Row
+	tag              uint64
 	revisionToSelect string
 	offScreenRows    []graph.Row
 	rowsChan         <-chan graph.RowBatch
@@ -67,11 +68,13 @@ type updateRevisionsMsg struct {
 type startRowsStreamingMsg struct {
 	rowsChan         <-chan graph.RowBatch
 	selectedRevision string
+	tag              uint64
 }
 
 type appendRowsBatchMsg struct {
 	rows    []graph.Row
 	hasMore bool
+	tag     uint64
 }
 
 func (m *Model) IsFocused() bool {
@@ -162,7 +165,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		return m, nil
 	case common.RefreshMsg:
 		if config.Current.ExperimentalLogBatchingEnabled {
-			return m, m.loadStreaming(m.revsetValue, msg.SelectedRevision)
+			m.tag += 1
+			return m, m.loadStreaming(m.revsetValue, msg.SelectedRevision, m.tag)
 		} else {
 			return m, m.load(m.revsetValue, msg.SelectedRevision)
 		}
@@ -173,15 +177,18 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.offScreenRows = nil
 		m.revisionToSelect = msg.selectedRevision
 		m.rowsChan = msg.rowsChan
-		return m, m.requestMoreRows(m.rowsChan)
+		return m, m.requestMoreRows(m.rowsChan, msg.tag)
 	case appendRowsBatchMsg:
+		if msg.tag != m.tag {
+			return m, nil
+		}
 		m.offScreenRows = append(m.offScreenRows, msg.rows...)
 		m.hasMore = msg.hasMore
 
 		if m.hasMore {
 			// keep requesting rows until we reach the initial load count or the current cursor position
 			if len(m.offScreenRows) < m.cursor+1 || len(m.offScreenRows) < m.viewRange.lastRowIndex+1 {
-				return m, m.requestMoreRows(m.rowsChan)
+				return m, m.requestMoreRows(m.rowsChan, msg.tag)
 			}
 		} else if m.controlChan != nil {
 			close(m.controlChan)
@@ -224,7 +231,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			if m.cursor < len(m.rows)-1 {
 				m.cursor++
 			} else if m.hasMore {
-				return m, m.requestMoreRows(m.rowsChan)
+				return m, m.requestMoreRows(m.rowsChan, m.tag)
 			}
 		case key.Matches(msg, m.keymap.JumpToParent):
 			immediate, _ := m.context.RunCommandImmediate(jj.GetParent(m.SelectedRevisions()))
@@ -452,7 +459,11 @@ func (m *Model) load(revset string, selectedRevision string) tea.Cmd {
 	}
 }
 
-func (m *Model) loadStreaming(revset string, selectedRevision string) tea.Cmd {
+func (m *Model) loadStreaming(revset string, selectedRevision string, tag uint64) tea.Cmd {
+	if m.tag != tag {
+		return nil
+	}
+
 	if m.hasMore {
 		m.controlChan <- graph.Close
 		close(m.controlChan)
@@ -471,15 +482,15 @@ func (m *Model) loadStreaming(revset string, selectedRevision string) tea.Cmd {
 		}
 		m.controlChan = make(chan graph.ControlMsg, 1)
 		rowsChan, _ := graph.ParseRowsStreaming(bufio.NewReader(output), m.controlChan, defaultBatchSize)
-		return startRowsStreamingMsg{rowsChan, selectedRevision}
+		return startRowsStreamingMsg{rowsChan, selectedRevision, tag}
 	}
 }
 
-func (m *Model) requestMoreRows(rowsChan <-chan graph.RowBatch) tea.Cmd {
+func (m *Model) requestMoreRows(rowsChan <-chan graph.RowBatch, tag uint64) tea.Cmd {
 	return func() tea.Msg {
 		m.controlChan <- graph.RequestMore
 		batch := <-rowsChan
-		return appendRowsBatchMsg{batch.Rows, batch.HasMore}
+		return appendRowsBatchMsg{batch.Rows, batch.HasMore, tag}
 	}
 }
 
