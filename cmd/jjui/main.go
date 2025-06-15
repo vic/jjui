@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"runtime/debug"
@@ -90,6 +91,14 @@ func main() {
 	}
 
 	appContext := context.NewAppContext(rootLocation)
+	if len(os.Getenv("DEBUG")) > 0 {
+		f, err := tea.LogToFile("debug.log", "debug")
+		if err != nil {
+			log.Fatalf("failed to set logging file: %v", err)
+		}
+		defer f.Close()
+		log.SetOutput(f)
+	}
 
 	p := tea.NewProgram(ui.New(appContext, revset), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
