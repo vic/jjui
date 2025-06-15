@@ -2,9 +2,10 @@ package test
 
 import (
 	"bytes"
+	"context"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/config"
-	"github.com/idursun/jjui/internal/ui/context"
+	appContext "github.com/idursun/jjui/internal/ui/context"
 	"io"
 	"testing"
 
@@ -26,7 +27,7 @@ func (e *ExpectedCommand) SetOutput(output []byte) *ExpectedCommand {
 
 type TestContext struct {
 	*testing.T
-	selectedItem context.SelectedItem
+	selectedItem appContext.SelectedItem
 	expectations map[string][]*ExpectedCommand
 }
 
@@ -38,11 +39,11 @@ func (t *TestContext) KeyMap() config.KeyMappings[key.Binding] {
 	return config.Convert(config.DefaultKeyMappings)
 }
 
-func (t *TestContext) SelectedItem() context.SelectedItem {
+func (t *TestContext) SelectedItem() appContext.SelectedItem {
 	return t.selectedItem
 }
 
-func (t *TestContext) SetSelectedItem(item context.SelectedItem) tea.Cmd {
+func (t *TestContext) SetSelectedItem(item appContext.SelectedItem) tea.Cmd {
 	t.selectedItem = item
 	return nil
 }
@@ -66,9 +67,12 @@ func (t *TestContext) RunCommandImmediate(args []string) ([]byte, error) {
 	return nil, nil
 }
 
-func (t *TestContext) RunCommandStreaming(args []string) (io.Reader, error) {
+func (t *TestContext) RunCommandStreaming(_ context.Context, args []string) (*appContext.StreamingCommand, error) {
 	reader, err := t.RunCommandImmediate(args)
-	return bytes.NewBuffer(reader), err
+	return &appContext.StreamingCommand{
+		ReadCloser: io.NopCloser(bytes.NewReader(reader)),
+		ErrPipe:    nil,
+	}, err
 }
 
 func (t *TestContext) RunCommand(args []string, continuations ...tea.Cmd) tea.Cmd {
