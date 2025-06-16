@@ -208,7 +208,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			m.cursor = m.selectRevision(currentSelectedRevision.GetChangeId())
 		}
 
-		if m.cursor == -1 && len(m.rows) > 0 {
+		if (m.cursor < 0 || m.cursor >= len(m.rows)) && len(m.rows) > 0 {
 			m.cursor = 0
 		}
 
