@@ -84,6 +84,7 @@ func ParseRowsStreaming(reader io.Reader, controlChannel <-chan ControlMsg, batc
 				}
 			}
 		}
+		_ = <-controlChannel
 	}()
 	return rowsChan, nil
 }
