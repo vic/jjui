@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -98,6 +99,8 @@ func main() {
 		}
 		defer f.Close()
 		log.SetOutput(f)
+	} else {
+		log.SetOutput(io.Discard)
 	}
 
 	p := tea.NewProgram(ui.New(appContext, revset), tea.WithAltScreen())
