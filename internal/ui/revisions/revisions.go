@@ -307,8 +307,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				m.op = squash.NewOperation(m.context, selectedRevisions)
 			case key.Matches(msg, m.keymap.Rebase.Mode):
 				m.op = rebase.NewOperation(m.context, m.SelectedRevisions(), rebase.SourceRevision, rebase.TargetDestination)
-			case key.Matches(msg, m.keymap.Quit):
-				return m, tea.Quit
 			}
 		}
 	}

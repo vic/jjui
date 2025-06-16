@@ -105,6 +105,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.error = nil
 		case key.Matches(msg, m.keyMap.Cancel) && m.stacked != nil:
 			m.stacked = nil
+		case key.Matches(msg, m.keyMap.Quit) && m.isSafeToQuit():
+			return m, tea.Quit
 		case key.Matches(msg, m.keyMap.OpLog.Mode):
 			m.oplog = oplog.New(m.context, m.width, m.height)
 			return m, m.oplog.Init()
@@ -136,7 +138,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.stacked = customcommands.NewModel(m.context, m.width, m.height)
 			cmds = append(cmds, m.stacked.Init())
 		case key.Matches(msg, m.keyMap.QuickSearch) && m.oplog != nil:
-			//HACK: prevents quick search from activating in op log view
+			// HACK: prevents quick search from activating in op log view
 			return m, nil
 		case key.Matches(msg, m.keyMap.Suspend):
 			return m, tea.Suspend
@@ -144,7 +146,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if matched := customcommands.Matches(msg); matched != nil {
 				command := *matched
 				cmd = command.Prepare(m.context).Invoke(m.context)
-				cmds = append(cmds, cmd)
 				return m, cmd
 			}
 		}
@@ -283,6 +284,19 @@ func (m Model) scheduleAutoRefresh() tea.Cmd {
 		})
 	}
 	return nil
+}
+
+func (m Model) isSafeToQuit() bool {
+	if m.stacked != nil {
+		return false
+	}
+	if m.oplog != nil {
+		return false
+	}
+	if m.revisions.CurrentOperation().Name() == "normal" {
+		return true
+	}
+	return false
 }
 
 func New(c context.AppContext, initialRevset string) tea.Model {
