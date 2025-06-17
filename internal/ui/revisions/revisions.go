@@ -40,24 +40,25 @@ func (v *viewRange) reset() {
 }
 
 type Model struct {
-	rows             []graph.Row
-	tag              uint64
-	revisionToSelect string
-	offScreenRows    []graph.Row
-	rowsChan         <-chan graph.RowBatch
-	controlChan      chan graph.ControlMsg
-	hasMore          bool
-	op               operations.Operation
-	revsetValue      string
-	viewRange        *viewRange
-	cursor           int
-	width            int
-	height           int
-	context          context.AppContext
-	keymap           config.KeyMappings[key.Binding]
-	output           string
-	err              error
-	quickSearch      string
+	rows              []graph.Row
+	tag               uint64
+	revisionToSelect  string
+	offScreenRows     []graph.Row
+	rowsChan          <-chan graph.RowBatch
+	controlChan       chan graph.ControlMsg
+	hasMore           bool
+	op                operations.Operation
+	revsetValue       string
+	viewRange         *viewRange
+	cursor            int
+	width             int
+	height            int
+	context           context.AppContext
+	keymap            config.KeyMappings[key.Binding]
+	output            string
+	err               error
+	quickSearch       string
+	selectedRevisions map[string]bool
 }
 
 type updateRevisionsMsg struct {
@@ -131,7 +132,7 @@ func (m *Model) SelectedRevision() *jj.Commit {
 func (m *Model) SelectedRevisions() jj.SelectedRevisions {
 	var selected []*jj.Commit
 	for _, row := range m.rows {
-		if row.IsSelected {
+		if m.selectedRevisions[row.Commit.GetChangeId()] {
 			selected = append(selected, row.Commit)
 		}
 	}
@@ -164,6 +165,9 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.err = msg.Err
 		return m, nil
 	case common.RefreshMsg:
+		if !msg.KeepSelections {
+			m.selectedRevisions = make(map[string]bool)
+		}
 		if config.Current.ExperimentalLogBatchingEnabled {
 			m.tag += 1
 			return m, m.loadStreaming(m.revsetValue, msg.SelectedRevision, m.tag)
@@ -253,7 +257,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 			switch {
 			case key.Matches(msg, m.keymap.ToggleSelect):
-				m.rows[m.cursor].IsSelected = !m.rows[m.cursor].IsSelected
+				changeId := m.rows[m.cursor].Commit.GetChangeId()
+				m.selectedRevisions[changeId] = !m.selectedRevisions[changeId]
 			case key.Matches(msg, m.keymap.Cancel):
 				m.op = operations.NewDefault(m.context)
 			case key.Matches(msg, m.keymap.QuickSearchCycle):
@@ -365,6 +370,7 @@ func (m *Model) updateGraphRows(rows []graph.Row, selectedRevision string) {
 		currentSelectedRevision = cur.GetChangeId()
 	}
 	m.rows = rows
+
 	m.cursor = m.selectRevision(currentSelectedRevision)
 	if m.cursor == -1 {
 		m.cursor = m.selectRevision("@")
@@ -411,7 +417,7 @@ func (m *Model) View() string {
 			HighlightBackground: highlightBackground,
 			SearchText:          m.quickSearch,
 			IsHighlighted:       i == m.cursor,
-			IsSelected:          row.IsSelected,
+			IsSelected:          m.selectedRevisions[row.Commit.GetChangeId()],
 			Width:               m.width,
 		}
 
@@ -538,15 +544,16 @@ func New(c context.AppContext, revset string) Model {
 	v := viewRange{start: 0, end: 0, lastRowIndex: -1}
 	keymap := c.KeyMap()
 	return Model{
-		context:       c,
-		keymap:        keymap,
-		revsetValue:   revset,
-		rows:          nil,
-		offScreenRows: nil,
-		viewRange:     &v,
-		op:            operations.NewDefault(c),
-		cursor:        0,
-		width:         20,
-		height:        10,
+		context:           c,
+		keymap:            keymap,
+		revsetValue:       revset,
+		rows:              nil,
+		offScreenRows:     nil,
+		viewRange:         &v,
+		op:                operations.NewDefault(c),
+		cursor:            0,
+		width:             20,
+		height:            10,
+		selectedRevisions: make(map[string]bool), // Initialize the map
 	}
 }

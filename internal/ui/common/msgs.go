@@ -1,8 +1,9 @@
 package common
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
 	"strings"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type (
@@ -10,6 +11,7 @@ type (
 	ToggleHelpMsg struct{}
 	RefreshMsg    struct {
 		SelectedRevision string
+		KeepSelections   bool
 	}
 	ShowDiffMsg              string
 	UpdateRevisionsFailedMsg struct {
@@ -49,6 +51,10 @@ func RefreshAndSelect(selectedRevision string) tea.Cmd {
 	return func() tea.Msg {
 		return RefreshMsg{SelectedRevision: selectedRevision}
 	}
+}
+
+func RefreshAndKeepSelections() tea.Msg {
+	return RefreshMsg{KeepSelections: true}
 }
 
 func Refresh() tea.Msg {

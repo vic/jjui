@@ -10,7 +10,6 @@ import (
 type Row struct {
 	Commit     *jj.Commit
 	Lines      []*GraphRowLine
-	IsSelected bool
 	IsAffected bool
 	Indent     int
 	Previous   *Row

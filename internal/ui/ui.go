@@ -170,7 +170,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.output = msg.Output
 		m.error = msg.Err
 	case autoRefreshMsg:
-		return m, tea.Batch(m.scheduleAutoRefresh(), common.Refresh)
+		return m, tea.Batch(m.scheduleAutoRefresh(), common.RefreshAndKeepSelections)
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
