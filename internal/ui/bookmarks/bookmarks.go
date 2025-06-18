@@ -2,6 +2,10 @@ package bookmarks
 
 import (
 	"fmt"
+	"math"
+	"slices"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -10,9 +14,6 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
-	"math"
-	"slices"
-	"strings"
 )
 
 type updateItemsMsg struct {
@@ -138,14 +139,12 @@ func (m *Model) loadAll() tea.Msg {
 		items := make([]list.Item, 0)
 		for _, b := range bookmarks {
 			weight := m.distance(b.CommitId)
-			if b.IsLocal() {
-				items = append(items, item{
-					name:     fmt.Sprintf("delete '%s'", b.Name),
-					priority: deleteCommand,
-					dist:     weight,
-					args:     jj.BookmarkDelete(b.Name),
-				})
-			}
+			items = append(items, item{
+				name:     fmt.Sprintf("delete '%s'", b.Name),
+				priority: deleteCommand,
+				dist:     weight,
+				args:     jj.BookmarkDelete(b.Name),
+			})
 
 			items = append(items, item{
 				name:     fmt.Sprintf("forget '%s'", b.Name),
@@ -236,8 +235,10 @@ func itemSorter(a list.Item, b list.Item) int {
 	return ib.dist - ia.dist
 }
 
-var filterStyle = common.DefaultPalette.Shortcut.PaddingLeft(2)
-var filterValueStyle = common.DefaultPalette.Normal.Bold(true)
+var (
+	filterStyle      = common.DefaultPalette.Shortcut.PaddingLeft(2)
+	filterValueStyle = common.DefaultPalette.Normal.Bold(true)
+)
 
 func (m *Model) View() string {
 	title := m.list.Styles.Title.Render(m.list.Title)
