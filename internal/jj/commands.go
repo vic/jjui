@@ -204,11 +204,8 @@ func OpRestore(operationId string) CommandArgs {
 
 func GetParent(revisions SelectedRevisions) CommandArgs {
 	args := []string{"log", "-r"}
-	if len(revisions.Revisions) > 1 {
-		args = append(args, fmt.Sprintf("fork_point(%s)", strings.Join(revisions.GetIds(), "|")))
-	} else {
-		args = append(args, fmt.Sprintf("%s-", revisions.Last()))
-	}
+	joined := strings.Join(revisions.GetIds(), "|")
+	args = append(args, fmt.Sprintf("heads(::fork_point(%s) & ~present(%s))", joined, joined))
 	args = append(args, "-n", "1", "--color", "never", "--no-graph", "--quiet", "--ignore-working-copy", "--template", "commit_id.shortest()")
 	return args
 }
