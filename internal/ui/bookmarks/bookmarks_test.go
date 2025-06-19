@@ -33,3 +33,18 @@ func Test_Sorting_MoveCommands(t *testing.T) {
 	}
 	assert.Equal(t, []string{"move main", "move feature", "move very-old-feature", "move backwards"}, sorted)
 }
+
+func Test_Sorting_MixedCommands(t *testing.T) {
+	items := []list.Item{
+		item{name: "move very-old-feature", dist: 2, priority: moveCommand},
+		item{name: "move main", dist: 0, priority: moveCommand},
+		item{name: "delete very-old-feature", dist: 3, priority: deleteCommand},
+		item{name: "delete main", dist: 0, priority: deleteCommand},
+	}
+	slices.SortFunc(items, itemSorter)
+	var sorted []string
+	for _, i := range items {
+		sorted = append(sorted, i.(item).name)
+	}
+	assert.Equal(t, []string{"move main", "move very-old-feature", "delete main", "delete very-old-feature"}, sorted)
+}

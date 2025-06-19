@@ -138,18 +138,18 @@ func (m *Model) loadAll() tea.Msg {
 
 		items := make([]list.Item, 0)
 		for _, b := range bookmarks {
-			weight := m.distance(b.CommitId)
+			distance := m.distance(b.CommitId)
 			items = append(items, item{
 				name:     fmt.Sprintf("delete '%s'", b.Name),
 				priority: deleteCommand,
-				dist:     weight,
+				dist:     distance,
 				args:     jj.BookmarkDelete(b.Name),
 			})
 
 			items = append(items, item{
 				name:     fmt.Sprintf("forget '%s'", b.Name),
 				priority: forgetCommand,
-				dist:     weight,
+				dist:     distance,
 				args:     jj.BookmarkForget(b.Name),
 			})
 
@@ -159,14 +159,14 @@ func (m *Model) loadAll() tea.Msg {
 					items = append(items, item{
 						name:     fmt.Sprintf("untrack '%s'", nameWithRemote),
 						priority: untrackCommand,
-						dist:     weight,
+						dist:     distance,
 						args:     jj.BookmarkUntrack(nameWithRemote),
 					})
 				} else {
 					items = append(items, item{
 						name:     fmt.Sprintf("track '%s'", nameWithRemote),
 						priority: trackCommand,
-						dist:     weight,
+						dist:     distance,
 						args:     jj.BookmarkTrack(nameWithRemote),
 					})
 				}
@@ -226,7 +226,7 @@ func itemSorter(a list.Item, b list.Item) int {
 	if ia.dist == ib.dist {
 		return strings.Compare(ia.name, ib.name)
 	}
-	if ia.dist > 0 && ib.dist > 0 {
+	if ia.dist >= 0 && ib.dist >= 0 {
 		return ia.dist - ib.dist
 	}
 	if ia.dist < 0 && ib.dist < 0 {
