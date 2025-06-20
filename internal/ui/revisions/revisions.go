@@ -165,7 +165,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.err = msg.Err
 		return m, nil
 	case common.AutoRefreshMsg:
-		id, _ := m.context.RunCommandImmediate(jj.OpLogId())
+		id, _ := m.context.RunCommandImmediate(jj.OpLogId(true))
 		currentOperationId := string(id)
 		log.Println("Previous operation ID:", m.previousOpLogId, "Current operation ID:", currentOperationId)
 		if currentOperationId != m.previousOpLogId {
