@@ -186,6 +186,10 @@ func Absorb(changeId string) CommandArgs {
 	return []string{"absorb", "--from", changeId}
 }
 
+func OpLogId() CommandArgs {
+	return []string{"op", "log", "--color", "never", "--quiet", "--no-graph", "--limit", "1", "--template", "id"}
+}
+
 func OpLog(limit int) CommandArgs {
 	args := []string{"op", "log", "--color", "always", "--quiet", "--ignore-working-copy"}
 	if limit > 0 {

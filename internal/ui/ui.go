@@ -44,7 +44,7 @@ type Model struct {
 	stacked                 tea.Model
 }
 
-type autoRefreshMsg struct{}
+type triggerAutoRefreshMsg struct{}
 
 func (m Model) Init() tea.Cmd {
 	return tea.Sequence(tea.SetWindowTitle(fmt.Sprintf("jjui - %s", m.context.Location())), m.revisions.Init(), m.scheduleAutoRefresh())
@@ -169,8 +169,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = common.Error
 		m.output = msg.Output
 		m.error = msg.Err
-	case autoRefreshMsg:
-		return m, tea.Batch(m.scheduleAutoRefresh(), common.RefreshAndKeepSelections)
+	case triggerAutoRefreshMsg:
+		return m, tea.Batch(m.scheduleAutoRefresh(), func() tea.Msg {
+			return common.AutoRefreshMsg{}
+		})
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -280,7 +282,7 @@ func (m Model) scheduleAutoRefresh() tea.Cmd {
 	interval := config.Current.UI.AutoRefreshInterval
 	if interval > 0 {
 		return tea.Tick(time.Duration(interval)*time.Second, func(time.Time) tea.Msg {
-			return autoRefreshMsg{}
+			return triggerAutoRefreshMsg{}
 		})
 	}
 	return nil

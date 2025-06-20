@@ -59,6 +59,7 @@ type Model struct {
 	err               error
 	quickSearch       string
 	selectedRevisions map[string]bool
+	previousOpLogId   string
 }
 
 type updateRevisionsMsg struct {
@@ -163,6 +164,15 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.output = msg.Output
 		m.err = msg.Err
 		return m, nil
+	case common.AutoRefreshMsg:
+		id, _ := m.context.RunCommandImmediate(jj.OpLogId())
+		currentOperationId := string(id)
+		log.Println("Previous operation ID:", m.previousOpLogId, "Current operation ID:", currentOperationId)
+		log.Println("Previous operation ID:", m.previousOpLogId, "Current operation ID:", currentOperationId)
+		if currentOperationId != m.previousOpLogId {
+			m.previousOpLogId = currentOperationId
+			return m, common.RefreshAndKeepSelections
+		}
 	case common.RefreshMsg:
 		if !msg.KeepSelections {
 			m.selectedRevisions = make(map[string]bool)
