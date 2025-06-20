@@ -57,7 +57,7 @@ func Abandon(revision SelectedRevisions) CommandArgs {
 func Diff(revision string, fileName string, extraArgs ...string) CommandArgs {
 	args := []string{"diff", "-r", revision, "--color", "always"}
 	if fileName != "" {
-		args = append(args, fileName)
+		args = append(args, fmt.Sprintf("file:\"%s\"", fileName))
 	}
 	if extraArgs != nil {
 		args = append(args, extraArgs...)
