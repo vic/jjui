@@ -176,11 +176,12 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		if !msg.KeepSelections {
 			m.selectedRevisions = make(map[string]bool)
 		}
+		cmd := m.updateOperation(msg)
 		if config.Current.ExperimentalLogBatchingEnabled {
 			m.tag += 1
-			return m, m.loadStreaming(m.revsetValue, msg.SelectedRevision, m.tag)
+			return m, tea.Batch(m.loadStreaming(m.revsetValue, msg.SelectedRevision, m.tag), cmd)
 		} else {
-			return m, m.load(m.revsetValue, msg.SelectedRevision)
+			return m, tea.Batch(m.load(m.revsetValue, msg.SelectedRevision), cmd)
 		}
 	case updateRevisionsMsg:
 		m.updateGraphRows(msg.rows, msg.selectedRevision)
@@ -224,13 +225,11 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		return m, tea.Batch(m.highlightChanges, m.updateSelection())
 	}
 
-	if op, ok := m.op.(operations.OperationWithOverlay); ok {
-		var cmd tea.Cmd
-		m.op, cmd = op.Update(msg)
+	var cmd tea.Cmd
+	if cmd = m.updateOperation(msg); cmd != nil {
 		return m, cmd
 	}
 
-	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -565,4 +564,12 @@ func New(c appContext.AppContext, revset string) Model {
 		height:            10,
 		selectedRevisions: make(map[string]bool), // Initialize the map
 	}
+}
+
+func (m *Model) updateOperation(msg tea.Msg) tea.Cmd {
+	var cmd tea.Cmd
+	if op, ok := m.op.(operations.OperationWithOverlay); ok {
+		m.op, cmd = op.Update(msg)
+	}
+	return cmd
 }
