@@ -168,7 +168,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		id, _ := m.context.RunCommandImmediate(jj.OpLogId())
 		currentOperationId := string(id)
 		log.Println("Previous operation ID:", m.previousOpLogId, "Current operation ID:", currentOperationId)
-		log.Println("Previous operation ID:", m.previousOpLogId, "Current operation ID:", currentOperationId)
 		if currentOperationId != m.previousOpLogId {
 			m.previousOpLogId = currentOperationId
 			return m, common.RefreshAndKeepSelections
