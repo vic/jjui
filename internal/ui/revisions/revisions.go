@@ -176,7 +176,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		if !msg.KeepSelections {
 			m.selectedRevisions = make(map[string]bool)
 		}
-		cmd := m.updateOperation(msg)
+		cmd, _ := m.updateOperation(msg)
 		if config.Current.ExperimentalLogBatchingEnabled {
 			m.tag += 1
 			return m, tea.Batch(m.loadStreaming(m.revsetValue, msg.SelectedRevision, m.tag), cmd)
@@ -225,11 +225,15 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		return m, tea.Batch(m.highlightChanges, m.updateSelection())
 	}
 
-	var cmd tea.Cmd
-	if cmd = m.updateOperation(msg); cmd != nil {
+	if cmd, ok := m.updateOperation(msg); ok {
 		return m, cmd
 	}
+	//if op, ok := m.op.(operations.OperationWithOverlay); ok {
+	//	m.op, cmd = op.Update(msg)
+	//	return m, cmd
+	//}
 
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -566,10 +570,11 @@ func New(c appContext.AppContext, revset string) Model {
 	}
 }
 
-func (m *Model) updateOperation(msg tea.Msg) tea.Cmd {
+func (m *Model) updateOperation(msg tea.Msg) (tea.Cmd, bool) {
 	var cmd tea.Cmd
 	if op, ok := m.op.(operations.OperationWithOverlay); ok {
 		m.op, cmd = op.Update(msg)
+		return cmd, true
 	}
-	return cmd
+	return nil, false
 }
