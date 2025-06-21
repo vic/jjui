@@ -4,12 +4,31 @@ import (
 	"log"
 	"strings"
 
-	"github.com/mattn/go-runewidth"
 	"github.com/rivo/uniseg"
 )
 
 type cellBuffer struct {
-	grid [][]Segment
+	grid [][]gridCell
+}
+
+type gridCell struct {
+	Segment
+	width int
+}
+
+var emptyCell = gridCell{
+	Segment: Segment{
+		Text:   "",
+		Params: "",
+	},
+	width: 0,
+}
+var spaceCell = gridCell{
+	Segment: Segment{
+		Text:   " ",
+		Params: "",
+	},
+	width: 1,
 }
 
 func Stacked(view1, view2 string, x, y int) string {
@@ -21,7 +40,6 @@ func Stacked(view1, view2 string, x, y int) string {
 	}
 	buf := &cellBuffer{}
 
-	// Parse and apply base view
 	buf.applyANSI([]byte(view1), 0, 0)
 	buf.applyANSI([]byte(view2), x, y)
 
@@ -29,10 +47,28 @@ func Stacked(view1, view2 string, x, y int) string {
 }
 
 func (b *cellBuffer) applyANSI(input []byte, offsetX, offsetY int) {
+	for len(b.grid) <= offsetY {
+		b.grid = append(b.grid, []gridCell{})
+	}
+
+	if offsetX == 0 && offsetY == 0 && len(b.grid) == 0 {
+		b.grid = [][]gridCell{{}}
+		b.merge(input, 0, 0)
+	} else {
+		b.merge(input, offsetX, offsetY)
+	}
+}
+
+func (b *cellBuffer) merge(input []byte, offsetX, offsetY int) {
 	parsed := Parse(input)
 
 	currentLine := offsetY
 	currentCol := offsetX
+
+	for len(b.grid) <= currentLine {
+		b.grid = append(b.grid, []gridCell{})
+	}
+
 	for _, st := range parsed {
 		gr := uniseg.NewGraphemes(st.Text)
 		for gr.Next() {
@@ -40,47 +76,47 @@ func (b *cellBuffer) applyANSI(input []byte, offsetX, offsetY int) {
 			if cluster == "\n" {
 				currentLine++
 				currentCol = offsetX
+
+				for len(b.grid) <= currentLine {
+					b.grid = append(b.grid, []gridCell{})
+				}
 				continue
 			}
 
-			// Expand buffer as needed
-			for currentLine >= len(b.grid) {
-				b.grid = append(b.grid, []Segment{})
-			}
-			for currentCol >= len(b.grid[currentLine]) {
-				b.grid[currentLine] = append(b.grid[currentLine], Segment{Text: string(' ')})
-			}
-
-			// Overwrite cell
 			if currentCol < 0 || currentLine < 0 {
 				log.Fatalf("line: %d, col: %d", currentLine, currentCol)
 			}
-			b.grid[currentLine][currentCol] = Segment{
-				Text:   cluster,
-				Params: st.Params,
+
+			charWidth := gr.Width()
+
+			for len(b.grid[currentLine]) <= currentCol+charWidth-1 {
+				b.grid[currentLine] = append(b.grid[currentLine], spaceCell)
 			}
 
-			width := runewidth.StringWidth(cluster)
-			currentCol++
-
-			// For double-width characters (like CJK), we need to add an empty cell
-			// to prevent the next character from overlapping
-			if width > 1 {
-				if currentCol < len(b.grid[currentLine]) {
-					// Mark the next cell as occupied by making it a zero-width space
-					b.grid[currentLine][currentCol] = Segment{
-						Text:   "", // Empty cell as placeholder
-						Params: st.Params,
-					}
-				} else {
-					// Need to expand for the placeholder
-					b.grid[currentLine] = append(b.grid[currentLine], Segment{
-						Text:   "",
-						Params: st.Params,
-					})
-				}
-				currentCol++
+			if currentCol > 0 && currentCol < len(b.grid[currentLine]) && b.grid[currentLine][currentCol].width == 0 {
+				b.grid[currentLine][currentCol-1] = spaceCell
 			}
+
+			if currentCol+charWidth-1 < len(b.grid[currentLine])-1 &&
+				b.grid[currentLine][currentCol+charWidth].width == 0 {
+				b.grid[currentLine][currentCol+charWidth] = spaceCell
+			}
+
+			c := gridCell{
+				Segment: Segment{
+					Text:   cluster,
+					Params: st.Params,
+				},
+				width: charWidth,
+			}
+
+			b.grid[currentLine][currentCol] = c
+
+			if charWidth == 2 && currentCol+1 < len(b.grid[currentLine]) {
+				b.grid[currentLine][currentCol+1] = emptyCell
+			}
+
+			currentCol += charWidth
 		}
 	}
 }
@@ -91,8 +127,12 @@ func (b *cellBuffer) String() string {
 	for _, line := range b.grid {
 		var lineSegments []*Segment
 		var lastSegment *Segment
-		for _, c := range line {
-			if lastSegment == nil || !lastSegment.StyleEqual(c) {
+		for i := 0; i < len(line); i++ {
+			c := &line[i]
+			if c.width == 0 {
+				continue
+			}
+			if lastSegment == nil || !lastSegment.StyleEqual(c.Segment) {
 				if lastSegment != nil {
 					lineSegments = append(lineSegments, lastSegment)
 				}
@@ -104,7 +144,9 @@ func (b *cellBuffer) String() string {
 				lastSegment.Text += c.Text
 			}
 		}
-		lineSegments = append(lineSegments, lastSegment)
+		if lastSegment != nil {
+			lineSegments = append(lineSegments, lastSegment)
+		}
 		segments = append(segments, lineSegments)
 	}
 
