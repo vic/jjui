@@ -18,6 +18,12 @@ type Model struct {
 	autoComplete  *common.AutoCompletionInput
 	help          help.Model
 	keymap        keymap
+
+	History         []string
+	historyIndex    int
+	currentInput    string
+	historyActive   bool
+	MaxHistoryItems int
 }
 
 func (m *Model) IsFocused() bool {
@@ -56,17 +62,48 @@ func New(defaultRevSet string) *Model {
 	h.Styles.ShortDesc = common.DefaultPalette.Dimmed
 
 	return &Model{
-		Editing:       false,
-		Value:         defaultRevSet,
-		defaultRevSet: defaultRevSet,
-		help:          h,
-		keymap:        keymap{},
-		autoComplete:  autoComplete,
+		Editing:         false,
+		Value:           defaultRevSet,
+		defaultRevSet:   defaultRevSet,
+		help:            h,
+		keymap:          keymap{},
+		autoComplete:    autoComplete,
+		History:         []string{},
+		historyIndex:    -1,
+		MaxHistoryItems: 50,
 	}
 }
 
 func (m *Model) Init() tea.Cmd {
 	return nil
+}
+
+func (m *Model) AddToHistory(input string) {
+	if input == "" {
+		return
+	}
+
+	for i, item := range m.History {
+		if item == input {
+			m.History = append(m.History[:i], m.History[i+1:]...)
+			break
+		}
+	}
+
+	m.History = append([]string{input}, m.History...)
+
+	if len(m.History) > m.MaxHistoryItems && m.MaxHistoryItems > 0 {
+		m.History = m.History[:m.MaxHistoryItems]
+	}
+
+	m.historyIndex = -1
+	m.historyActive = false
+}
+
+func (m *Model) SetHistory(history []string) {
+	m.History = history
+	m.historyIndex = -1
+	m.historyActive = false
 }
 
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
@@ -82,10 +119,38 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		case tea.KeyEnter:
 			m.Editing = false
 			m.Value = m.autoComplete.Value()
+			m.AddToHistory(m.Value)
 			if m.Value == "" {
 				m.Value = m.defaultRevSet
 			}
 			return m, tea.Batch(common.Close, UpdateRevSet(m.Value))
+		case tea.KeyUp:
+			if len(m.History) > 0 {
+				if !m.historyActive {
+					m.currentInput = m.autoComplete.Value()
+					m.historyActive = true
+				}
+
+				if m.historyIndex < len(m.History)-1 {
+					m.historyIndex++
+					m.autoComplete.SetValue(m.History[m.historyIndex])
+					m.autoComplete.CursorEnd()
+				}
+				return m, nil
+			}
+		case tea.KeyDown:
+			if m.historyActive {
+				if m.historyIndex > 0 {
+					m.historyIndex--
+					m.autoComplete.SetValue(m.History[m.historyIndex])
+				} else {
+					m.historyIndex = -1
+					m.historyActive = false
+					m.autoComplete.SetValue(m.currentInput)
+				}
+				m.autoComplete.CursorEnd()
+				return m, nil
+			}
 		}
 	case UpdateRevSetMsg:
 		m.Editing = false
@@ -96,6 +161,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		if msg.Clear {
 			m.autoComplete.SetValue("")
 		}
+		m.historyActive = false
+		m.historyIndex = -1
 		return m, m.autoComplete.Init()
 	}
 

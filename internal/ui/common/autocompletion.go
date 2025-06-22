@@ -78,6 +78,10 @@ func (ac *AutoCompletionInput) Blur() {
 	ac.TextInput.Blur()
 }
 
+func (ac *AutoCompletionInput) CursorEnd() {
+	ac.TextInput.CursorEnd()
+}
+
 func (ac *AutoCompletionInput) Update(msg tea.Msg) (*AutoCompletionInput, tea.Cmd) {
 	prevValue := ac.TextInput.Value()
 
