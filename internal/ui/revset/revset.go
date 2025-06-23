@@ -115,9 +115,11 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			m.Editing = false
+			m.autoComplete.Blur()
 			return m, nil
 		case tea.KeyEnter:
 			m.Editing = false
+			m.autoComplete.Blur()
 			m.Value = m.autoComplete.Value()
 			m.AddToHistory(m.Value)
 			if m.Value == "" {

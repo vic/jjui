@@ -183,8 +183,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.status.SetWidth(m.width)
 	}
 
-	m.revsetModel, cmd = m.revsetModel.Update(msg)
-	cmds = append(cmds, cmd)
+	if m.revsetModel.Editing {
+		m.revsetModel, cmd = m.revsetModel.Update(msg)
+		cmds = append(cmds, cmd)
+	}
 
 	m.status, cmd = m.status.Update(msg)
 	cmds = append(cmds, cmd)
