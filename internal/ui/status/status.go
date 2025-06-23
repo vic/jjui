@@ -118,7 +118,9 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		return m, nil
 	default:
 		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
+		if m.running {
+			m.spinner, cmd = m.spinner.Update(msg)
+		}
 		return m, cmd
 	}
 }
