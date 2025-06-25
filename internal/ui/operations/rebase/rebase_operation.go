@@ -126,7 +126,7 @@ func (r *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 	if pos == operations.RenderBeforeChangeId {
 		changeId := commit.GetChangeId()
 		if slices.Contains(r.highlightedIds, changeId) {
-			return common.DefaultPalette.CompletionMatched.Render("<< included >> ")
+			return common.DefaultPalette.CompletionMatched.Render("included ")
 		}
 		return ""
 	}
