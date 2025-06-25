@@ -48,9 +48,9 @@ func (s *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 	sourceIds := s.from.GetIds()
 	if slices.Contains(sourceIds, commit.ChangeId) {
 		if s.keepEmptied {
-			return common.DefaultPalette.EmptyPlaceholder.Render("<< keep >> ")
+			return common.DefaultPalette.CompletionMatched.Render("keep emptied ")
 		} else {
-			return common.DefaultPalette.EmptyPlaceholder.Render("<< from >> ")
+			return common.DefaultPalette.CompletionMatched.Render("from ")
 		}
 	}
 	return ""
