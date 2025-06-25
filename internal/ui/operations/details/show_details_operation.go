@@ -11,10 +11,15 @@ import (
 
 type Operation struct {
 	Overlay tea.Model
+	Current *jj.Commit
 	keyMap  config.KeyMappings[key.Binding]
 }
 
-func (s Operation) ShortHelp() []key.Binding {
+func (s *Operation) SetSelectedRevision(commit *jj.Commit) {
+	s.Current = commit
+}
+
+func (s *Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
 		s.keyMap.Up,
 		s.keyMap.Down,
@@ -27,30 +32,30 @@ func (s Operation) ShortHelp() []key.Binding {
 	}
 }
 
-func (s Operation) FullHelp() [][]key.Binding {
+func (s *Operation) FullHelp() [][]key.Binding {
 	return [][]key.Binding{s.ShortHelp()}
 }
 
-func (s Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
+func (s *Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
 	var cmd tea.Cmd
 	s.Overlay, cmd = s.Overlay.Update(msg)
 	return s, cmd
 }
 
-func (s Operation) Render() string {
+func (s *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) string {
+	isSelected := s.Current != nil && s.Current.GetChangeId() == commit.GetChangeId()
+	if !isSelected || pos != operations.RenderPositionAfter {
+		return ""
+	}
 	return s.Overlay.View()
 }
 
-func (s Operation) RenderPosition() operations.RenderPosition {
-	return operations.RenderPositionAfter
-}
-
-func (s Operation) Name() string {
+func (s *Operation) Name() string {
 	return "details"
 }
 
 func NewOperation(context context.AppContext, selected *jj.Commit) (operations.Operation, tea.Cmd) {
-	op := Operation{
+	op := &Operation{
 		Overlay: New(context, selected.GetChangeId()),
 		keyMap:  context.KeyMap(),
 	}

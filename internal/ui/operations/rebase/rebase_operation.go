@@ -104,17 +104,21 @@ func (r *Operation) FullHelp() [][]key.Binding {
 	return [][]key.Binding{r.ShortHelp()}
 }
 
-func (r *Operation) RenderPosition() operations.RenderPosition {
-	if r.Target == TargetAfter {
-		return operations.RenderPositionBefore
+func (r *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) string {
+	expectedPos := operations.RenderPositionBefore
+	if r.Target == TargetBefore {
+		expectedPos = operations.RenderPositionAfter
 	}
-	if r.Target == TargetDestination {
-		return operations.RenderPositionBefore
-	}
-	return operations.RenderPositionAfter
-}
 
-func (r *Operation) Render() string {
+	if pos != expectedPos {
+		return ""
+	}
+
+	isSelected := r.To != nil && r.To.GetChangeId() == commit.GetChangeId()
+	if !isSelected {
+		return ""
+	}
+
 	var source string
 	isMany := len(r.From.Revisions) > 0
 	switch {

@@ -16,8 +16,7 @@ const (
 )
 
 type Operation interface {
-	RenderPosition() RenderPosition
-	Render() string
+	Render(commit *jj.Commit, renderPosition RenderPosition) string
 	Name() string
 }
 

@@ -18,27 +18,16 @@ type DefaultRowDecorator struct {
 	Width               int
 }
 
-func (s *DefaultRowDecorator) RenderBefore(*jj.Commit) string {
-	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionBefore {
-		return s.Op.Render()
-	}
-	return ""
+func (s *DefaultRowDecorator) RenderBefore(commit *jj.Commit) string {
+	return s.Op.Render(commit, operations.RenderPositionBefore)
 }
 
-func (s *DefaultRowDecorator) RenderAfter(*jj.Commit) string {
-	if s.IsHighlighted && s.Op.RenderPosition() == operations.RenderPositionAfter {
-		return s.Op.Render()
-	}
-	return ""
+func (s *DefaultRowDecorator) RenderAfter(commit *jj.Commit) string {
+	return s.Op.Render(commit, operations.RenderPositionAfter)
 }
 
-func (s *DefaultRowDecorator) RenderBeforeChangeId() string {
-	opMarker := ""
-	if s.IsHighlighted {
-		if s.Op.RenderPosition() == operations.RenderBeforeChangeId {
-			opMarker = s.Op.Render()
-		}
-	}
+func (s *DefaultRowDecorator) RenderBeforeChangeId(commit *jj.Commit) string {
+	opMarker := s.Op.Render(commit, operations.RenderBeforeChangeId)
 	selectedMarker := ""
 	if s.IsSelected {
 		if s.IsHighlighted {
@@ -50,9 +39,6 @@ func (s *DefaultRowDecorator) RenderBeforeChangeId() string {
 	return opMarker + selectedMarker
 }
 
-func (s *DefaultRowDecorator) RenderBeforeCommitId() string {
-	if s.Op.RenderPosition() == operations.RenderBeforeCommitId {
-		return s.Op.Render()
-	}
-	return ""
+func (s *DefaultRowDecorator) RenderBeforeCommitId(commit *jj.Commit) string {
+	return s.Op.Render(commit, operations.RenderBeforeCommitId)
 }

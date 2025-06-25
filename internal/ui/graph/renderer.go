@@ -84,12 +84,12 @@ func RenderRow(r io.Writer, row Row, renderer DefaultRowDecorator) {
 		lw := strings.Builder{}
 		for i, segment := range segmentedLine.Segments {
 			if i == segmentedLine.ChangeIdIdx {
-				if decoration := renderer.RenderBeforeChangeId(); decoration != "" {
+				if decoration := renderer.RenderBeforeChangeId(row.Commit); decoration != "" {
 					fmt.Fprint(&lw, decoration)
 				}
 			}
 			if renderer.IsHighlighted && i == segmentedLine.CommitIdIdx {
-				if decoration := renderer.RenderBeforeCommitId(); decoration != "" {
+				if decoration := renderer.RenderBeforeCommitId(row.Commit); decoration != "" {
 					fmt.Fprint(&lw, decoration)
 				}
 			}

@@ -3,6 +3,7 @@ package operations
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/config"
+	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/context"
 )
 
@@ -18,11 +19,7 @@ func (n *Default) FullHelp() [][]key.Binding {
 	return [][]key.Binding{n.ShortHelp()}
 }
 
-func (n *Default) RenderPosition() RenderPosition {
-	return RenderPositionNil
-}
-
-func (n *Default) Render() string {
+func (n *Default) Render(*jj.Commit, RenderPosition) string {
 	return ""
 }
 

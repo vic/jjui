@@ -14,24 +14,29 @@ import (
 
 type Operation struct {
 	model   tea.Model
+	current *jj.Commit
 	context context.AppContext
 }
 
-func (a Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
+func (a *Operation) SetSelectedRevision(commit *jj.Commit) {
+	a.current = commit
+}
+
+func (a *Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
 	var cmd tea.Cmd
 	a.model, cmd = a.model.Update(msg)
 	return a, cmd
 }
 
-func (a Operation) RenderPosition() operations.RenderPosition {
-	return operations.RenderPositionAfter
-}
-
-func (a Operation) Render() string {
+func (a *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) string {
+	isSelected := commit != nil && commit.GetChangeId() == a.current.GetChangeId()
+	if !isSelected || pos != operations.RenderPositionAfter {
+		return ""
+	}
 	return a.model.View()
 }
 
-func (a Operation) Name() string {
+func (a *Operation) Name() string {
 	return "abandon"
 }
 
@@ -52,7 +57,7 @@ func NewOperation(context context.AppContext, selectedRevisions jj.SelectedRevis
 	model.AddOption("Yes", context.RunCommand(jj.Abandon(selectedRevisions), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))
 
-	op := Operation{
+	op := &Operation{
 		model: &model,
 	}
 	return op

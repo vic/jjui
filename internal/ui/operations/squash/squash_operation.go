@@ -1,6 +1,8 @@
 package squash
 
 import (
+	"slices"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/config"
@@ -31,12 +33,20 @@ func (s *Operation) SetSelectedRevision(commit *jj.Commit) {
 	s.Current = commit
 }
 
-func (s *Operation) Render() string {
-	return common.DefaultPalette.Drop.Render("<< into >>")
-}
+func (s *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) string {
+	if pos != operations.RenderBeforeChangeId {
+		return ""
+	}
 
-func (s *Operation) RenderPosition() operations.RenderPosition {
-	return operations.RenderBeforeChangeId
+	isSelected := s.Current != nil && s.Current.GetChangeId() == commit.GetChangeId()
+	if isSelected {
+		return common.DefaultPalette.Drop.Render("<< into >> ")
+	}
+	sourceIds := s.From.GetIds()
+	if slices.Contains(sourceIds, commit.ChangeId) {
+		return common.DefaultPalette.EmptyPlaceholder.Render("<< from >> ")
+	}
+	return ""
 }
 
 func (s *Operation) Name() string {

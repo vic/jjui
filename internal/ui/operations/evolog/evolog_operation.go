@@ -25,7 +25,7 @@ type updateEvologMsg struct {
 
 type Operation struct {
 	context   context.AppContext
-	revision  string
+	revision  *jj.Commit
 	rows      []graph.Row
 	viewRange *viewRange
 	cursor    int
@@ -34,15 +34,15 @@ type Operation struct {
 	keyMap    config.KeyMappings[key.Binding]
 }
 
-func (o Operation) ShortHelp() []key.Binding {
+func (o *Operation) ShortHelp() []key.Binding {
 	return []key.Binding{o.keyMap.Up, o.keyMap.Down, o.keyMap.Cancel, o.keyMap.Diff}
 }
 
-func (o Operation) FullHelp() [][]key.Binding {
+func (o *Operation) FullHelp() [][]key.Binding {
 	return [][]key.Binding{o.ShortHelp()}
 }
 
-func (o Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
+func (o *Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
 	switch msg := msg.(type) {
 	case updateEvologMsg:
 		o.rows = msg.rows
@@ -70,7 +70,7 @@ func (o Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd
 	return o, o.updateSelection()
 }
 
-func (o Operation) updateSelection() tea.Cmd {
+func (o *Operation) updateSelection() tea.Cmd {
 	if o.rows == nil {
 		return nil
 	}
@@ -78,11 +78,12 @@ func (o Operation) updateSelection() tea.Cmd {
 	return o.context.SetSelectedItem(context.SelectedRevision{ChangeId: o.rows[o.cursor].Commit.CommitId})
 }
 
-func (o Operation) RenderPosition() operations.RenderPosition {
-	return operations.RenderPositionAfter
-}
+func (o *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) string {
+	isSelected := commit.GetChangeId() == o.revision.GetChangeId()
+	if !isSelected || pos != operations.RenderPositionAfter {
+		return ""
+	}
 
-func (o Operation) Render() string {
 	if len(o.rows) == 0 {
 		return "loading"
 	}
@@ -128,21 +129,21 @@ func (o Operation) Render() string {
 	return content
 }
 
-func (o Operation) Name() string {
+func (o *Operation) Name() string {
 	return "evolog"
 }
 
-func (o Operation) load() tea.Msg {
-	output, _ := o.context.RunCommandImmediate(jj.Evolog(o.revision))
+func (o *Operation) load() tea.Msg {
+	output, _ := o.context.RunCommandImmediate(jj.Evolog(o.revision.GetChangeId()))
 	rows := graph.ParseRows(bytes.NewReader(output))
 	return updateEvologMsg{
 		rows: rows,
 	}
 }
 
-func NewOperation(context context.AppContext, revision string, width int, height int) (*Operation, tea.Cmd) {
+func NewOperation(context context.AppContext, revision *jj.Commit, width int, height int) (operations.Operation, tea.Cmd) {
 	v := viewRange{start: 0, end: 0}
-	o := Operation{
+	o := &Operation{
 		context:   context,
 		keyMap:    context.KeyMap(),
 		revision:  revision,
@@ -152,5 +153,5 @@ func NewOperation(context context.AppContext, revision string, width int, height
 		width:     width,
 		height:    height,
 	}
-	return &o, o.load
+	return o, o.load
 }

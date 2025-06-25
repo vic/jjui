@@ -48,12 +48,11 @@ func (s SetBookmarkOperation) Update(msg tea.Msg) (operations.OperationWithOverl
 	return s, cmd
 }
 
-func (s SetBookmarkOperation) Render() string {
+func (s SetBookmarkOperation) Render(_ *jj.Commit, pos operations.RenderPosition) string {
+	if pos != operations.RenderBeforeCommitId {
+		return ""
+	}
 	return s.name.View()
-}
-
-func (s SetBookmarkOperation) RenderPosition() operations.RenderPosition {
-	return operations.RenderBeforeCommitId
 }
 
 func (s SetBookmarkOperation) Name() string {
