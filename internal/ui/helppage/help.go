@@ -107,7 +107,9 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.Details.Mode),
 		printHelp(h.keyMap.Evolog),
 		printHelp(h.keyMap.Bookmark.Set),
-		"",
+	)
+
+	middleView := lipgloss.JoinVertical(lipgloss.Left,
 		printMode(h.keyMap.Preview.Mode, "Preview"),
 		printHelp(h.keyMap.Preview.ScrollUp),
 		printHelp(h.keyMap.Preview.ScrollDown),
@@ -115,9 +117,7 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.Preview.HalfPageUp),
 		printHelp(h.keyMap.Preview.Expand),
 		printHelp(h.keyMap.Preview.Shrink),
-	)
-
-	rightView := lipgloss.JoinVertical(lipgloss.Left,
+		"",
 		printMode(h.keyMap.Details.Mode, "Details"),
 		printHelp(h.keyMap.Details.Close),
 		printHelp(h.keyMap.Details.ToggleSelect),
@@ -136,7 +136,9 @@ func (h *Model) View() string {
 		printHelp(h.keyMap.Bookmark.Untrack),
 		printHelp(h.keyMap.Bookmark.Track),
 		printHelp(h.keyMap.Bookmark.Forget),
-		"",
+	)
+
+	rightView := lipgloss.JoinVertical(lipgloss.Left,
 		printMode(h.keyMap.Squash.Mode, "Squash"),
 		printHelp(h.keyMap.Squash.KeepEmptied),
 		"",
@@ -169,7 +171,7 @@ func (h *Model) View() string {
 		)
 	}
 
-	content := lipgloss.JoinHorizontal(lipgloss.Left, leftView, "  ", rightView)
+	content := lipgloss.JoinHorizontal(lipgloss.Left, leftView, "  ", middleView, "  ", rightView)
 
 	return border.Render(content)
 }
