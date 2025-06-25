@@ -310,7 +310,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				}
 			case key.Matches(msg, m.keymap.Refresh):
 				cmd = common.Refresh
-			case key.Matches(msg, m.keymap.Squash):
+			case key.Matches(msg, m.keymap.Squash.Mode):
 				selectedRevisions := m.SelectedRevisions()
 				parent, _ := m.context.RunCommandImmediate(jj.GetParent(selectedRevisions))
 				parentIdx := m.selectRevision(string(parent))

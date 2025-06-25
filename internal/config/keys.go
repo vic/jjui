@@ -26,7 +26,6 @@ var DefaultKeyMappings = KeyMappings[keys]{
 	Diffedit:          []string{"E"},
 	Absorb:            []string{"A"},
 	Split:             []string{"s"},
-	Squash:            []string{"S"},
 	Evolog:            []string{"v"},
 	Help:              []string{"?"},
 	Revset:            []string{"L"},
@@ -43,6 +42,10 @@ var DefaultKeyMappings = KeyMappings[keys]{
 		Before:   []string{"b"},
 		Onto:     []string{"d"},
 		Insert:   []string{"i"},
+	},
+	Squash: squashModeKeys[keys]{
+		Mode:        []string{"S"},
+		KeepEmptied: []string{"e"},
 	},
 	Details: detailsModeKeys[keys]{
 		Mode:                  []string{"l"},
@@ -103,7 +106,6 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 		Diffedit:          key.NewBinding(key.WithKeys(m.Diffedit...), key.WithHelp(JoinKeys(m.Diffedit), "diff edit")),
 		Absorb:            key.NewBinding(key.WithKeys(m.Absorb...), key.WithHelp(JoinKeys(m.Absorb), "absorb")),
 		Split:             key.NewBinding(key.WithKeys(m.Split...), key.WithHelp(JoinKeys(m.Split), "split")),
-		Squash:            key.NewBinding(key.WithKeys(m.Squash...), key.WithHelp(JoinKeys(m.Squash), "squash")),
 		Help:              key.NewBinding(key.WithKeys(m.Help...), key.WithHelp(JoinKeys(m.Help), "help")),
 		Evolog:            key.NewBinding(key.WithKeys(m.Evolog...), key.WithHelp(JoinKeys(m.Evolog), "evolog")),
 		Revset:            key.NewBinding(key.WithKeys(m.Revset...), key.WithHelp(JoinKeys(m.Revset), "revset")),
@@ -120,6 +122,10 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 			Before:   key.NewBinding(key.WithKeys(m.Rebase.Before...), key.WithHelp(JoinKeys(m.Rebase.Before), "insert before")),
 			Onto:     key.NewBinding(key.WithKeys(m.Rebase.Onto...), key.WithHelp(JoinKeys(m.Rebase.Onto), "onto")),
 			Insert:   key.NewBinding(key.WithKeys(m.Rebase.Insert...), key.WithHelp(JoinKeys(m.Rebase.Insert), "insert between")),
+		},
+		Squash: squashModeKeys[key.Binding]{
+			Mode:        key.NewBinding(key.WithKeys(m.Squash.Mode...), key.WithHelp(JoinKeys(m.Squash.Mode), "squash")),
+			KeepEmptied: key.NewBinding(key.WithKeys(m.Squash.KeepEmptied...), key.WithHelp(JoinKeys(m.Squash.KeepEmptied), "keep emptied commits")),
 		},
 		Details: detailsModeKeys[key.Binding]{
 			Mode:                  key.NewBinding(key.WithKeys(m.Details.Mode...), key.WithHelp(JoinKeys(m.Details.Mode), "details")),
@@ -203,7 +209,6 @@ type KeyMappings[T any] struct {
 	Diffedit          T                   `toml:"diffedit"`
 	Absorb            T                   `toml:"absorb"`
 	Split             T                   `toml:"split"`
-	Squash            T                   `toml:"squash"`
 	Undo              T                   `toml:"undo"`
 	Evolog            T                   `toml:"evolog"`
 	Revset            T                   `toml:"revset"`
@@ -212,6 +217,7 @@ type KeyMappings[T any] struct {
 	CustomCommands    T                   `toml:"custom_commands"`
 	Suspend           T                   `toml:"suspend"`
 	Rebase            rebaseModeKeys[T]   `toml:"rebase"`
+	Squash            squashModeKeys[T]   `toml:"squash"`
 	Details           detailsModeKeys[T]  `toml:"details"`
 	Preview           previewModeKeys[T]  `toml:"preview"`
 	Bookmark          bookmarkModeKeys[T] `toml:"bookmark"`
@@ -227,6 +233,11 @@ type bookmarkModeKeys[T any] struct {
 	Forget  T `toml:"forget"`
 	Track   T `toml:"track"`
 	Untrack T `toml:"untrack"`
+}
+
+type squashModeKeys[T any] struct {
+	Mode        T `toml:"mode"`
+	KeepEmptied T `toml:"keep_emptied"`
 }
 
 type rebaseModeKeys[T any] struct {

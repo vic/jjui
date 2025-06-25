@@ -13,24 +13,27 @@ import (
 )
 
 type Operation struct {
-	context context.AppContext
-	From    jj.SelectedRevisions
-	Current *jj.Commit
-	keyMap  config.KeyMappings[key.Binding]
+	context     context.AppContext
+	from        jj.SelectedRevisions
+	current     *jj.Commit
+	keyMap      config.KeyMappings[key.Binding]
+	keepEmptied bool
 }
 
 func (s *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, s.keyMap.Apply):
-		return tea.Batch(common.Close, s.context.RunInteractiveCommand(jj.Squash(s.From, s.Current.ChangeId), common.Refresh))
+		return tea.Batch(common.Close, s.context.RunInteractiveCommand(jj.Squash(s.from, s.current.ChangeId, s.keepEmptied), common.Refresh))
 	case key.Matches(msg, s.keyMap.Cancel):
 		return common.Close
+	case key.Matches(msg, s.keyMap.Squash.KeepEmptied):
+		s.keepEmptied = !s.keepEmptied
 	}
 	return nil
 }
 
 func (s *Operation) SetSelectedRevision(commit *jj.Commit) {
-	s.Current = commit
+	s.current = commit
 }
 
 func (s *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) string {
@@ -38,13 +41,17 @@ func (s *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 		return ""
 	}
 
-	isSelected := s.Current != nil && s.Current.GetChangeId() == commit.GetChangeId()
+	isSelected := s.current != nil && s.current.GetChangeId() == commit.GetChangeId()
 	if isSelected {
 		return common.DefaultPalette.Drop.Render("<< into >> ")
 	}
-	sourceIds := s.From.GetIds()
+	sourceIds := s.from.GetIds()
 	if slices.Contains(sourceIds, commit.ChangeId) {
-		return common.DefaultPalette.EmptyPlaceholder.Render("<< from >> ")
+		if s.keepEmptied {
+			return common.DefaultPalette.EmptyPlaceholder.Render("<< keep >> ")
+		} else {
+			return common.DefaultPalette.EmptyPlaceholder.Render("<< from >> ")
+		}
 	}
 	return ""
 }
@@ -57,6 +64,7 @@ func (s *Operation) ShortHelp() []key.Binding {
 	return []key.Binding{
 		s.keyMap.Apply,
 		s.keyMap.Cancel,
+		s.keyMap.Squash.KeepEmptied,
 	}
 }
 
@@ -68,6 +76,6 @@ func NewOperation(context context.AppContext, from jj.SelectedRevisions) *Operat
 	return &Operation{
 		context: context,
 		keyMap:  context.KeyMap(),
-		From:    from,
+		from:    from,
 	}
 }
