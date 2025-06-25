@@ -220,3 +220,7 @@ func GetParent(revisions SelectedRevisions) CommandArgs {
 	args = append(args, "-n", "1", "--color", "never", "--no-graph", "--quiet", "--ignore-working-copy", "--template", "commit_id.shortest()")
 	return args
 }
+
+func GetIdsFromRevset(revset string) CommandArgs {
+	return []string{"log", "-r", revset, "--color", "never", "--no-graph", "--quiet", "--ignore-working-copy", "--template", "change_id.shortest() ++ '\n'"}
+}

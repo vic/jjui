@@ -1,6 +1,8 @@
 package rebase
 
 import (
+	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -44,13 +46,14 @@ var (
 )
 
 type Operation struct {
-	context     context.AppContext
-	From        jj.SelectedRevisions
-	InsertStart *jj.Commit
-	To          *jj.Commit
-	Source      Source
-	Target      Target
-	keyMap      config.KeyMappings[key.Binding]
+	context        context.AppContext
+	From           jj.SelectedRevisions
+	InsertStart    *jj.Commit
+	To             *jj.Commit
+	Source         Source
+	Target         Target
+	keyMap         config.KeyMappings[key.Binding]
+	highlightedIds []string
 }
 
 func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
@@ -85,7 +88,22 @@ func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 }
 
 func (r *Operation) SetSelectedRevision(commit *jj.Commit) {
+	r.highlightedIds = nil
 	r.To = commit
+	revset := ""
+	switch r.Source {
+	case SourceRevision:
+		r.highlightedIds = r.From.GetIds()
+		return
+	case SourceBranch:
+		revset = fmt.Sprintf("(%s..(%s))::", r.To.GetChangeId(), strings.Join(r.From.GetIds(), "|"))
+	case SourceDescendants:
+		revset = fmt.Sprintf("(%s)::", strings.Join(r.From.GetIds(), "|"))
+	}
+	if output, err := r.context.RunCommandImmediate(jj.GetIdsFromRevset(revset)); err == nil {
+		ids := strings.Split(strings.TrimSpace(string(output)), "\n")
+		r.highlightedIds = ids
+	}
 }
 
 func (r *Operation) ShortHelp() []key.Binding {
@@ -105,6 +123,13 @@ func (r *Operation) FullHelp() [][]key.Binding {
 }
 
 func (r *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) string {
+	if pos == operations.RenderBeforeChangeId {
+		changeId := commit.GetChangeId()
+		if slices.Contains(r.highlightedIds, changeId) {
+			return common.DefaultPalette.CompletionMatched.Render("<< included >> ")
+		}
+		return ""
+	}
 	expectedPos := operations.RenderPositionBefore
 	if r.Target == TargetBefore {
 		expectedPos = operations.RenderPositionAfter
