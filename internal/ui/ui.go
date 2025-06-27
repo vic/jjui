@@ -173,6 +173,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(m.scheduleAutoRefresh(), func() tea.Msg {
 			return common.AutoRefreshMsg{}
 		})
+	case revset.UpdateRevSetMsg:
+		var revsetCmd tea.Cmd
+		m.revsetModel, revsetCmd = m.revsetModel.Update(msg)
+		var revisionsCmd tea.Cmd
+		m.revisions, revisionsCmd = m.revisions.Update(msg)
+		return m, tea.Batch(revsetCmd, revisionsCmd)
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height

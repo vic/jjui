@@ -157,6 +157,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case UpdateRevSetMsg:
 		m.Editing = false
 		m.Value = string(msg)
+		m.AddToHistory(m.Value)
 	case EditRevSetMsg:
 		m.Editing = true
 		m.autoComplete.Focus()
