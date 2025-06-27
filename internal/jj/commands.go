@@ -111,12 +111,15 @@ func BookmarkUntrack(name string) CommandArgs {
 	return []string{"bookmark", "untrack", name}
 }
 
-func Squash(from SelectedRevisions, destination string, keepEmptied bool) CommandArgs {
+func Squash(from SelectedRevisions, destination string, keepEmptied bool, interactive bool) CommandArgs {
 	args := []string{"squash"}
 	args = append(args, from.AsPrefixedArgs("--from")...)
 	args = append(args, "--into", destination)
 	if keepEmptied {
 		args = append(args, "--keep-emptied")
+	}
+	if interactive {
+		args = append(args, "--interactive")
 	}
 	return args
 }

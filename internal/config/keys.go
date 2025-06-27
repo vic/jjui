@@ -46,6 +46,7 @@ var DefaultKeyMappings = KeyMappings[keys]{
 	Squash: squashModeKeys[keys]{
 		Mode:        []string{"S"},
 		KeepEmptied: []string{"e"},
+		Interactive: []string{"i"},
 	},
 	Details: detailsModeKeys[keys]{
 		Mode:                  []string{"l"},
@@ -126,6 +127,7 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 		Squash: squashModeKeys[key.Binding]{
 			Mode:        key.NewBinding(key.WithKeys(m.Squash.Mode...), key.WithHelp(JoinKeys(m.Squash.Mode), "squash")),
 			KeepEmptied: key.NewBinding(key.WithKeys(m.Squash.KeepEmptied...), key.WithHelp(JoinKeys(m.Squash.KeepEmptied), "keep emptied commits")),
+			Interactive: key.NewBinding(key.WithKeys(m.Squash.Interactive...), key.WithHelp(JoinKeys(m.Squash.Interactive), "interactive")),
 		},
 		Details: detailsModeKeys[key.Binding]{
 			Mode:                  key.NewBinding(key.WithKeys(m.Details.Mode...), key.WithHelp(JoinKeys(m.Details.Mode), "details")),
@@ -238,6 +240,7 @@ type bookmarkModeKeys[T any] struct {
 type squashModeKeys[T any] struct {
 	Mode        T `toml:"mode"`
 	KeepEmptied T `toml:"keep_emptied"`
+	Interactive T `toml:"interactive"`
 }
 
 type rebaseModeKeys[T any] struct {

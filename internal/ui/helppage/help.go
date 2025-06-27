@@ -141,6 +141,7 @@ func (h *Model) View() string {
 	rightView := lipgloss.JoinVertical(lipgloss.Left,
 		printMode(h.keyMap.Squash.Mode, "Squash"),
 		printHelp(h.keyMap.Squash.KeepEmptied),
+		printHelp(h.keyMap.Squash.Interactive),
 		"",
 		printMode(h.keyMap.Rebase.Mode, "Rebase"),
 		printHelp(h.keyMap.Rebase.Revision),

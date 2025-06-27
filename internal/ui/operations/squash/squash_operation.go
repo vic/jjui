@@ -18,16 +18,19 @@ type Operation struct {
 	current     *jj.Commit
 	keyMap      config.KeyMappings[key.Binding]
 	keepEmptied bool
+	interactive bool
 }
 
 func (s *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, s.keyMap.Apply):
-		return tea.Batch(common.Close, s.context.RunInteractiveCommand(jj.Squash(s.from, s.current.ChangeId, s.keepEmptied), common.Refresh))
+		return tea.Batch(common.Close, s.context.RunInteractiveCommand(jj.Squash(s.from, s.current.ChangeId, s.keepEmptied, s.interactive), common.Refresh))
 	case key.Matches(msg, s.keyMap.Cancel):
 		return common.Close
 	case key.Matches(msg, s.keyMap.Squash.KeepEmptied):
 		s.keepEmptied = !s.keepEmptied
+	case key.Matches(msg, s.keyMap.Squash.Interactive):
+		s.interactive = !s.interactive
 	}
 	return nil
 }
@@ -47,11 +50,14 @@ func (s *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 	}
 	sourceIds := s.from.GetIds()
 	if slices.Contains(sourceIds, commit.ChangeId) {
+		marker := "from "
 		if s.keepEmptied {
-			return common.DefaultPalette.CompletionMatched.Render("keep emptied ")
-		} else {
-			return common.DefaultPalette.CompletionMatched.Render("from ")
+			marker = "keep emptied "
 		}
+		if s.interactive {
+			marker += "(interactive) "
+		}
+		return common.DefaultPalette.CompletionMatched.Render(marker)
 	}
 	return ""
 }
@@ -65,6 +71,7 @@ func (s *Operation) ShortHelp() []key.Binding {
 		s.keyMap.Apply,
 		s.keyMap.Cancel,
 		s.keyMap.Squash.KeepEmptied,
+		s.keyMap.Squash.Interactive,
 	}
 }
 
