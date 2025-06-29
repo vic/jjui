@@ -163,7 +163,9 @@ func NewAppContext(location string) AppContext {
 
 	m.JJConfig = &jj.Config{}
 	if output, err := m.RunCommandImmediate(jj.ConfigListAll()); err == nil {
-		m.JJConfig, _ = jj.DefaultConfig(output)
+		if m.JJConfig, err = jj.DefaultConfig(output); err == nil {
+			common.DefaultPalette.Update(m.JJConfig.Colors)
+		}
 	}
 	return m
 }

@@ -1,6 +1,9 @@
 package common
 
 import (
+	"github.com/idursun/jjui/internal/jj"
+	"strconv"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -63,4 +66,94 @@ type Palette struct {
 	Drop               lipgloss.Style
 	CompletionMatched  lipgloss.Style
 	CompletionSelected lipgloss.Style
+}
+
+type jjStyleMap map[string]jj.Color
+
+func (p *Palette) Update(jjStyles jjStyleMap) {
+	if style, ok := jjStyles.createStyleFrom("change_id"); ok {
+		p.ChangeId = style
+	}
+	if style, ok := jjStyles.createStyleFrom("rest"); ok {
+		p.Dimmed = style
+	}
+	if style, ok := jjStyles.createStyleFrom("diff renamed"); ok {
+		p.Renamed = style
+	}
+	if style, ok := jjStyles.createStyleFrom("diff modified"); ok {
+		p.Modified = style
+	}
+	if style, ok := jjStyles.createStyleFrom("diff removed"); ok {
+		p.Deleted = style
+	}
+}
+
+func (p jjStyleMap) createStyleFrom(name string) (lipgloss.Style, bool) {
+	if color, ok := p[name]; ok {
+		style := lipgloss.NewStyle()
+		if color.Fg != "" {
+			style = style.Foreground(parseColor(color.Fg))
+		}
+		if color.Bg != "" {
+			style = style.Background(parseColor(color.Bg))
+		}
+		if color.Bold {
+			style = style.Bold(true)
+		}
+		if color.Underline {
+			style = style.Underline(true)
+		}
+		return style, true
+	}
+	return lipgloss.NewStyle(), false
+}
+
+func parseColor(color string) lipgloss.Color {
+	// if it's a hex color, return it directly
+	if len(color) == 7 && color[0] == '#' {
+		return lipgloss.Color(color)
+	}
+	// if it's an ANSI256 color, return it directly
+	if v, err := strconv.Atoi(color); err == nil {
+		if v >= 0 && v <= 255 {
+			return lipgloss.Color(color)
+		}
+	}
+	// otherwise, try to parse it as a named color
+	switch color {
+	case "black":
+		return "0"
+	case "red":
+		return "1"
+	case "green":
+		return "2"
+	case "yellow":
+		return "3"
+	case "blue":
+		return "4"
+	case "magenta":
+		return "5"
+	case "cyan":
+		return "6"
+	case "white":
+		return "7"
+	case "bright black":
+		return "8"
+	case "bright red":
+		return "9"
+	case "bright green":
+		return "10"
+	case "bright yellow":
+		return "11"
+	case "bright blue":
+		return "12"
+	case "bright magenta":
+		return "13"
+	case "bright cyan":
+		return "14"
+	case "bright white":
+		return "15"
+	default:
+		return ""
+	}
 }
