@@ -91,7 +91,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	appContext := context.NewAppContext(rootLocation)
 	if len(os.Getenv("DEBUG")) > 0 {
 		f, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {
@@ -102,6 +101,7 @@ func main() {
 	} else {
 		log.SetOutput(io.Discard)
 	}
+	appContext := context.NewAppContext(rootLocation)
 
 	p := tea.NewProgram(ui.New(appContext, revset), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/config"
+	"github.com/idursun/jjui/internal/jj"
 	appContext "github.com/idursun/jjui/internal/ui/context"
 	"io"
 	"testing"
@@ -29,6 +30,10 @@ type TestContext struct {
 	*testing.T
 	selectedItem appContext.SelectedItem
 	expectations map[string][]*ExpectedCommand
+}
+
+func (t *TestContext) GetConfig() *jj.Config {
+	return &jj.Config{}
 }
 
 func (t *TestContext) Location() string {

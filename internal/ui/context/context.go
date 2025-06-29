@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/config"
+	"github.com/idursun/jjui/internal/jj"
 	"io"
 	"log"
 	"os"
@@ -22,6 +23,7 @@ type AppContext interface {
 	RunCommandStreaming(ctx context.Context, args []string) (*StreamingCommand, error)
 	RunCommand(args []string, continuations ...tea.Cmd) tea.Cmd
 	RunInteractiveCommand(args []string, continuation tea.Cmd) tea.Cmd
+	GetConfig() *jj.Config
 }
 
 type StreamingCommand struct {

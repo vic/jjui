@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/config"
+	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"log"
 	"os/exec"
@@ -53,6 +54,11 @@ type MainContext struct {
 	selectedItem SelectedItem
 	location     string
 	config       *config.Config
+	JJConfig     *jj.Config
+}
+
+func (a *MainContext) GetConfig() *jj.Config {
+	return a.JJConfig
 }
 
 func (a *MainContext) Location() string {
@@ -149,8 +155,15 @@ func NewAppContext(location string) AppContext {
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
-	return &MainContext{
+
+	m := &MainContext{
 		location: location,
 		config:   configuration,
 	}
+
+	m.JJConfig = &jj.Config{}
+	if output, err := m.RunCommandImmediate(jj.ConfigListAll()); err == nil {
+		m.JJConfig, _ = jj.DefaultConfig(output)
+	}
+	return m
 }

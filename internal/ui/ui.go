@@ -8,7 +8,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/config"
-	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/screen"
 	"github.com/idursun/jjui/internal/ui/bookmarks"
 	"github.com/idursun/jjui/internal/ui/common"
@@ -311,8 +310,8 @@ func (m Model) isSafeToQuit() bool {
 
 func New(c context.AppContext, initialRevset string) tea.Model {
 	if initialRevset == "" {
-		defaultRevset, _ := c.RunCommandImmediate(jj.ConfigGet("revsets.log"))
-		initialRevset = string(defaultRevset)
+		defaultRevset := c.GetConfig().Revsets.Log
+		initialRevset = defaultRevset
 	}
 	revisionsModel := revisions.New(c, initialRevset)
 	previewModel := preview.New(c)
@@ -326,6 +325,6 @@ func New(c context.AppContext, initialRevset string) tea.Model {
 		previewVisible:          config.Current.Preview.ShowAtStart,
 		previewWindowPercentage: config.Current.Preview.WidthPercentage,
 		status:                  &statusModel,
-		revsetModel:             revset.New(initialRevset),
+		revsetModel:             revset.New(c, initialRevset),
 	}
 }
