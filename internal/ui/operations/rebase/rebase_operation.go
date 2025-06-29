@@ -128,10 +128,16 @@ func (r *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 		if slices.Contains(r.highlightedIds, changeId) {
 			return common.DefaultPalette.CompletionMatched.Render("included ")
 		}
+		if r.Target == TargetInsert && r.InsertStart.GetChangeId() == commit.GetChangeId() {
+			return common.DefaultPalette.CompletionMatched.Render("after ")
+		}
+		if r.Target == TargetInsert && r.To.GetChangeId() == commit.GetChangeId() {
+			return common.DefaultPalette.CompletionMatched.Render("before ")
+		}
 		return ""
 	}
 	expectedPos := operations.RenderPositionBefore
-	if r.Target == TargetBefore {
+	if r.Target == TargetBefore || r.Target == TargetInsert {
 		expectedPos = operations.RenderPositionAfter
 	}
 
