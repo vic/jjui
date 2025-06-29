@@ -6,7 +6,7 @@ import (
 )
 
 func TestGetLastToken(t *testing.T) {
-	provider := NewCompletionProvider()
+	provider := NewCompletionProvider(nil)
 	tests := []struct {
 		input         string
 		expectedIndex int
@@ -41,7 +41,7 @@ func TestSignatureHelp(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
-			provider := NewCompletionProvider()
+			provider := NewCompletionProvider(nil)
 			help := provider.GetSignatureHelp(test.input)
 			assert.Equal(t, test.expected, help != "")
 			if test.expected {
@@ -65,7 +65,7 @@ func TestGetCompletions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
-			provider := NewCompletionProvider()
+			provider := NewCompletionProvider(nil)
 			suggestions := provider.GetCompletions(test.input)
 			found := false
 			for _, suggestion := range suggestions {

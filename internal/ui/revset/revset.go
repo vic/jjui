@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/ui/common"
+	appContext "github.com/idursun/jjui/internal/ui/context"
 )
 
 type EditRevSetMsg struct {
@@ -24,6 +25,7 @@ type Model struct {
 	currentInput    string
 	historyActive   bool
 	MaxHistoryItems int
+	context         appContext.AppContext
 }
 
 func (m *Model) IsFocused() bool {
@@ -46,8 +48,9 @@ func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{k.ShortHelp()}
 }
 
-func New(defaultRevSet string) *Model {
-	completionProvider := NewCompletionProvider()
+func New(context appContext.AppContext, defaultRevSet string) *Model {
+	revsetAliases := context.GetConfig().RevsetAliases
+	completionProvider := NewCompletionProvider(revsetAliases)
 	autoComplete := common.NewAutoCompletionInput(completionProvider)
 	autoComplete.SetPrompt("revset: ")
 	autoComplete.PromptStyle = common.DefaultPalette.ChangeId
@@ -62,6 +65,7 @@ func New(defaultRevSet string) *Model {
 	h.Styles.ShortDesc = common.DefaultPalette.Dimmed
 
 	return &Model{
+		context:         context,
 		Editing:         false,
 		Value:           defaultRevSet,
 		defaultRevSet:   defaultRevSet,
