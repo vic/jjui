@@ -25,7 +25,7 @@ type Model struct {
 	currentInput    string
 	historyActive   bool
 	MaxHistoryItems int
-	context         appContext.AppContext
+	context         *appContext.MainContext
 }
 
 func (m *Model) IsFocused() bool {
@@ -48,8 +48,8 @@ func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{k.ShortHelp()}
 }
 
-func New(context appContext.AppContext, defaultRevSet string) *Model {
-	revsetAliases := context.GetConfig().RevsetAliases
+func New(context *appContext.MainContext, defaultRevSet string) *Model {
+	revsetAliases := context.JJConfig.RevsetAliases
 	completionProvider := NewCompletionProvider(revsetAliases)
 	autoComplete := common.NewAutoCompletionInput(completionProvider)
 	autoComplete.SetPrompt("revset: ")

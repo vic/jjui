@@ -12,11 +12,11 @@ import (
 )
 
 func TestSetBookmarkModel_Update(t *testing.T) {
-	c := test.NewTestContext(t)
-	c.Expect(jj.BookmarkSet("revision", "name"))
-	defer c.Verify()
+	commandRunner := test.NewTestCommandRunner(t)
+	commandRunner.Expect(jj.BookmarkSet("revision", "name"))
+	defer commandRunner.Verify()
 
-	op, _ := NewSetBookmarkOperation(c, "revision")
+	op, _ := NewSetBookmarkOperation(test.NewTestContext(commandRunner), "revision")
 	host := test.OperationHost{Operation: op}
 	tm := teatest.NewTestModel(t, host)
 	tm.Type("name")

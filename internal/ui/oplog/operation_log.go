@@ -22,7 +22,7 @@ type viewRange struct {
 	end   int
 }
 type Model struct {
-	context   context.AppContext
+	context   *context.MainContext
 	rows      []Row
 	cursor    int
 	keymap    config.KeyMappings[key.Binding]
@@ -153,7 +153,7 @@ func (m *Model) load() tea.Cmd {
 	}
 }
 
-func New(context context.AppContext, width int, height int) *Model {
+func New(context *context.MainContext, width int, height int) *Model {
 	keyMap := context.KeyMap()
 	v := viewRange{start: 0, end: 0}
 	return &Model{

@@ -31,7 +31,7 @@ func (i item) Description() string {
 }
 
 type Model struct {
-	context        context.AppContext
+	context        *context.MainContext
 	commandManager *CommandManager
 	keymap         config.KeyMappings[key.Binding]
 	list           list.Model
@@ -97,7 +97,7 @@ func (m *Model) View() string {
 	return lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Render(content)
 }
 
-func NewModel(ctx context.AppContext, width int, height int) *Model {
+func NewModel(ctx *context.MainContext, width int, height int) *Model {
 	var items []list.Item
 
 	for command := range GetCommandManager().IterApplicable(ctx) {

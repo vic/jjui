@@ -24,7 +24,7 @@ type updateEvologMsg struct {
 }
 
 type Operation struct {
-	context   context.AppContext
+	context   *context.MainContext
 	revision  *jj.Commit
 	rows      []graph.Row
 	viewRange *viewRange
@@ -141,7 +141,7 @@ func (o *Operation) load() tea.Msg {
 	}
 }
 
-func NewOperation(context context.AppContext, revision *jj.Commit, width int, height int) (operations.Operation, tea.Cmd) {
+func NewOperation(context *context.MainContext, revision *jj.Commit, width int, height int) (operations.Operation, tea.Cmd) {
 	v := viewRange{start: 0, end: 0}
 	o := &Operation{
 		context:   context,

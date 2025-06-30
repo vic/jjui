@@ -18,7 +18,7 @@ var cancel = key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "dismiss"))
 var accept = key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "accept"))
 
 type Model struct {
-	context context.AppContext
+	context *context.MainContext
 	spinner spinner.Model
 	input   textinput.Model
 	help    help.Model
@@ -165,7 +165,7 @@ func (m *Model) SetMode(mode string) {
 	}
 }
 
-func New(context context.AppContext) Model {
+func New(context *context.MainContext) Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 

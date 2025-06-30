@@ -18,25 +18,25 @@ const (
 )
 
 func TestModel_Init_ExecutesStatusCommand(t *testing.T) {
-	context := test.NewTestContext(t)
-	context.Expect(jj.Snapshot())
-	context.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
-	defer context.Verify()
+	commandRunner := test.NewTestCommandRunner(t)
+	commandRunner.Expect(jj.Snapshot())
+	commandRunner.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
+	defer commandRunner.Verify()
 
-	tm := teatest.NewTestModel(t, New(context, Revision))
+	tm := teatest.NewTestModel(t, New(test.NewTestContext(commandRunner), Revision))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("file.txt"))
 	})
 }
 
 func TestModel_Update_RestoresSelectedFiles(t *testing.T) {
-	c := test.NewTestContext(t)
-	c.Expect(jj.Snapshot())
-	c.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
-	c.Expect(jj.Restore(Revision, []string{"file.txt"}))
-	defer c.Verify()
+	commandRunner := test.NewTestCommandRunner(t)
+	commandRunner.Expect(jj.Snapshot())
+	commandRunner.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
+	commandRunner.Expect(jj.Restore(Revision, []string{"file.txt"}))
+	defer commandRunner.Verify()
 
-	tm := teatest.NewTestModel(t, test.NewShell(New(c, Revision)))
+	tm := teatest.NewTestModel(t, test.NewShell(New(test.NewTestContext(commandRunner), Revision)))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("file.txt"))
 	})
@@ -48,13 +48,13 @@ func TestModel_Update_RestoresSelectedFiles(t *testing.T) {
 }
 
 func TestModel_Update_SplitsSelectedFiles(t *testing.T) {
-	c := test.NewTestContext(t)
-	c.Expect(jj.Snapshot())
-	c.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
-	c.Expect(jj.Split(Revision, []string{"file.txt"}))
-	defer c.Verify()
+	commandRunner := test.NewTestCommandRunner(t)
+	commandRunner.Expect(jj.Snapshot())
+	commandRunner.Expect(jj.Status(Revision)).SetOutput([]byte(StatusOutput))
+	commandRunner.Expect(jj.Split(Revision, []string{"file.txt"}))
+	defer commandRunner.Verify()
 
-	tm := teatest.NewTestModel(t, test.NewShell(New(c, Revision)))
+	tm := teatest.NewTestModel(t, test.NewShell(New(test.NewTestContext(commandRunner), Revision)))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("file.txt"))
 	})
@@ -66,13 +66,13 @@ func TestModel_Update_SplitsSelectedFiles(t *testing.T) {
 }
 
 func TestModel_Update_HandlesMovedFiles(t *testing.T) {
-	c := test.NewTestContext(t)
-	c.Expect(jj.Snapshot())
-	c.Expect(jj.Status(Revision)).SetOutput([]byte("R internal/ui/{revisions => }/file.go\nR {file => sub/newfile}\n"))
-	c.Expect(jj.Restore(Revision, []string{"internal/ui/file.go", "sub/newfile"}))
-	defer c.Verify()
+	commandRunner := test.NewTestCommandRunner(t)
+	commandRunner.Expect(jj.Snapshot())
+	commandRunner.Expect(jj.Status(Revision)).SetOutput([]byte("R internal/ui/{revisions => }/file.go\nR {file => sub/newfile}\n"))
+	commandRunner.Expect(jj.Restore(Revision, []string{"internal/ui/file.go", "sub/newfile"}))
+	defer commandRunner.Verify()
 
-	tm := teatest.NewTestModel(t, test.NewShell(New(c, Revision)))
+	tm := teatest.NewTestModel(t, test.NewShell(New(test.NewTestContext(commandRunner), Revision)))
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
 		return bytes.Contains(bts, []byte("file.go"))
 	})

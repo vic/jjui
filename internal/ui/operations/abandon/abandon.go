@@ -15,7 +15,7 @@ import (
 type Operation struct {
 	model   tea.Model
 	current *jj.Commit
-	context context.AppContext
+	context *context.MainContext
 }
 
 func (a *Operation) SetSelectedRevision(commit *jj.Commit) {
@@ -40,7 +40,7 @@ func (a *Operation) Name() string {
 	return "abandon"
 }
 
-func NewOperation(context context.AppContext, selectedRevisions jj.SelectedRevisions) operations.Operation {
+func NewOperation(context *context.MainContext, selectedRevisions jj.SelectedRevisions) operations.Operation {
 	var ids []string
 	var conflictingWarning string
 	for _, rev := range selectedRevisions.Revisions {

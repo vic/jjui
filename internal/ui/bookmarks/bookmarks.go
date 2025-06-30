@@ -21,7 +21,7 @@ type updateItemsMsg struct {
 }
 
 type Model struct {
-	context     context.AppContext
+	context     *context.MainContext
 	current     *jj.Commit
 	filter      string
 	list        list.Model
@@ -287,7 +287,7 @@ func (m *Model) distance(commitId string) int {
 	return math.MinInt32
 }
 
-func NewModel(c context.AppContext, current *jj.Commit, commitIds []string, width int, height int) *Model {
+func NewModel(c *context.MainContext, current *jj.Commit, commitIds []string, width int, height int) *Model {
 	var items []list.Item
 	delegate := list.NewDefaultDelegate()
 	delegate.Styles.DimmedTitle = common.DefaultPalette.Dimmed

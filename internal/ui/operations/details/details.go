@@ -110,13 +110,13 @@ type Model struct {
 	files        list.Model
 	height       int
 	confirmation tea.Model
-	context      context.AppContext
+	context      *context.MainContext
 	keyMap       config.KeyMappings[key.Binding]
 }
 
 type updateCommitStatusMsg []string
 
-func New(context context.AppContext, revision string) tea.Model {
+func New(context *context.MainContext, revision string) tea.Model {
 	keyMap := context.KeyMap()
 	l := list.New(nil, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)

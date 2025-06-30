@@ -53,7 +53,7 @@ type Model struct {
 	cursor            int
 	width             int
 	height            int
-	context           appContext.AppContext
+	context           *appContext.MainContext
 	keymap            config.KeyMappings[key.Binding]
 	output            string
 	err               error
@@ -552,7 +552,7 @@ func (m *Model) GetCommitIds() []string {
 	return commitIds
 }
 
-func New(c appContext.AppContext, revset string) Model {
+func New(c *appContext.MainContext, revset string) Model {
 	v := viewRange{start: 0, end: 0, lastRowIndex: -1}
 	keymap := c.KeyMap()
 	return Model{

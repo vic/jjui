@@ -28,7 +28,7 @@ type Model struct {
 	height           int
 	content          string
 	contentLineCount int
-	context          context.AppContext
+	context          *context.MainContext
 	keyMap           config.KeyMappings[key.Binding]
 }
 
@@ -79,7 +79,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		})
 	case refreshPreviewContentMsg:
 		if m.tag == msg.Tag {
-			switch msg := m.context.SelectedItem().(type) {
+			switch msg := m.context.SelectedItem.(type) {
 			case context.SelectedFile:
 				return m, func() tea.Msg {
 					output, _ := m.context.RunCommandImmediate(jj.Diff(msg.ChangeId, msg.File, config.Current.Preview.ExtraArgs...))
@@ -152,7 +152,7 @@ func (m *Model) reset() {
 	m.viewRange.start, m.viewRange.end = 0, m.height
 }
 
-func New(context context.AppContext) Model {
+func New(context *context.MainContext) Model {
 	keyMap := context.KeyMap()
 	return Model{
 		viewRange: &viewRange{start: 0, end: 0},

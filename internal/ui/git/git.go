@@ -36,7 +36,7 @@ func (i item) Description() string {
 }
 
 type Model struct {
-	context context.AppContext
+	context *context.MainContext
 	keymap  config.KeyMappings[key.Binding]
 	list    list.Model
 	items   []list.Item
@@ -148,13 +148,13 @@ func (m *Model) filtered(filter string) (tea.Model, tea.Cmd) {
 	return m, m.list.SetItems(filtered)
 }
 
-func loadBookmarks(c context.AppContext, changeId string) []jj.Bookmark {
+func loadBookmarks(c context.CommandRunner, changeId string) []jj.Bookmark {
 	bytes, _ := c.RunCommandImmediate(jj.BookmarkList(changeId))
 	bookmarks := jj.ParseBookmarkListOutput(string(bytes))
 	return bookmarks
 }
 
-func NewModel(c context.AppContext, commit *jj.Commit, width int, height int) *Model {
+func NewModel(c *context.MainContext, commit *jj.Commit, width int, height int) *Model {
 	var items []list.Item
 	if commit != nil {
 		bookmarks := loadBookmarks(c, commit.GetChangeId())

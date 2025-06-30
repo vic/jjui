@@ -42,7 +42,7 @@ func (n *Default) Name() string {
 	return "normal"
 }
 
-func NewDefault(c context.AppContext) *Default {
+func NewDefault(c *context.MainContext) *Default {
 	return &Default{
 		keyMap: c.KeyMap(),
 	}

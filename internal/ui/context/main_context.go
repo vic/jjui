@@ -1,15 +1,12 @@
 package context
 
 import (
-	"bytes"
-	"context"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"log"
-	"os/exec"
 )
 
 type SelectedItem interface {
@@ -51,114 +48,40 @@ func (s SelectedOperation) Equal(other SelectedItem) bool {
 }
 
 type MainContext struct {
-	selectedItem SelectedItem
-	location     string
-	config       *config.Config
+	CommandRunner
+	SelectedItem SelectedItem
+	Location     string
+	Config       *config.Config
 	JJConfig     *jj.Config
 }
 
-func (a *MainContext) GetConfig() *jj.Config {
-	return a.JJConfig
-}
-
-func (a *MainContext) Location() string {
-	return a.location
-}
-
 func (a *MainContext) KeyMap() config.KeyMappings[key.Binding] {
-	return a.config.GetKeyMap()
-}
-
-func (a *MainContext) SelectedItem() SelectedItem {
-	return a.selectedItem
+	return a.Config.GetKeyMap()
 }
 
 func (a *MainContext) SetSelectedItem(item SelectedItem) tea.Cmd {
 	if item == nil {
 		return nil
 	}
-	if item.Equal(a.selectedItem) {
+	if item.Equal(a.SelectedItem) {
 		return nil
 	}
-	a.selectedItem = item
+	a.SelectedItem = item
 	return common.SelectionChanged
 }
 
-func (a *MainContext) RunCommandImmediate(args []string) ([]byte, error) {
-	c := exec.Command("jj", args...)
-	c.Dir = a.location
-	output, err := c.CombinedOutput()
-	return bytes.Trim(output, "\n"), err
-}
-
-func (a *MainContext) RunCommandStreaming(ctx context.Context, args []string) (*StreamingCommand, error) {
-	c := exec.CommandContext(ctx, "jj", args...)
-	c.Dir = a.location
-	pipe, err := c.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-	errPipe, err := c.StderrPipe()
-	if err != nil {
-		return nil, err
-	}
-	if err = c.Start(); err != nil {
-		return nil, err
-	}
-	return &StreamingCommand{
-		ReadCloser: pipe,
-		ErrPipe:    errPipe,
-		cmd:        c,
-		ctx:        ctx,
-	}, nil
-}
-
-func (a *MainContext) RunCommand(args []string, continuations ...tea.Cmd) tea.Cmd {
-	commands := make([]tea.Cmd, 0)
-	commands = append(commands,
-		func() tea.Msg {
-			c := exec.Command("jj", args...)
-			c.Dir = a.location
-			output, err := c.CombinedOutput()
-			return common.CommandCompletedMsg{
-				Output: string(output),
-				Err:    err,
-			}
-		})
-	commands = append(commands, continuations...)
-	return tea.Batch(
-		common.CommandRunning(args),
-		tea.Sequence(commands...),
-	)
-}
-
-func (a *MainContext) RunInteractiveCommand(args []string, continuation tea.Cmd) tea.Cmd {
-	c := exec.Command("jj", args...)
-	errBuffer := &bytes.Buffer{}
-	c.Stderr = errBuffer
-	c.Dir = a.location
-	return tea.Batch(
-		common.CommandRunning(args),
-		tea.ExecProcess(c, func(err error) tea.Msg {
-			if err != nil {
-				return common.CommandCompletedMsg{Err: err, Output: errBuffer.String()}
-			}
-			return tea.Batch(continuation, func() tea.Msg {
-				return common.CommandCompletedMsg{Err: nil}
-			})()
-		}),
-	)
-}
-
-func NewAppContext(location string) AppContext {
+func NewAppContext(location string) *MainContext {
 	configuration, err := config.Load()
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
 	m := &MainContext{
-		location: location,
-		config:   configuration,
+		CommandRunner: &MainCommandRunner{
+			Location: location,
+		},
+		Location: location,
+		Config:   configuration,
 	}
 
 	m.JJConfig = &jj.Config{}

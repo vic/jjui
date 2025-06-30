@@ -57,10 +57,10 @@ func newCustomCommand(name string, definition config.CustomCommandDefinition) Cu
 	}
 }
 
-func (cc CustomCommand) Prepare(ctx context.AppContext) InvokableCustomCommand {
+func (cc CustomCommand) Prepare(ctx *context.MainContext) InvokableCustomCommand {
 	replacements := make(map[string]string)
 
-	switch selectedItem := ctx.SelectedItem().(type) {
+	switch selectedItem := ctx.SelectedItem.(type) {
 	case context.SelectedRevision:
 		replacements[ChangeIdPlaceholder] = selectedItem.ChangeId
 	case context.SelectedFile:
@@ -83,7 +83,7 @@ func (cc CustomCommand) Prepare(ctx context.AppContext) InvokableCustomCommand {
 	}
 }
 
-func (cc InvokableCustomCommand) Invoke(ctx context.AppContext) tea.Cmd {
+func (cc InvokableCustomCommand) Invoke(ctx context.CommandRunner) tea.Cmd {
 	switch cc.show {
 	case "":
 		return ctx.RunCommand(jj.Args(cc.args...), common.Refresh)

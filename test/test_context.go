@@ -3,9 +3,7 @@ package test
 import (
 	"bytes"
 	"context"
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/config"
-	"github.com/idursun/jjui/internal/jj"
 	appContext "github.com/idursun/jjui/internal/ui/context"
 	"io"
 	"testing"
@@ -26,34 +24,12 @@ func (e *ExpectedCommand) SetOutput(output []byte) *ExpectedCommand {
 	return e
 }
 
-type TestContext struct {
+type TestCommandRunner struct {
 	*testing.T
-	selectedItem appContext.SelectedItem
 	expectations map[string][]*ExpectedCommand
 }
 
-func (t *TestContext) GetConfig() *jj.Config {
-	return &jj.Config{}
-}
-
-func (t *TestContext) Location() string {
-	return "test"
-}
-
-func (t *TestContext) KeyMap() config.KeyMappings[key.Binding] {
-	return config.Convert(config.DefaultKeyMappings)
-}
-
-func (t *TestContext) SelectedItem() appContext.SelectedItem {
-	return t.selectedItem
-}
-
-func (t *TestContext) SetSelectedItem(item appContext.SelectedItem) tea.Cmd {
-	t.selectedItem = item
-	return nil
-}
-
-func (t *TestContext) RunCommandImmediate(args []string) ([]byte, error) {
+func (t *TestCommandRunner) RunCommandImmediate(args []string) ([]byte, error) {
 	subCommand := args[0]
 	if _, ok := t.expectations[subCommand]; !ok {
 		assert.Fail(t, "unexpected command", subCommand)
@@ -72,7 +48,7 @@ func (t *TestContext) RunCommandImmediate(args []string) ([]byte, error) {
 	return nil, nil
 }
 
-func (t *TestContext) RunCommandStreaming(_ context.Context, args []string) (*appContext.StreamingCommand, error) {
+func (t *TestCommandRunner) RunCommandStreaming(_ context.Context, args []string) (*appContext.StreamingCommand, error) {
 	reader, err := t.RunCommandImmediate(args)
 	return &appContext.StreamingCommand{
 		ReadCloser: io.NopCloser(bytes.NewReader(reader)),
@@ -80,7 +56,7 @@ func (t *TestContext) RunCommandStreaming(_ context.Context, args []string) (*ap
 	}, err
 }
 
-func (t *TestContext) RunCommand(args []string, continuations ...tea.Cmd) tea.Cmd {
+func (t *TestCommandRunner) RunCommand(args []string, continuations ...tea.Cmd) tea.Cmd {
 	cmds := make([]tea.Cmd, 0)
 	cmds = append(cmds, func() tea.Msg {
 		_, _ = t.RunCommandImmediate(args)
@@ -90,11 +66,11 @@ func (t *TestContext) RunCommand(args []string, continuations ...tea.Cmd) tea.Cm
 	return tea.Batch(cmds...)
 }
 
-func (t *TestContext) RunInteractiveCommand(args []string, continuation tea.Cmd) tea.Cmd {
+func (t *TestCommandRunner) RunInteractiveCommand(args []string, continuation tea.Cmd) tea.Cmd {
 	return t.RunCommand(args, continuation)
 }
 
-func (t *TestContext) Expect(args []string) *ExpectedCommand {
+func (t *TestCommandRunner) Expect(args []string) *ExpectedCommand {
 	subCommand := args[0]
 	if _, ok := t.expectations[subCommand]; !ok {
 		t.expectations[subCommand] = make([]*ExpectedCommand, 0)
@@ -106,7 +82,7 @@ func (t *TestContext) Expect(args []string) *ExpectedCommand {
 	return e
 }
 
-func (t *TestContext) Verify() {
+func (t *TestCommandRunner) Verify() {
 	for subCommand, expectations := range t.expectations {
 		for _, e := range expectations {
 			if !e.called {
@@ -116,9 +92,17 @@ func (t *TestContext) Verify() {
 	}
 }
 
-func NewTestContext(t *testing.T) *TestContext {
-	return &TestContext{
+func NewTestCommandRunner(t *testing.T) *TestCommandRunner {
+	return &TestCommandRunner{
 		T:            t,
 		expectations: make(map[string][]*ExpectedCommand),
+	}
+}
+
+func NewTestContext(commandRunner appContext.CommandRunner) *appContext.MainContext {
+	return &appContext.MainContext{
+		CommandRunner: commandRunner,
+		SelectedItem:  nil,
+		Config:        config.Current,
 	}
 }

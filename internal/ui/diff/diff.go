@@ -51,7 +51,7 @@ func (m *Model) View() string {
 	return m.view.View()
 }
 
-func New(context context.AppContext, output string, width int, height int) *Model {
+func New(context *context.MainContext, output string, width int, height int) *Model {
 	view := viewport.New(width, height)
 	content := output
 	if content == "" {

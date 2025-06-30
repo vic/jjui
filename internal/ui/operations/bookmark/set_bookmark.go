@@ -12,7 +12,7 @@ import (
 )
 
 type SetBookmarkOperation struct {
-	context  context.AppContext
+	context  *context.MainContext
 	revision string
 	name     textarea.Model
 }
@@ -59,7 +59,7 @@ func (s SetBookmarkOperation) Name() string {
 	return "bookmark"
 }
 
-func NewSetBookmarkOperation(context context.AppContext, changeId string) (operations.Operation, tea.Cmd) {
+func NewSetBookmarkOperation(context *context.MainContext, changeId string) (operations.Operation, tea.Cmd) {
 	t := textarea.New()
 	t.CharLimit = 120
 	t.ShowLineNumbers = false

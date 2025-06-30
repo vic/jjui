@@ -46,7 +46,7 @@ var (
 )
 
 type Operation struct {
-	context        context.AppContext
+	context        *context.MainContext
 	From           jj.SelectedRevisions
 	InsertStart    *jj.Commit
 	To             *jj.Commit
@@ -213,7 +213,7 @@ func (r *Operation) Name() string {
 	return "rebase"
 }
 
-func NewOperation(context context.AppContext, from jj.SelectedRevisions, source Source, target Target) *Operation {
+func NewOperation(context *context.MainContext, from jj.SelectedRevisions, source Source, target Target) *Operation {
 	return &Operation{
 		context: context,
 		keyMap:  context.KeyMap(),

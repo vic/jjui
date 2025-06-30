@@ -32,7 +32,7 @@ func (m Model) View() string {
 
 var style = lipgloss.NewStyle().Width(80)
 
-func NewModel(context context.AppContext) Model {
+func NewModel(context *context.MainContext) Model {
 	output, _ := context.RunCommandImmediate(jj.OpLog(1))
 	message := fmt.Sprintf("%s\n\nAre you sure you want to undo last change?", style.Render(string(output)))
 	model := confirmation.New(message)

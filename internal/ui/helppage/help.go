@@ -15,7 +15,7 @@ type Model struct {
 	width   int
 	height  int
 	keyMap  config.KeyMappings[key.Binding]
-	context context.AppContext
+	context *context.MainContext
 }
 
 func (h *Model) Width() int {
@@ -177,7 +177,7 @@ func (h *Model) View() string {
 	return border.Render(content)
 }
 
-func New(context context.AppContext) *Model {
+func New(context *context.MainContext) *Model {
 	keyMap := context.KeyMap()
 	return &Model{
 		context: context,

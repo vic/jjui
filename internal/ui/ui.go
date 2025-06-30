@@ -38,7 +38,7 @@ type Model struct {
 	output                  string
 	width                   int
 	height                  int
-	context                 context.AppContext
+	context                 *context.MainContext
 	keyMap                  config.KeyMappings[key.Binding]
 	stacked                 tea.Model
 }
@@ -46,7 +46,7 @@ type Model struct {
 type triggerAutoRefreshMsg struct{}
 
 func (m Model) Init() tea.Cmd {
-	return tea.Sequence(tea.SetWindowTitle(fmt.Sprintf("jjui - %s", m.context.Location())), m.revisions.Init(), m.scheduleAutoRefresh())
+	return tea.Sequence(tea.SetWindowTitle(fmt.Sprintf("jjui - %s", m.context.Location)), m.revisions.Init(), m.scheduleAutoRefresh())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -308,9 +308,9 @@ func (m Model) isSafeToQuit() bool {
 	return false
 }
 
-func New(c context.AppContext, initialRevset string) tea.Model {
+func New(c *context.MainContext, initialRevset string) tea.Model {
 	if initialRevset == "" {
-		defaultRevset := c.GetConfig().Revsets.Log
+		defaultRevset := c.JJConfig.Revsets.Log
 		initialRevset = defaultRevset
 	}
 	revisionsModel := revisions.New(c, initialRevset)
