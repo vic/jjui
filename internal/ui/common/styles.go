@@ -43,6 +43,7 @@ var DefaultPalette = Palette{
 	StatusError:        lipgloss.NewStyle().Foreground(Red),
 	StatusMode:         lipgloss.NewStyle().Foreground(Black).Bold(true).Background(Magenta),
 	Drop:               lipgloss.NewStyle().Bold(true).Foreground(Black).Background(Red),
+	SourceMarker:       lipgloss.NewStyle().Foreground(Black).Background(Cyan).Bold(true),
 	CompletionSelected: lipgloss.NewStyle().Foreground(Cyan).Background(BrightBlack),
 	CompletionMatched:  lipgloss.NewStyle().Foreground(Cyan),
 }
@@ -64,6 +65,7 @@ type Palette struct {
 	StatusSuccess      lipgloss.Style
 	StatusError        lipgloss.Style
 	Drop               lipgloss.Style
+	SourceMarker       lipgloss.Style
 	CompletionMatched  lipgloss.Style
 	CompletionSelected lipgloss.Style
 }

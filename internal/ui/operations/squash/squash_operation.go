@@ -46,18 +46,18 @@ func (s *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 
 	isSelected := s.current != nil && s.current.GetChangeId() == commit.GetChangeId()
 	if isSelected {
-		return common.DefaultPalette.Drop.Render("<< into >> ")
+		return common.DefaultPalette.Drop.Render("<< into >>") + " "
 	}
 	sourceIds := s.from.GetIds()
 	if slices.Contains(sourceIds, commit.ChangeId) {
-		marker := "from "
+		marker := "<< from >>"
 		if s.keepEmptied {
-			marker = "keep emptied "
+			marker = "<< keep empty >>"
 		}
 		if s.interactive {
-			marker += "(interactive) "
+			marker += " (interactive)"
 		}
-		return common.DefaultPalette.CompletionMatched.Render(marker)
+		return common.DefaultPalette.SourceMarker.Render(marker) + " "
 	}
 	return ""
 }
