@@ -86,7 +86,7 @@ The latest release of `jjui` is available on Homebrew core:
 brew install jjui
 ```
 
-### Archlinux
+### Archlinux (maintained by [@TeddyHuang-00](https://github.com/TeddyHuang-00))
 
 The built `jjui` binary from latest release is available on the AUR:
 
