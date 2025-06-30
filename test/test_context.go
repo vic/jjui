@@ -3,7 +3,6 @@ package test
 import (
 	"bytes"
 	"context"
-	"github.com/idursun/jjui/internal/config"
 	appContext "github.com/idursun/jjui/internal/ui/context"
 	"io"
 	"testing"
@@ -103,6 +102,5 @@ func NewTestContext(commandRunner appContext.CommandRunner) *appContext.MainCont
 	return &appContext.MainContext{
 		CommandRunner: commandRunner,
 		SelectedItem:  nil,
-		Config:        config.Current,
 	}
 }

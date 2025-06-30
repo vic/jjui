@@ -104,7 +104,7 @@ func NewModel(ctx *context.MainContext, width int, height int) *Model {
 		invokableCmd := command.Prepare(ctx)
 		items = append(items, item{name: command.Name, desc: "jj " + strings.Join(invokableCmd.args, " "), command: invokableCmd})
 	}
-	keyMap := ctx.KeyMap()
+	keyMap := config.Current.GetKeyMap()
 	delegate := list.NewDefaultDelegate()
 	delegate.Styles.DimmedTitle = common.DefaultPalette.Dimmed
 	delegate.Styles.NormalTitle = common.DefaultPalette.Normal.PaddingLeft(2)

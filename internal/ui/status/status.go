@@ -3,6 +3,7 @@ package status
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/idursun/jjui/internal/config"
 	"strings"
 	"time"
 
@@ -58,7 +59,7 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
-	km := m.context.KeyMap()
+	km := config.Current.GetKeyMap()
 	switch msg := msg.(type) {
 	case clearMsg:
 		if m.command == string(msg) {

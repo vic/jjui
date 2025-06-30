@@ -133,24 +133,24 @@ func getDefaultEditor() string {
 	return editor
 }
 
-func load(data string) (*Config, error) {
-	if _, err := toml.Decode(data, &Current); err != nil {
-		return Current, err
+func (c *Config) load(data string) error {
+	if _, err := toml.Decode(data, c); err != nil {
+		return err
 	}
-	return Current, nil
+	return nil
 }
 
-func Load() (*Config, error) {
+func Load() error {
 	configFile := getConfigFilePath()
 	_, err := os.Stat(configFile)
 	if err != nil {
-		return Current, nil
+		return nil
 	}
 	data, err := os.ReadFile(configFile)
 	if err != nil {
-		return Current, err
+		return err
 	}
-	return load(string(data))
+	return Current.load(string(data))
 }
 
 func Edit() int {

@@ -216,7 +216,7 @@ func (r *Operation) Name() string {
 func NewOperation(context *context.MainContext, from jj.SelectedRevisions, source Source, target Target) *Operation {
 	return &Operation{
 		context: context,
-		keyMap:  context.KeyMap(),
+		keyMap:  config.Current.GetKeyMap(),
 		From:    from,
 		Source:  source,
 		Target:  target,

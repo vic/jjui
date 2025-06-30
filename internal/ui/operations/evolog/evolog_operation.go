@@ -145,7 +145,7 @@ func NewOperation(context *context.MainContext, revision *jj.Commit, width int, 
 	v := viewRange{start: 0, end: 0}
 	o := &Operation{
 		context:   context,
-		keyMap:    context.KeyMap(),
+		keyMap:    config.Current.GetKeyMap(),
 		revision:  revision,
 		rows:      nil,
 		viewRange: &v,

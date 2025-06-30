@@ -117,7 +117,7 @@ type Model struct {
 type updateCommitStatusMsg []string
 
 func New(context *context.MainContext, revision string) tea.Model {
-	keyMap := context.KeyMap()
+	keyMap := config.Current.GetKeyMap()
 	l := list.New(nil, itemDelegate{}, 0, 0)
 	l.SetFilteringEnabled(false)
 	l.SetShowTitle(false)
@@ -130,7 +130,7 @@ func New(context *context.MainContext, revision string) tea.Model {
 		revision: revision,
 		files:    l,
 		context:  context,
-		keyMap:   context.KeyMap(),
+		keyMap:   keyMap,
 	}
 }
 

@@ -1,13 +1,11 @@
 package diff
 
 import (
-	"github.com/idursun/jjui/internal/config"
-	"github.com/idursun/jjui/internal/ui/common"
-	"github.com/idursun/jjui/internal/ui/context"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/idursun/jjui/internal/config"
+	"github.com/idursun/jjui/internal/ui/common"
 )
 
 type Model struct {
@@ -51,7 +49,7 @@ func (m *Model) View() string {
 	return m.view.View()
 }
 
-func New(context *context.MainContext, output string, width int, height int) *Model {
+func New(output string, width int, height int) *Model {
 	view := viewport.New(width, height)
 	content := output
 	if content == "" {
@@ -60,6 +58,6 @@ func New(context *context.MainContext, output string, width int, height int) *Mo
 	view.SetContent(content)
 	return &Model{
 		view:   view,
-		keymap: context.KeyMap(),
+		keymap: config.Current.GetKeyMap(),
 	}
 }

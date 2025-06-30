@@ -101,6 +101,11 @@ func main() {
 	} else {
 		log.SetOutput(io.Discard)
 	}
+
+	if err = config.Load(); err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
 	appContext := context.NewAppContext(rootLocation)
 
 	p := tea.NewProgram(ui.New(appContext, revset), tea.WithAltScreen())

@@ -309,7 +309,7 @@ func NewModel(c *context.MainContext, current *jj.Commit, commitIds []string, wi
 
 	m := &Model{
 		context:     c,
-		keymap:      c.KeyMap(),
+		keymap:      config.Current.GetKeyMap(),
 		list:        l,
 		current:     current,
 		distanceMap: calcDistanceMap(current.CommitId, commitIds),

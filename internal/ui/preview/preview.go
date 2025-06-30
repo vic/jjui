@@ -153,11 +153,10 @@ func (m *Model) reset() {
 }
 
 func New(context *context.MainContext) Model {
-	keyMap := context.KeyMap()
 	return Model{
 		viewRange: &viewRange{start: 0, end: 0},
 		context:   context,
-		keyMap:    keyMap,
+		keyMap:    config.Current.GetKeyMap(),
 		help:      help.New(),
 	}
 }

@@ -214,7 +214,7 @@ func NewModel(c *context.MainContext, commit *jj.Commit, width int, height int) 
 		context: c,
 		list:    l,
 		items:   items,
-		keymap:  c.KeyMap(),
+		keymap:  config.Current.GetKeyMap(),
 	}
 	m.SetWidth(width)
 	m.SetHeight(height)

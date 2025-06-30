@@ -1,12 +1,9 @@
 package context
 
 import (
-	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
-	"log"
 )
 
 type SelectedItem interface {
@@ -51,12 +48,7 @@ type MainContext struct {
 	CommandRunner
 	SelectedItem SelectedItem
 	Location     string
-	Config       *config.Config
 	JJConfig     *jj.Config
-}
-
-func (a *MainContext) KeyMap() config.KeyMappings[key.Binding] {
-	return a.Config.GetKeyMap()
 }
 
 func (a *MainContext) SetSelectedItem(item SelectedItem) tea.Cmd {
@@ -71,17 +63,11 @@ func (a *MainContext) SetSelectedItem(item SelectedItem) tea.Cmd {
 }
 
 func NewAppContext(location string) *MainContext {
-	configuration, err := config.Load()
-	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
-
 	m := &MainContext{
 		CommandRunner: &MainCommandRunner{
 			Location: location,
 		},
 		Location: location,
-		Config:   configuration,
 	}
 
 	m.JJConfig = &jj.Config{}

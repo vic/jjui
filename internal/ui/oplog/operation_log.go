@@ -154,7 +154,7 @@ func (m *Model) load() tea.Cmd {
 }
 
 func New(context *context.MainContext, width int, height int) *Model {
-	keyMap := context.KeyMap()
+	keyMap := config.Current.GetKeyMap()
 	v := viewRange{start: 0, end: 0}
 	return &Model{
 		context:   context,

@@ -4,7 +4,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/context"
 )
 
 type Default struct {
@@ -42,8 +41,8 @@ func (n *Default) Name() string {
 	return "normal"
 }
 
-func NewDefault(c *context.MainContext) *Default {
+func NewDefault() *Default {
 	return &Default{
-		keyMap: c.KeyMap(),
+		keyMap: config.Current.GetKeyMap(),
 	}
 }

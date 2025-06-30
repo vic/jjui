@@ -149,7 +149,7 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.CloseViewMsg:
-		m.op = operations.NewDefault(m.context)
+		m.op = operations.NewDefault()
 		return m, m.updateSelection()
 	case revset.UpdateRevSetMsg:
 		m.revsetValue = string(msg)
@@ -157,7 +157,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case common.QuickSearchMsg:
 		m.quickSearch = string(msg)
 		m.cursor = m.search(0)
-		m.op = operations.NewDefault(m.context)
+		m.op = operations.NewDefault()
 		m.viewRange.reset()
 		return m, nil
 	case common.CommandCompletedMsg:
@@ -270,7 +270,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				changeId := m.rows[m.cursor].Commit.GetChangeId()
 				m.selectedRevisions[changeId] = !m.selectedRevisions[changeId]
 			case key.Matches(msg, m.keymap.Cancel):
-				m.op = operations.NewDefault(m.context)
+				m.op = operations.NewDefault()
 			case key.Matches(msg, m.keymap.QuickSearchCycle):
 				m.cursor = m.search(m.cursor + 1)
 				m.viewRange.reset()
@@ -554,7 +554,7 @@ func (m *Model) GetCommitIds() []string {
 
 func New(c *appContext.MainContext, revset string) Model {
 	v := viewRange{start: 0, end: 0, lastRowIndex: -1}
-	keymap := c.KeyMap()
+	keymap := config.Current.GetKeyMap()
 	return Model{
 		context:           c,
 		keymap:            keymap,
@@ -562,7 +562,7 @@ func New(c *appContext.MainContext, revset string) Model {
 		rows:              nil,
 		offScreenRows:     nil,
 		viewRange:         &v,
-		op:                operations.NewDefault(c),
+		op:                operations.NewDefault(),
 		cursor:            0,
 		width:             20,
 		height:            10,

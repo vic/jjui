@@ -82,7 +82,7 @@ func (s *Operation) FullHelp() [][]key.Binding {
 func NewOperation(context *context.MainContext, from jj.SelectedRevisions) *Operation {
 	return &Operation{
 		context: context,
-		keyMap:  context.KeyMap(),
+		keyMap:  config.Current.GetKeyMap(),
 		from:    from,
 	}
 }

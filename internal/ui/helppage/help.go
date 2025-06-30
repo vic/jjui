@@ -178,9 +178,8 @@ func (h *Model) View() string {
 }
 
 func New(context *context.MainContext) *Model {
-	keyMap := context.KeyMap()
 	return &Model{
 		context: context,
-		keyMap:  keyMap,
+		keyMap:  config.Current.GetKeyMap(),
 	}
 }

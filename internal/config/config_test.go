@@ -10,7 +10,9 @@ func TestLoad(t *testing.T) {
 [ui]
 highlight_light = "#a0a0a0"
 `
-	config, _ := load(content)
+	config := &Config{}
+	err := config.load(content)
+	assert.NoError(t, err)
 	assert.Equal(t, "#a0a0a0", config.UI.HighlightLight)
 }
 
@@ -21,7 +23,9 @@ func TestLoad_CustomCommands(t *testing.T) {
 "restore evolog" = { key = ["ctrl+e"],  args = ["op", "restore", "-r", "$revision"] }
 "resolve vscode" = { key = ["ctrl+r"],  args = ["resolve", "--tool", "vscode"], show = "interactive" }
 `
-	config, _ := load(content)
+	config := &Config{}
+	err := config.load(content)
+	assert.NoError(t, err)
 	assert.Len(t, config.CustomCommands, 3)
 
 	testCases := []struct {
