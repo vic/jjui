@@ -202,6 +202,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		}
 		m.offScreenRows = append(m.offScreenRows, msg.rows...)
 		m.hasMore = msg.hasMore
+		m.isLoading = m.hasMore && len(m.offScreenRows) > 0
 
 		if m.hasMore {
 			// keep requesting rows until we reach the initial load count or the current cursor position
@@ -212,7 +213,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			m.streamer.Close()
 		}
 
-		m.isLoading = false
 		currentSelectedRevision := m.SelectedRevision()
 		m.rows = m.offScreenRows
 		if m.revisionToSelect != "" {
@@ -240,10 +240,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	if cmd, ok := m.updateOperation(msg); ok {
 		return m, cmd
 	}
-	//if op, ok := m.op.(operations.OperationWithOverlay); ok {
-	//	m.op, cmd = op.Update(msg)
-	//	return m, cmd
-	//}
 
 	var cmd tea.Cmd
 	switch msg := msg.(type) {

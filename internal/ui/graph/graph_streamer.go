@@ -7,6 +7,7 @@ import (
 	"github.com/idursun/jjui/internal/jj"
 	appContext "github.com/idursun/jjui/internal/ui/context"
 	"io"
+	"time"
 )
 
 const DefaultBatchSize = 50
@@ -28,55 +29,50 @@ func NewGraphStreamer(ctx *appContext.MainContext, revset string) (*GraphStreame
 		return nil, err
 	}
 
-	controlChan := make(chan ControlMsg, 1)
-
-	stdoutChan := make(chan struct{})
-	stderrChan := make(chan error)
-	reader := bufio.NewReader(command)
-
-	go func() {
-		if _, err := reader.Peek(1); err == nil {
-			stdoutChan <- struct{}{}
-		}
-	}()
-
-	// Check stderr for data
+	// Check stderr with timeout
+	errCh := make(chan error, 1)
 	go func() {
 		errReader := bufio.NewReader(command.ErrPipe)
-		if _, err := errReader.Peek(1); err == nil {
-			// There's error data available
-			errorOutput, _ := io.ReadAll(errReader)
-			stderrChan <- errors.New(string(errorOutput))
+		data, err := errReader.Peek(1)
+		if err == nil && len(data) > 0 {
+			errorData, _ := io.ReadAll(errReader)
+			errCh <- errors.New(string(errorData))
+		} else {
+			errCh <- nil
 		}
 	}()
 
-	// Wait for either stdout or stderr to have data
+	// Wait for stderr check with timeout
 	select {
-	case <-stdoutChan:
-		// Data is available on stdout, proceed with parsing
-		rowsChan, err := ParseRowsStreaming(reader, controlChan, DefaultBatchSize)
-		if err != nil {
+	case stderrErr := <-errCh:
+		if stderrErr != nil {
 			cancel()
 			_ = command.Close()
-			return nil, err
+			return nil, stderrErr
 		}
+	case <-time.After(100 * time.Millisecond):
+		// Timeout, assume no error and continue
+	}
 
-		return &GraphStreamer{
-			command:     command,
-			cancel:      cancel,
-			controlChan: controlChan,
-			rowsChan:    rowsChan,
-			batchSize:   DefaultBatchSize,
-		}, nil
+	// Set up stdout processing
+	controlChan := make(chan ControlMsg, 1)
+	reader := bufio.NewReader(command)
 
-	case err := <-stderrChan:
-		// An actual error occurred
+	rowsChan, err := ParseRowsStreaming(reader, controlChan, DefaultBatchSize)
+	if err != nil {
 		cancel()
 		_ = command.Close()
 		return nil, err
 	}
-}
 
+	return &GraphStreamer{
+		command:     command,
+		cancel:      cancel,
+		controlChan: controlChan,
+		rowsChan:    rowsChan,
+		batchSize:   DefaultBatchSize,
+	}, nil
+}
 func (g *GraphStreamer) RequestMore() RowBatch {
 	g.controlChan <- RequestMore
 	return <-g.rowsChan
