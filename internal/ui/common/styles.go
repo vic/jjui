@@ -3,6 +3,7 @@ package common
 import (
 	"github.com/idursun/jjui/internal/jj"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -156,6 +157,12 @@ func parseColor(color string) lipgloss.Color {
 	case "bright white":
 		return "15"
 	default:
+		if strings.HasPrefix(color, "ansi-color-") {
+			code := strings.TrimPrefix(color, "ansi-color-")
+			if v, err := strconv.Atoi(code); err == nil && v >= 0 && v <= 255 {
+				return lipgloss.Color(code)
+			}
+		}
 		return ""
 	}
 }
