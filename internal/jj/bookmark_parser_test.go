@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestParseBookmarkListOutput2(t *testing.T) {
+func TestParseBookmarkListOutput_WithNonLocalBookmarks(t *testing.T) {
 	output := `alpha;origin;false;false;false;2
 main;.;false;false;false;b
 main;git;true;false;false;b
