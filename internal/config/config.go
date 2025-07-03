@@ -2,20 +2,13 @@ package config
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/jj"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
-
-	"github.com/BurntSushi/toml"
-)
-
-const (
-	ChangeIdPlaceholder    = "$change_id"
-	FilePlaceholder        = "$file"
-	OperationIdPlaceholder = "$operation_id"
 )
 
 var Current = &Config{
@@ -30,9 +23,9 @@ var Current = &Config{
 	},
 	Preview: PreviewConfig{
 		ExtraArgs:                []string{},
-		OplogCommand:             []string{"op", "show", OperationIdPlaceholder, "--color", "always"},
-		FileCommand:              []string{"diff", "--color", "always", "-r", ChangeIdPlaceholder, FilePlaceholder},
-		RevisionCommand:          []string{"show", "--color", "always", "-r", ChangeIdPlaceholder},
+		OplogCommand:             []string{"op", "show", jj.OperationIdPlaceholder, "--color", "always"},
+		FileCommand:              []string{"diff", "--color", "always", "-r", jj.ChangeIdPlaceholder, jj.FilePlaceholder},
+		RevisionCommand:          []string{"show", "--color", "always", "-r", jj.ChangeIdPlaceholder},
 		ShowAtStart:              false,
 		WidthPercentage:          50,
 		WidthIncrementPercentage: 5,
@@ -40,17 +33,15 @@ var Current = &Config{
 	OpLog: OpLogConfig{
 		Limit: 200,
 	},
-	CustomCommands:                 map[string]CustomCommandDefinition{},
 	ExperimentalLogBatchingEnabled: false,
 }
 
 type Config struct {
-	Keys                           KeyMappings[keys]                  `toml:"keys"`
-	UI                             UIConfig                           `toml:"ui"`
-	Preview                        PreviewConfig                      `toml:"preview"`
-	OpLog                          OpLogConfig                        `toml:"oplog"`
-	CustomCommands                 map[string]CustomCommandDefinition `toml:"custom_commands"`
-	ExperimentalLogBatchingEnabled bool                               `toml:"experimental_log_batching_enabled"`
+	Keys                           KeyMappings[keys] `toml:"keys"`
+	UI                             UIConfig          `toml:"ui"`
+	Preview                        PreviewConfig     `toml:"preview"`
+	OpLog                          OpLogConfig       `toml:"oplog"`
+	ExperimentalLogBatchingEnabled bool              `toml:"experimental_log_batching_enabled"`
 }
 
 type Color struct {
@@ -92,13 +83,6 @@ const (
 	ShowOptionDiff        ShowOption = "diff"
 	ShowOptionInteractive ShowOption = "interactive"
 )
-
-type CustomCommandDefinition struct {
-	Key    []string   `toml:"key"`
-	Args   []string   `toml:"args"`
-	Revset string     `toml:"revset"`
-	Show   ShowOption `toml:"show"`
-}
 
 func (s *ShowOption) UnmarshalText(text []byte) error {
 	val := string(text)
@@ -161,26 +145,6 @@ func getDefaultEditor() string {
 	}
 
 	return editor
-}
-
-func (c *Config) load(data string) error {
-	if _, err := toml.Decode(data, c); err != nil {
-		return err
-	}
-	return nil
-}
-
-func Load() error {
-	configFile := getConfigFilePath()
-	_, err := os.Stat(configFile)
-	if err != nil {
-		return nil
-	}
-	data, err := os.ReadFile(configFile)
-	if err != nil {
-		return err
-	}
-	return Current.load(string(data))
 }
 
 func Edit() int {

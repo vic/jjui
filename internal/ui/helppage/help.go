@@ -8,7 +8,6 @@ import (
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/context"
-	customcommands "github.com/idursun/jjui/internal/ui/custom_commands"
 )
 
 type Model struct {
@@ -160,11 +159,10 @@ func (h *Model) View() string {
 	)
 
 	var customCommands []string
-	for command := range customcommands.GetCommandManager().Iter() {
-		if command.Key.Enabled() {
-			customCommands = append(customCommands, printHelp(command.Key))
-		}
+	for _, command := range h.context.CustomCommands {
+		customCommands = append(customCommands, printHelp(command.Binding()))
 	}
+
 	if len(customCommands) > 0 {
 		rightView = lipgloss.JoinVertical(lipgloss.Left,
 			rightView,

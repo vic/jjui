@@ -47,9 +47,10 @@ func (s SelectedOperation) Equal(other SelectedItem) bool {
 
 type MainContext struct {
 	CommandRunner
-	SelectedItem SelectedItem
-	Location     string
-	JJConfig     *config.JJConfig
+	SelectedItem   SelectedItem
+	Location       string
+	CustomCommands map[string]CustomCommand
+	JJConfig       *config.JJConfig
 }
 
 func (a *MainContext) SetSelectedItem(item SelectedItem) tea.Cmd {

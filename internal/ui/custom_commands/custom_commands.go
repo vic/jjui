@@ -14,7 +14,7 @@ import (
 type item struct {
 	name    string
 	desc    string
-	command InvokableCustomCommand
+	command tea.Cmd
 }
 
 func (i item) FilterValue() string {
@@ -30,13 +30,12 @@ func (i item) Description() string {
 }
 
 type Model struct {
-	context        *context.MainContext
-	commandManager *CommandManager
-	keymap         config.KeyMappings[key.Binding]
-	list           list.Model
-	width          int
-	height         int
-	help           help.Model
+	context *context.MainContext
+	keymap  config.KeyMappings[key.Binding]
+	list    list.Model
+	width   int
+	height  int
+	help    help.Model
 }
 
 func (m *Model) Width() int {
@@ -72,7 +71,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keymap.Apply):
 			if item, ok := m.list.SelectedItem().(item); ok {
-				return m, tea.Batch(item.command.Cmd, common.Close)
+				return m, tea.Batch(item.command, common.Close)
 			}
 		case key.Matches(msg, m.keymap.Cancel):
 			if m.list.IsFiltered() {
@@ -99,9 +98,11 @@ func (m *Model) View() string {
 func NewModel(ctx *context.MainContext, width int, height int) *Model {
 	var items []list.Item
 
-	for command := range GetCommandManager().IterApplicable(ctx) {
-		invokableCmd := command.Prepare(ctx)
-		items = append(items, item{name: command.Name, desc: invokableCmd.desc, command: invokableCmd})
+	for name, command := range ctx.CustomCommands {
+		if command.IsApplicableTo(ctx.SelectedItem) {
+			cmd := command.Prepare(ctx)
+			items = append(items, item{name: name, desc: command.Description(ctx), command: cmd})
+		}
 	}
 	keyMap := config.Current.GetKeyMap()
 	delegate := list.NewDefaultDelegate()
@@ -127,11 +128,10 @@ func NewModel(ctx *context.MainContext, width int, height int) *Model {
 	h.Styles.ShortDesc = common.DefaultPalette.Dimmed
 
 	m := &Model{
-		context:        ctx,
-		commandManager: commandManager,
-		keymap:         keyMap,
-		help:           h,
-		list:           l,
+		context: ctx,
+		keymap:  keyMap,
+		help:    h,
+		list:    l,
 	}
 	m.SetWidth(width)
 	m.SetHeight(height)

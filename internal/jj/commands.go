@@ -2,9 +2,14 @@ package jj
 
 import (
 	"fmt"
-	"github.com/idursun/jjui/internal/config"
 	"strconv"
 	"strings"
+)
+
+const (
+	ChangeIdPlaceholder    = "$change_id"
+	FilePlaceholder        = "$file"
+	OperationIdPlaceholder = "$operation_id"
 )
 
 type CommandArgs []string
@@ -191,9 +196,9 @@ func Args(args ...string) CommandArgs {
 
 func TemplatedArgs(templatedArgs []string, replacements map[string]string) CommandArgs {
 	var args []string
-	if fileReplacement, exists := replacements[config.FilePlaceholder]; exists {
+	if fileReplacement, exists := replacements[FilePlaceholder]; exists {
 		// Ensure that the file replacement is quoted
-		replacements[config.FilePlaceholder] = fmt.Sprintf("file:\"%s\"", fileReplacement)
+		replacements[FilePlaceholder] = fmt.Sprintf("file:\"%s\"", fileReplacement)
 	}
 	for _, arg := range templatedArgs {
 		for k, v := range replacements {

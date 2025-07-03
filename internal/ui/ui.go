@@ -142,10 +142,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keyMap.Suspend):
 			return m, tea.Suspend
 		default:
-			if matched := customcommands.Matches(msg); matched != nil {
-				command := *matched
-				cmd = command.Prepare(m.context).Cmd
-				return m, cmd
+			for _, command := range m.context.CustomCommands {
+				if !command.IsApplicableTo(m.context.SelectedItem) {
+					continue
+				}
+				if key.Matches(msg, command.Binding()) {
+					return m, command.Prepare(m.context)
+				}
 			}
 		}
 	case common.ToggleHelpMsg:
@@ -174,7 +177,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(m.scheduleAutoRefresh(), func() tea.Msg {
 			return common.AutoRefreshMsg{}
 		})
-	case revset.UpdateRevSetMsg:
+	case common.UpdateRevSetMsg:
 		var revsetCmd tea.Cmd
 		m.revsetModel, revsetCmd = m.revsetModel.Update(msg)
 		var revisionsCmd tea.Cmd

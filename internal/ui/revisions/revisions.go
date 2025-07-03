@@ -23,7 +23,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations/evolog"
 	"github.com/idursun/jjui/internal/ui/operations/rebase"
 	"github.com/idursun/jjui/internal/ui/operations/squash"
-	"github.com/idursun/jjui/internal/ui/revset"
 )
 
 type viewRange struct {
@@ -152,7 +151,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case common.CloseViewMsg:
 		m.op = operations.NewDefault()
 		return m, m.updateSelection()
-	case revset.UpdateRevSetMsg:
+	case common.UpdateRevSetMsg:
 		m.revsetValue = string(msg)
 		return m, common.Refresh
 	case common.QuickSearchMsg:

@@ -102,12 +102,23 @@ func main() {
 		log.SetOutput(io.Discard)
 	}
 
-	if err = config.Load(); err != nil {
+	appContext := context.NewAppContext(rootLocation)
+
+	if output, err := config.LoadConfigFile(); err == nil {
+		if err := config.Current.Load(string(output)); err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading configuration: %v\n", err)
+			os.Exit(1)
+		}
+		if registry, err := context.LoadCustomCommands(string(output)); err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading custom commands: %v\n", err)
+			os.Exit(1)
+		} else {
+			appContext.CustomCommands = registry
+		}
+	} else {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
-
-	appContext := context.NewAppContext(rootLocation)
 
 	p := tea.NewProgram(ui.New(appContext, revset), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {

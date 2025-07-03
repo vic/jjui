@@ -7,17 +7,15 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/idursun/jjui/internal/config"
-	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/context"
-	"github.com/idursun/jjui/internal/ui/revset"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/config"
+	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/confirmation"
+	"github.com/idursun/jjui/internal/ui/context"
 )
 
 type status uint8
@@ -211,7 +209,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case key.Matches(msg, m.keyMap.Details.RevisionsChangingFile):
 			if item, ok := m.files.SelectedItem().(item); ok {
-				return m, tea.Batch(common.Close, revset.UpdateRevSet(fmt.Sprintf("files(%s)", item.fileName)))
+				return m, tea.Batch(common.Close, common.UpdateRevSet(fmt.Sprintf("files(%s)", item.fileName)))
 			}
 		default:
 			if len(m.files.Items()) > 0 {

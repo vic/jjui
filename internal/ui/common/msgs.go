@@ -30,6 +30,7 @@ type (
 	}
 	SelectionChangedMsg struct{}
 	QuickSearchMsg      string
+	UpdateRevSetMsg     string
 )
 
 type State int
@@ -70,5 +71,11 @@ func CommandRunning(args []string) tea.Cmd {
 	return func() tea.Msg {
 		command := "jj " + strings.Join(args, " ")
 		return CommandRunningMsg(command)
+	}
+}
+
+func UpdateRevSet(revset string) tea.Cmd {
+	return func() tea.Msg {
+		return UpdateRevSetMsg(revset)
 	}
 }

@@ -129,7 +129,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			if m.Value == "" {
 				m.Value = m.defaultRevSet
 			}
-			return m, tea.Batch(common.Close, UpdateRevSet(m.Value))
+			return m, tea.Batch(common.Close, common.UpdateRevSet(m.Value))
 		case tea.KeyUp:
 			if len(m.History) > 0 {
 				if !m.historyActive {
@@ -158,7 +158,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				return m, nil
 			}
 		}
-	case UpdateRevSetMsg:
+	case common.UpdateRevSetMsg:
 		m.Editing = false
 		m.Value = string(msg)
 		m.AddToHistory(m.Value)
@@ -194,12 +194,4 @@ func (m *Model) View() string {
 	}
 
 	return promptStyle.Render(cursorStyle.Render(revset))
-}
-
-type UpdateRevSetMsg string
-
-func UpdateRevSet(revset string) tea.Cmd {
-	return func() tea.Msg {
-		return UpdateRevSetMsg(revset)
-	}
 }

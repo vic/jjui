@@ -83,15 +83,15 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			case context.SelectedFile:
 				return m, func() tea.Msg {
 					replacements := map[string]string{
-						config.ChangeIdPlaceholder: msg.ChangeId,
-						config.FilePlaceholder:     msg.File,
+						jj.ChangeIdPlaceholder: msg.ChangeId,
+						jj.FilePlaceholder:     msg.File,
 					}
 					output, _ := m.context.RunCommandImmediate(jj.TemplatedArgs(config.Current.Preview.FileCommand, replacements))
 					return updatePreviewContentMsg{Content: string(output)}
 				}
 			case context.SelectedRevision:
 				replacements := map[string]string{
-					config.ChangeIdPlaceholder: msg.ChangeId,
+					jj.ChangeIdPlaceholder: msg.ChangeId,
 				}
 				return m, func() tea.Msg {
 					output, _ := m.context.RunCommandImmediate(jj.TemplatedArgs(config.Current.Preview.RevisionCommand, replacements))
@@ -99,7 +99,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				}
 			case context.SelectedOperation:
 				replacements := map[string]string{
-					config.OperationIdPlaceholder: msg.OperationId,
+					jj.OperationIdPlaceholder: msg.OperationId,
 				}
 				return m, func() tea.Msg {
 					output, _ := m.context.RunCommandImmediate(jj.TemplatedArgs(config.Current.Preview.OplogCommand, replacements))
