@@ -103,7 +103,8 @@ func main() {
 	}
 
 	if err = config.Load(); err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 
 	appContext := context.NewAppContext(rootLocation)
