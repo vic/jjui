@@ -139,12 +139,14 @@ func (m *Model) loadAll() tea.Msg {
 		items := make([]list.Item, 0)
 		for _, b := range bookmarks {
 			distance := m.distance(b.CommitId)
-			items = append(items, item{
-				name:     fmt.Sprintf("delete '%s'", b.Name),
-				priority: deleteCommand,
-				dist:     distance,
-				args:     jj.BookmarkDelete(b.Name),
-			})
+			if b.IsDeletable() {
+				items = append(items, item{
+					name:     fmt.Sprintf("delete '%s'", b.Name),
+					priority: deleteCommand,
+					dist:     distance,
+					args:     jj.BookmarkDelete(b.Name),
+				})
+			}
 
 			items = append(items, item{
 				name:     fmt.Sprintf("forget '%s'", b.Name),

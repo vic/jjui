@@ -2,8 +2,29 @@ package jj
 
 import (
 	"github.com/stretchr/testify/assert"
+	"slices"
 	"testing"
 )
+
+func TestParseBookmarkListOutput2(t *testing.T) {
+	output := `alpha;origin;false;false;false;2
+main;.;false;false;false;b
+main;git;true;false;false;b
+main;origin;true;false;false;b
+zeta;origin;false;false;false;c`
+	bookmarks := ParseBookmarkListOutput(output)
+	assert.Len(t, bookmarks, 3)
+
+	alpha := bookmarks[slices.IndexFunc(bookmarks, func(b Bookmark) bool { return b.Name == "alpha" })]
+	assert.Nil(t, alpha.Local, "alpha should not have a local bookmark")
+	assert.Len(t, alpha.Remotes, 1)
+	main := bookmarks[slices.IndexFunc(bookmarks, func(b Bookmark) bool { return b.Name == "main" })]
+	assert.NotNil(t, main.Local, "main should have a local bookmark")
+	assert.Len(t, main.Remotes, 1)
+	zeta := bookmarks[slices.IndexFunc(bookmarks, func(b Bookmark) bool { return b.Name == "zeta" })]
+	assert.Nil(t, zeta.Local, "zeta should not have a local bookmark")
+	assert.Len(t, zeta.Remotes, 1)
+}
 
 func TestParseBookmarkListOutput(t *testing.T) {
 	type args struct {
@@ -28,8 +49,13 @@ func TestParseBookmarkListOutput(t *testing.T) {
 			},
 			want: []Bookmark{
 				{
-					Name:      "feat-1",
-					Remotes:   nil,
+					Name:    "feat-1",
+					Remotes: nil,
+					Local: &BookmarkRemote{
+						Remote:   ".",
+						CommitId: "9",
+						Tracked:  false,
+					},
 					Conflict:  false,
 					Backwards: false,
 					CommitId:  "9",
@@ -47,6 +73,11 @@ feature;origin;true;false;false;b`,
 					Name: "feature",
 					Remotes: []BookmarkRemote{
 						{"origin", "b", true},
+					},
+					Local: &BookmarkRemote{
+						Remote:   ".",
+						CommitId: "b",
+						Tracked:  false,
 					},
 					Conflict:  false,
 					Backwards: false,

@@ -170,7 +170,7 @@ func NewModel(c *context.MainContext, commit *jj.Commit, width int, height int) 
 				}
 				items = append(items, bookmarkItem)
 			}
-			if b.IsLocal() {
+			if b.IsPushable() {
 				bookmarkItem := item{
 					name:    fmt.Sprintf("git push --bookmark %s --allow-new", b.Name),
 					desc:    fmt.Sprintf("Git push new bookmark %s", b.Name),
