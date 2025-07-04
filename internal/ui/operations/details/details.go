@@ -94,7 +94,7 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		}
 	}
 
-	fmt.Fprint(w, style.PaddingRight(1).Render(title), common.DefaultPalette.Dimmed.Render(hint))
+	fmt.Fprint(w, style.PaddingRight(1).Render(title), " ", common.DefaultPalette.Dimmed.Render(hint))
 }
 
 func (i itemDelegate) Height() int                         { return 1 }
