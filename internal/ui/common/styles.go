@@ -74,8 +74,6 @@ type Palette struct {
 type jjStyleMap map[string]config.Color
 
 func (p *Palette) Update(jjStyles jjStyleMap) {
-	p.Dimmed = createStyleFrom(config.Current.UI.Colors.Dimmed)
-	p.Shortcut = createStyleFrom(config.Current.UI.Colors.Shortcut)
 	if color, ok := jjStyles["change_id"]; ok {
 		p.ChangeId = createStyleFrom(color)
 	}
@@ -91,6 +89,8 @@ func (p *Palette) Update(jjStyles jjStyleMap) {
 	if color, ok := jjStyles["diff removed"]; ok {
 		p.Deleted = createStyleFrom(color)
 	}
+	p.Dimmed = createStyleFrom(config.Current.UI.Colors.Dimmed)
+	p.Shortcut = createStyleFrom(config.Current.UI.Colors.Shortcut)
 }
 
 func createStyleFrom(color config.Color) lipgloss.Style {

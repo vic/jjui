@@ -24,7 +24,7 @@ var Current = &Config{
 		HighlightLight: "#a0a0a0",
 		HighlightDark:  "#282a36",
 		Colors: colors{
-			Dimmed:   Color{Fg: "bright red"},
+			Dimmed:   Color{Fg: "bright black"},
 			Shortcut: Color{Fg: "magenta"},
 		},
 	},
