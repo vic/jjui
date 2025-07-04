@@ -183,7 +183,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "stays as is",
 			})
 			model := confirmation.New("Are you sure you want to restore the selected files?")
-			model.AddOption("Yes", m.context.RunCommand(jj.Restore(m.revision, selectedFiles), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
+			model.AddOption("Yes", m.context.RunCommand(jj.Restore(m.revision, selectedFiles), common.Refresh, confirmation.Close), key.NewBinding(key.WithKeys("y")))
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
@@ -195,7 +195,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "stays as is",
 			})
 			model := confirmation.New("Are you sure you want to absorb changes from the selected files?")
-			model.AddOption("Yes", m.context.RunCommand(jj.Absorb(m.revision, selectedFiles...), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
+			model.AddOption("Yes", m.context.RunCommand(jj.Absorb(m.revision, selectedFiles...), common.Refresh, confirmation.Close), key.NewBinding(key.WithKeys("y")))
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()
