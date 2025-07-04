@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/idursun/jjui/internal/config"
@@ -114,7 +115,10 @@ type Model struct {
 	keyMap       config.KeyMappings[key.Binding]
 }
 
-type updateCommitStatusMsg []string
+type updateCommitStatusMsg struct {
+	summary       []string
+	selectedFiles []string
+}
 
 func New(context *context.MainContext, revision string) tea.Model {
 	keyMap := config.Current.GetKeyMap()
@@ -224,10 +228,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.RefreshMsg:
 		return m, m.load(m.revision)
 	case updateCommitStatusMsg:
-		items := m.parseFiles(msg)
+		items := m.createListItems(msg.summary, msg.selectedFiles)
 		var selectionChangedCmd tea.Cmd
 		if len(items) > 0 {
 			selectionChangedCmd = m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: items[0].(item).fileName})
+		}
+		if len(msg.selectedFiles) > 0 {
+
 		}
 		return m, tea.Batch(selectionChangedCmd, m.files.SetItems(items))
 	case tea.WindowSizeMsg:
@@ -236,7 +243,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) parseFiles(content []string) []list.Item {
+func (m Model) createListItems(content []string, selectedFiles []string) []list.Item {
 	items := make([]list.Item, 0)
 	for _, file := range content {
 		if file == "" {
@@ -273,6 +280,7 @@ func (m Model) parseFiles(content []string) []list.Item {
 			status:   status,
 			name:     fileName,
 			fileName: actualFileName,
+			selected: slices.ContainsFunc(selectedFiles, func(s string) bool { return s == actualFileName }),
 		})
 	}
 	return items
@@ -280,6 +288,10 @@ func (m Model) parseFiles(content []string) []list.Item {
 
 func (m Model) getSelectedFiles() ([]string, bool) {
 	selectedFiles := make([]string, 0)
+	if len(m.files.Items()) == 0 {
+		return selectedFiles, false
+	}
+
 	isVirtuallySelected := false
 	for _, f := range m.files.Items() {
 		if f.(item).selected {
@@ -313,7 +325,11 @@ func (m Model) load(revision string) tea.Cmd {
 		if err == nil {
 			return func() tea.Msg {
 				summary := strings.Split(strings.TrimSpace(string(output)), "\n")
-				return updateCommitStatusMsg(summary)
+				selectedFiles, isVirtuallySelected := m.getSelectedFiles()
+				if isVirtuallySelected {
+					selectedFiles = []string{}
+				}
+				return updateCommitStatusMsg{summary, selectedFiles}
 			}
 		}
 	}
