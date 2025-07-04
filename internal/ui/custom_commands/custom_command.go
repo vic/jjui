@@ -28,13 +28,13 @@ type InvokableCustomCommand struct {
 func newCustomCommand(name string, definition config.CustomCommandDefinition) CustomCommand {
 	var hasChangeId, hasFile, hasOperationId bool
 	for _, arg := range definition.Args {
-		if strings.Contains(arg, jj.ChangeIdPlaceholder) {
+		if strings.Contains(arg, config.ChangeIdPlaceholder) {
 			hasChangeId = true
 		}
-		if strings.Contains(arg, jj.FilePlaceholder) {
+		if strings.Contains(arg, config.FilePlaceholder) {
 			hasFile = true
 		}
-		if strings.Contains(arg, jj.OperationIdPlaceholder) {
+		if strings.Contains(arg, config.OperationIdPlaceholder) {
 			hasOperationId = true
 		}
 	}
@@ -56,12 +56,12 @@ func (cc CustomCommand) Prepare(ctx *context.MainContext) InvokableCustomCommand
 
 	switch selectedItem := ctx.SelectedItem.(type) {
 	case context.SelectedRevision:
-		replacements[jj.ChangeIdPlaceholder] = selectedItem.ChangeId
+		replacements[config.ChangeIdPlaceholder] = selectedItem.ChangeId
 	case context.SelectedFile:
-		replacements[jj.ChangeIdPlaceholder] = selectedItem.ChangeId
-		replacements[jj.FilePlaceholder] = selectedItem.File
+		replacements[config.ChangeIdPlaceholder] = selectedItem.ChangeId
+		replacements[config.FilePlaceholder] = selectedItem.File
 	case context.SelectedOperation:
-		replacements[jj.OperationIdPlaceholder] = selectedItem.OperationId
+		replacements[config.OperationIdPlaceholder] = selectedItem.OperationId
 	}
 
 	return InvokableCustomCommand{

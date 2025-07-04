@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/idursun/jjui/internal/jj"
 	"log"
 	"os"
 	"os/exec"
@@ -13,6 +12,12 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+const (
+	ChangeIdPlaceholder    = "$change_id"
+	FilePlaceholder        = "$file"
+	OperationIdPlaceholder = "$operation_id"
+)
+
 var Current = &Config{
 	Keys: DefaultKeyMappings,
 	UI: UIConfig{
@@ -21,9 +26,9 @@ var Current = &Config{
 	},
 	Preview: PreviewConfig{
 		ExtraArgs:                []string{},
-		OplogCommand:             []string{"op", "show", jj.OperationIdPlaceholder, "--color", "always"},
-		FileCommand:              []string{"diff", "--color", "always", "-r", jj.ChangeIdPlaceholder, jj.FilePlaceholder},
-		RevisionCommand:          []string{"show", "--color", "always", "-r", jj.ChangeIdPlaceholder},
+		OplogCommand:             []string{"op", "show", OperationIdPlaceholder, "--color", "always"},
+		FileCommand:              []string{"diff", "--color", "always", "-r", ChangeIdPlaceholder, FilePlaceholder},
+		RevisionCommand:          []string{"show", "--color", "always", "-r", ChangeIdPlaceholder},
 		ShowAtStart:              false,
 		WidthPercentage:          50,
 		WidthIncrementPercentage: 5,
