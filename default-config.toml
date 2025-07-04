@@ -45,6 +45,7 @@ experimental_log_batching_enabled = false
     close = ["h"]
     split = ["s"]
     restore = ["r"]
+    absorb = ["A"]
     diff = ["d"]
     select = ["m", " "]
     revisions_changing_file = ["*"]

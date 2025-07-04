@@ -192,8 +192,10 @@ func Args(args ...string) CommandArgs {
 	return args
 }
 
-func Absorb(changeId string) CommandArgs {
-	return []string{"absorb", "--from", changeId}
+func Absorb(changeId string, files ...string) CommandArgs {
+	args := []string{"absorb", "--from", changeId}
+	args = append(args, files...)
+	return args
 }
 
 func OpLogId(snapshot bool) CommandArgs {

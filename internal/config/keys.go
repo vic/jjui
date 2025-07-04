@@ -53,6 +53,7 @@ var DefaultKeyMappings = KeyMappings[keys]{
 		Close:                 []string{"h"},
 		Split:                 []string{"s"},
 		Restore:               []string{"r"},
+		Absorb:                []string{"A"},
 		Diff:                  []string{"d"},
 		ToggleSelect:          []string{"m", " "},
 		RevisionsChangingFile: []string{"*"},
@@ -132,9 +133,10 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 		Details: detailsModeKeys[key.Binding]{
 			Mode:                  key.NewBinding(key.WithKeys(m.Details.Mode...), key.WithHelp(JoinKeys(m.Details.Mode), "details")),
 			Close:                 key.NewBinding(key.WithKeys(m.Details.Close...), key.WithHelp(JoinKeys(m.Details.Close), "close")),
-			Split:                 key.NewBinding(key.WithKeys(m.Details.Split...), key.WithHelp(JoinKeys(m.Details.Split), "details split")),
-			Restore:               key.NewBinding(key.WithKeys(m.Details.Restore...), key.WithHelp(JoinKeys(m.Details.Restore), "details restore")),
-			Diff:                  key.NewBinding(key.WithKeys(m.Details.Diff...), key.WithHelp(JoinKeys(m.Details.Diff), "details diff")),
+			Split:                 key.NewBinding(key.WithKeys(m.Details.Split...), key.WithHelp(JoinKeys(m.Details.Split), "split")),
+			Restore:               key.NewBinding(key.WithKeys(m.Details.Restore...), key.WithHelp(JoinKeys(m.Details.Restore), "restore")),
+			Absorb:                key.NewBinding(key.WithKeys(m.Details.Absorb...), key.WithHelp(JoinKeys(m.Details.Absorb), "absorb")),
+			Diff:                  key.NewBinding(key.WithKeys(m.Details.Diff...), key.WithHelp(JoinKeys(m.Details.Diff), "diff")),
 			ToggleSelect:          key.NewBinding(key.WithKeys(m.Details.ToggleSelect...), key.WithHelp(JoinKeys(m.Details.ToggleSelect), "details toggle select")),
 			RevisionsChangingFile: key.NewBinding(key.WithKeys(m.Details.RevisionsChangingFile...), key.WithHelp(JoinKeys(m.Details.RevisionsChangingFile), "show revisions changing file")),
 		},
@@ -259,6 +261,7 @@ type detailsModeKeys[T any] struct {
 	Close                 T `toml:"close"`
 	Split                 T `toml:"split"`
 	Restore               T `toml:"restore"`
+	Absorb                T `toml:"absorb"`
 	Diff                  T `toml:"diff"`
 	ToggleSelect          T `toml:"select"`
 	RevisionsChangingFile T `toml:"revisions_changing_file"`

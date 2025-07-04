@@ -139,7 +139,6 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if m.confirmation != nil {
@@ -181,6 +180,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			})
 			model := confirmation.New("Are you sure you want to restore the selected files?")
 			model.AddOption("Yes", m.context.RunCommand(jj.Restore(m.revision, selectedFiles), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
+			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
+			m.confirmation = &model
+			return m, m.confirmation.Init()
+		case key.Matches(msg, m.keyMap.Details.Absorb):
+			selectedFiles, isVirtuallySelected := m.getSelectedFiles()
+			m.files.SetDelegate(itemDelegate{
+				isVirtuallySelected: isVirtuallySelected,
+				selectedHint:        "might get absorbed into parents",
+				unselectedHint:      "stays as is",
+			})
+			model := confirmation.New("Are you sure you want to absorb changes from the selected files?")
+			model.AddOption("Yes", m.context.RunCommand(jj.Absorb(m.revision, selectedFiles...), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
 			m.confirmation = &model
 			return m, m.confirmation.Init()

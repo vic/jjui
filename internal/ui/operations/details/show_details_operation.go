@@ -28,6 +28,7 @@ func (s *Operation) ShortHelp() []key.Binding {
 		s.keyMap.Details.ToggleSelect,
 		s.keyMap.Details.Split,
 		s.keyMap.Details.Restore,
+		s.keyMap.Details.Absorb,
 		s.keyMap.Details.RevisionsChangingFile,
 	}
 }
