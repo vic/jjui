@@ -20,7 +20,6 @@ experimental_log_batching_enabled = false
   diffedit = ["E"]
   absorb = ["A"]
   split = ["s"]
-  squash = ["S"]
   undo = ["u"]
   evolog = ["v"]
   revset = ["L"]
@@ -37,6 +36,10 @@ experimental_log_batching_enabled = false
     before = ["b"]
     onto = ["d"]
     insert = ["i"]
+  [keys.squash]
+    mode = ["S"]
+    keep_emptied = ["e"]
+    interactive = ["i"]
   [keys.details]
     mode = ["l"]
     close = ["h"]
@@ -84,3 +87,4 @@ experimental_log_batching_enabled = false
   limit = 200
 
 [custom_commands]
+
