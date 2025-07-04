@@ -82,17 +82,27 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			switch msg := m.context.SelectedItem.(type) {
 			case context.SelectedFile:
 				return m, func() tea.Msg {
-					output, _ := m.context.RunCommandImmediate(jj.Diff(msg.ChangeId, msg.File, config.Current.Preview.ExtraArgs...))
+					replacements := map[string]string{
+						jj.ChangeIdPlaceholder: msg.ChangeId,
+						jj.FilePlaceholder:     msg.File,
+					}
+					output, _ := m.context.RunCommandImmediate(jj.TemplatedArgs(config.Current.Preview.FileCommand, replacements))
 					return updatePreviewContentMsg{Content: string(output)}
 				}
 			case context.SelectedRevision:
+				replacements := map[string]string{
+					jj.ChangeIdPlaceholder: msg.ChangeId,
+				}
 				return m, func() tea.Msg {
-					output, _ := m.context.RunCommandImmediate(jj.Show(msg.ChangeId, config.Current.Preview.ExtraArgs...))
+					output, _ := m.context.RunCommandImmediate(jj.TemplatedArgs(config.Current.Preview.RevisionCommand, replacements))
 					return updatePreviewContentMsg{Content: string(output)}
 				}
 			case context.SelectedOperation:
+				replacements := map[string]string{
+					jj.OperationIdPlaceholder: msg.OperationId,
+				}
 				return m, func() tea.Msg {
-					output, _ := m.context.RunCommandImmediate(jj.OpShow(msg.OperationId))
+					output, _ := m.context.RunCommandImmediate(jj.TemplatedArgs(config.Current.Preview.OplogCommand, replacements))
 					return updatePreviewContentMsg{Content: string(output)}
 				}
 			}

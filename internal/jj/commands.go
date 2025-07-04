@@ -6,11 +6,13 @@ import (
 	"strings"
 )
 
-type CommandArgs []string
+const (
+	ChangeIdPlaceholder    = "$change_id"
+	FilePlaceholder        = "$file"
+	OperationIdPlaceholder = "$operation_id"
+)
 
-func ConfigGet(key string) CommandArgs {
-	return []string{"config", "get", key}
-}
+type CommandArgs []string
 
 func ConfigListAll() CommandArgs {
 	return []string{"config", "list", "--color", "never", "--include-defaults"}
@@ -189,6 +191,21 @@ func Evolog(revision string) CommandArgs {
 }
 
 func Args(args ...string) CommandArgs {
+	return args
+}
+
+func TemplatedArgs(templatedArgs []string, replacements map[string]string) CommandArgs {
+	var args []string
+	if fileReplacement, exists := replacements[FilePlaceholder]; exists {
+		// Ensure that the file replacement is quoted
+		replacements[FilePlaceholder] = fmt.Sprintf("file:\"%s\"", fileReplacement)
+	}
+	for _, arg := range templatedArgs {
+		for k, v := range replacements {
+			arg = strings.ReplaceAll(arg, k, v)
+		}
+		args = append(args, arg)
+	}
 	return args
 }
 

@@ -25,22 +25,16 @@ type InvokableCustomCommand struct {
 	show config.ShowOption
 }
 
-const (
-	ChangeIdPlaceholder    = "$change_id"
-	FilePlaceholder        = "$file"
-	OperationIdPlaceholder = "$operation_id"
-)
-
 func newCustomCommand(name string, definition config.CustomCommandDefinition) CustomCommand {
 	var hasChangeId, hasFile, hasOperationId bool
 	for _, arg := range definition.Args {
-		if strings.Contains(arg, ChangeIdPlaceholder) {
+		if strings.Contains(arg, jj.ChangeIdPlaceholder) {
 			hasChangeId = true
 		}
-		if strings.Contains(arg, FilePlaceholder) {
+		if strings.Contains(arg, jj.FilePlaceholder) {
 			hasFile = true
 		}
-		if strings.Contains(arg, OperationIdPlaceholder) {
+		if strings.Contains(arg, jj.OperationIdPlaceholder) {
 			hasOperationId = true
 		}
 	}
@@ -62,23 +56,16 @@ func (cc CustomCommand) Prepare(ctx *context.MainContext) InvokableCustomCommand
 
 	switch selectedItem := ctx.SelectedItem.(type) {
 	case context.SelectedRevision:
-		replacements[ChangeIdPlaceholder] = selectedItem.ChangeId
+		replacements[jj.ChangeIdPlaceholder] = selectedItem.ChangeId
 	case context.SelectedFile:
-		replacements[ChangeIdPlaceholder] = selectedItem.ChangeId
-		replacements[FilePlaceholder] = selectedItem.File
+		replacements[jj.ChangeIdPlaceholder] = selectedItem.ChangeId
+		replacements[jj.FilePlaceholder] = selectedItem.File
 	case context.SelectedOperation:
-		replacements[OperationIdPlaceholder] = selectedItem.OperationId
-	}
-	var args []string
-	for _, arg := range cc.Args {
-		for k, v := range replacements {
-			arg = strings.ReplaceAll(arg, k, v)
-		}
-		args = append(args, arg)
+		replacements[jj.OperationIdPlaceholder] = selectedItem.OperationId
 	}
 
 	return InvokableCustomCommand{
-		args: args,
+		args: jj.TemplatedArgs(cc.Args, replacements),
 		show: cc.Show,
 	}
 }

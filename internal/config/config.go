@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/jj"
 	"log"
 	"os"
 	"os/exec"
@@ -20,6 +21,9 @@ var Current = &Config{
 	},
 	Preview: PreviewConfig{
 		ExtraArgs:                []string{},
+		OplogCommand:             []string{"op", "show", jj.OperationIdPlaceholder, "--color", "always"},
+		FileCommand:              []string{"diff", "--color", "always", "-r", jj.ChangeIdPlaceholder, jj.FilePlaceholder},
+		RevisionCommand:          []string{"show", "--color", "always", "-r", jj.ChangeIdPlaceholder},
 		ShowAtStart:              false,
 		WidthPercentage:          50,
 		WidthIncrementPercentage: 5,
@@ -48,6 +52,9 @@ type UIConfig struct {
 
 type PreviewConfig struct {
 	ExtraArgs                []string `toml:"extra_args"`
+	RevisionCommand          []string `toml:"revision_command"`
+	OplogCommand             []string `toml:"oplog_command"`
+	FileCommand              []string `toml:"file_command"`
 	ShowAtStart              bool     `toml:"show_at_start"`
 	WidthPercentage          float64  `toml:"width_percentage"`
 	WidthIncrementPercentage float64  `toml:"width_increment_percentage"`
