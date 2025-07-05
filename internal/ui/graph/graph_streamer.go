@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/parser"
 	appContext "github.com/idursun/jjui/internal/ui/context"
 	"io"
 	"time"
@@ -15,8 +16,8 @@ const DefaultBatchSize = 50
 type GraphStreamer struct {
 	command     *appContext.StreamingCommand
 	cancel      context.CancelFunc
-	controlChan chan ControlMsg
-	rowsChan    <-chan RowBatch
+	controlChan chan parser.ControlMsg
+	rowsChan    <-chan parser.RowBatch
 	batchSize   int
 }
 
@@ -55,10 +56,10 @@ func NewGraphStreamer(ctx appContext.CommandRunner, revset string) (*GraphStream
 	}
 
 	// Set up stdout processing
-	controlChan := make(chan ControlMsg, 1)
+	controlChan := make(chan parser.ControlMsg, 1)
 	reader := bufio.NewReader(command)
 
-	rowsChan, err := ParseRowsStreaming(reader, controlChan, DefaultBatchSize)
+	rowsChan, err := parser.ParseRowsStreaming(reader, controlChan, DefaultBatchSize)
 	if err != nil {
 		cancel()
 		_ = command.Close()
@@ -73,8 +74,8 @@ func NewGraphStreamer(ctx appContext.CommandRunner, revset string) (*GraphStream
 		batchSize:   DefaultBatchSize,
 	}, nil
 }
-func (g *GraphStreamer) RequestMore() RowBatch {
-	g.controlChan <- RequestMore
+func (g *GraphStreamer) RequestMore() parser.RowBatch {
+	g.controlChan <- parser.RequestMore
 	return <-g.rowsChan
 }
 
@@ -84,7 +85,7 @@ func (g *GraphStreamer) Close() {
 	}
 
 	if g.controlChan != nil {
-		g.controlChan <- Close
+		g.controlChan <- parser.Close
 		close(g.controlChan)
 		g.controlChan = nil
 	}

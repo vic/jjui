@@ -5,21 +5,21 @@ import (
 	"io"
 )
 
-func ParseRows(reader io.Reader) []Row {
-	var rows []Row
-	var row Row
+func parseRows(reader io.Reader) []row {
+	var rows []row
+	var r row
 	rawSegments := screen.ParseFromReader(reader)
 
 	for segmentedLine := range screen.BreakNewLinesIter(rawSegments) {
-		rowLine := NewRowLine(segmentedLine)
+		rowLine := newRowLine(segmentedLine)
 		if opIdIdx := rowLine.FindIdIndex(); opIdIdx != -1 {
-			if row.OperationId != "" {
-				rows = append(rows, row)
+			if r.OperationId != "" {
+				rows = append(rows, r)
 			}
-			row = Row{OperationId: rowLine.Segments[opIdIdx].Text}
+			r = row{OperationId: rowLine.Segments[opIdIdx].Text}
 		}
-		row.Lines = append(row.Lines, &rowLine)
+		r.Lines = append(r.Lines, &rowLine)
 	}
-	rows = append(rows, row)
+	rows = append(rows, r)
 	return rows
 }

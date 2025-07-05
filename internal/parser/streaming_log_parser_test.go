@@ -1,4 +1,4 @@
-package graph
+package parser
 
 import (
 	"github.com/idursun/jjui/test"

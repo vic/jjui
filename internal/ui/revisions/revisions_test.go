@@ -2,14 +2,14 @@ package revisions
 
 import (
 	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/ui/graph"
+	"github.com/idursun/jjui/internal/parser"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestModel_highlightChanges(t *testing.T) {
 	model := Model{
-		rows: []graph.Row{
+		rows: []parser.Row{
 			{Commit: &jj.Commit{ChangeId: "someother"}},
 			{Commit: &jj.Commit{ChangeId: "nyqzpsmt"}},
 		},

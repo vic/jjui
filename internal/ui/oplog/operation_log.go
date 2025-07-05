@@ -14,21 +14,17 @@ import (
 )
 
 type updateOpLogMsg struct {
-	Rows []Row
+	Rows []row
 }
 
-type viewRange struct {
-	start int
-	end   int
-}
 type Model struct {
-	context   *context.MainContext
-	rows      []Row
-	cursor    int
-	keymap    config.KeyMappings[key.Binding]
-	viewRange *viewRange
-	width     int
-	height    int
+	context *context.MainContext
+	w       *graph.Renderer
+	rows    []row
+	cursor  int
+	keymap  config.KeyMappings[key.Binding]
+	width   int
+	height  int
 }
 
 func (m *Model) ShortHelp() []key.Binding {
@@ -63,8 +59,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case updateOpLogMsg:
 		m.rows = msg.Rows
-		m.viewRange.start = 0
-		m.viewRange.end = 0
+		m.w.Reset()
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keymap.Cancel):
@@ -101,42 +96,10 @@ func (m *Model) View() string {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, "loading")
 	}
 
-	h := m.height
-	viewHeight := m.viewRange.end - m.viewRange.start
-	if viewHeight != h {
-		m.viewRange.end = m.viewRange.start + h
-	}
-	var w graph.Renderer
-	selectedLineStart := -1
-	selectedLineEnd := -1
-	for i, row := range m.rows {
-		isHighlighted := m.cursor == i
-		if isHighlighted {
-			selectedLineStart = w.LineCount()
-		} else {
-			rowLineCount := len(row.Lines)
-			if rowLineCount+w.LineCount() < m.viewRange.start {
-				w.SkipLines(rowLineCount)
-				continue
-			}
-		}
-		RenderRow(&w, row, isHighlighted, m.width)
-		if isHighlighted {
-			selectedLineEnd = w.LineCount()
-		}
-		if selectedLineEnd > 0 && w.LineCount() > h && w.LineCount() > m.viewRange.end {
-			break
-		}
-	}
-	if selectedLineStart <= m.viewRange.start {
-		m.viewRange.start = selectedLineStart
-		m.viewRange.end = selectedLineStart + h
-	} else if selectedLineEnd > m.viewRange.end {
-		m.viewRange.end = selectedLineEnd
-		m.viewRange.start = selectedLineEnd - h
-	}
-
-	content := w.String(m.viewRange.start, m.viewRange.end)
+	m.w.Reset()
+	m.w.SetSize(m.width, m.height)
+	renderer := newIterator(m.rows, m.cursor, m.width)
+	content := m.w.Render(renderer)
 	content = lipgloss.PlaceHorizontal(m.width, lipgloss.Left, content)
 	return common.DefaultPalette.Normal.MaxWidth(m.width).Render(content)
 }
@@ -148,21 +111,21 @@ func (m *Model) load() tea.Cmd {
 			panic(err)
 		}
 
-		rows := ParseRows(bytes.NewReader(output))
+		rows := parseRows(bytes.NewReader(output))
 		return updateOpLogMsg{Rows: rows}
 	}
 }
 
 func New(context *context.MainContext, width int, height int) *Model {
 	keyMap := config.Current.GetKeyMap()
-	v := viewRange{start: 0, end: 0}
+	w := graph.NewRenderer(width, height)
 	return &Model{
-		context:   context,
-		keymap:    keyMap,
-		rows:      nil,
-		cursor:    0,
-		viewRange: &v,
-		width:     width,
-		height:    height,
+		context: context,
+		w:       w,
+		keymap:  keyMap,
+		rows:    nil,
+		cursor:  0,
+		width:   width,
+		height:  height,
 	}
 }

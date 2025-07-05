@@ -2,19 +2,58 @@ package graph
 
 import (
 	"bytes"
-	"fmt"
-	"io"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/ui/common"
 )
 
+type viewRange struct {
+	start        int
+	end          int
+	lastRowIndex int
+}
+
+func (v *viewRange) reset() {
+	v.start = 0
+	v.end = 0
+	v.lastRowIndex = -1
+}
+
 type Renderer struct {
 	buffer           bytes.Buffer
+	viewRange        *viewRange
 	skippedLineCount int
 	lineCount        int
 	Width            int
+	Height           int
+}
+
+func NewRenderer(width int, height int) *Renderer {
+	return &Renderer{
+		buffer:    bytes.Buffer{},
+		viewRange: &viewRange{},
+		Width:     width,
+		Height:    height,
+	}
+}
+
+func (r *Renderer) SetSize(width int, height int) {
+	r.Width = width
+	r.Height = height
+	if r.viewRange.end < r.viewRange.start+r.Height {
+		r.viewRange.end = r.viewRange.start + r.Height
+	}
+}
+
+func (r *Renderer) LastRowIndex() int {
+	return r.viewRange.lastRowIndex
+}
+
+func (r *Renderer) ResetViewRange() {
+	r.viewRange.reset()
+	r.skippedLineCount = 0
+	r.lineCount = 0
 }
 
 func (r *Renderer) SkipLines(amount int) {
@@ -55,95 +94,61 @@ func (r *Renderer) String(start, end int) string {
 func (r *Renderer) Reset() {
 	r.buffer.Reset()
 	r.lineCount = 0
+	r.skippedLineCount = 0
 }
 
-func RenderRow(r io.Writer, row Row, renderer DefaultRowDecorator) {
-	// will render by extending the previous connections
-	before := renderer.RenderBefore(row.Commit)
-	if before != "" {
-		extended := GraphRowLine{}
-		if row.Previous != nil {
-			extended = row.Previous.Last(Highlightable).Extend(row.Indent)
-		}
-		lines := strings.Split(before, "\n")
-		for _, line := range lines {
-			for _, segment := range extended.Segments {
-				fmt.Fprint(r, segment.String())
-			}
-			fmt.Fprintln(r, line)
-		}
-	}
-	highlightColor := renderer.HighlightBackground.Light
-	if lipgloss.HasDarkBackground() {
-		highlightColor = renderer.HighlightBackground.Dark
-	}
-	highlightSeq := lipgloss.ColorProfile().Color(highlightColor).Sequence(true)
-	var lastLine *GraphRowLine
-	for segmentedLine := range row.RowLinesIter(Including(Highlightable)) {
-		lastLine = segmentedLine
-		lw := strings.Builder{}
-		for i, segment := range segmentedLine.Segments {
-			if i == segmentedLine.ChangeIdIdx {
-				if decoration := renderer.RenderBeforeChangeId(row.Commit); decoration != "" {
-					fmt.Fprint(&lw, decoration)
-				}
-			}
-			if renderer.IsHighlighted && i == segmentedLine.CommitIdIdx {
-				if decoration := renderer.RenderBeforeCommitId(row.Commit); decoration != "" {
-					fmt.Fprint(&lw, decoration)
-				}
-			}
-			if renderer.IsHighlighted {
-				segment = segment.WithBackground(highlightSeq)
-			}
-
-			if renderer.IsHighlighted && renderer.SearchText != "" && strings.Contains(segment.Text, renderer.SearchText) {
-				for _, part := range segment.Reverse(renderer.SearchText) {
-					fmt.Fprint(&lw, part.String())
-				}
-			} else {
-				fmt.Fprint(&lw, segment.String())
-			}
-		}
-		if segmentedLine.Flags&Revision == Revision && row.IsAffected {
-			style := common.DefaultPalette.Dimmed
-			if renderer.IsHighlighted {
-				style = common.DefaultPalette.Dimmed.Background(renderer.HighlightBackground)
-			}
-			fmt.Fprint(&lw, style.Render(" (affected by last operation)"))
-		}
-		line := lw.String()
-		fmt.Fprint(r, line)
-		if renderer.IsHighlighted {
-			lineWidth := lipgloss.Width(line)
-			gap := renderer.Width - lineWidth
-			if gap > 0 {
-				fmt.Fprintf(r, "\033[%sm%s\033[0m", highlightSeq, strings.Repeat(" ", gap))
-			}
-		}
-		fmt.Fprint(r, "\n")
+func (r *Renderer) Render(iterator RowIterator) string {
+	r.Reset()
+	h := r.Height
+	viewHeight := r.viewRange.end - r.viewRange.start
+	if viewHeight != h {
+		r.viewRange.end = r.viewRange.start + h
 	}
 
-	if row.Commit.IsRoot() {
-		return
-	}
-
-	afterSection := renderer.RenderAfter(row.Commit)
-	if afterSection != "" && lastLine != nil {
-		extended := lastLine.Extend(row.Indent)
-		lines := strings.Split(afterSection, "\n")
-		for _, line := range lines {
-			for _, segment := range extended.Segments {
-				fmt.Fprint(r, segment.String())
+	selectedLineStart := -1
+	selectedLineEnd := -1
+	lastRenderedRowIndex := -1
+	i := -1
+	for {
+		i++
+		ok := iterator.Next()
+		if !ok {
+			break
+		}
+		if iterator.IsHighlighted() {
+			selectedLineStart = r.LineCount()
+		} else {
+			rowLineCount := iterator.RowHeight()
+			if rowLineCount+r.LineCount() < r.viewRange.start {
+				r.SkipLines(rowLineCount)
+				continue
 			}
-			fmt.Fprintln(r, line)
 		}
+		iterator.Render(r)
+
+		if iterator.IsHighlighted() {
+			selectedLineEnd = r.LineCount()
+		}
+		if selectedLineEnd > 0 && r.LineCount() > r.Height && r.LineCount() > r.viewRange.end {
+			lastRenderedRowIndex = i
+			break
+		}
+	}
+	if lastRenderedRowIndex == -1 {
+		lastRenderedRowIndex = iterator.Len() - 1
 	}
 
-	for segmentedLine := range row.RowLinesIter(Excluding(Highlightable)) {
-		for _, segment := range segmentedLine.Segments {
-			fmt.Fprint(r, segment.String())
-		}
-		fmt.Fprint(r, "\n")
+	r.viewRange.lastRowIndex = lastRenderedRowIndex
+	if selectedLineStart <= r.viewRange.start {
+		r.viewRange.start = selectedLineStart
+		r.viewRange.end = selectedLineStart + r.Height
+	} else if selectedLineEnd > r.viewRange.end {
+		r.viewRange.end = selectedLineEnd
+		r.viewRange.start = selectedLineEnd - r.Height
 	}
+
+	content := r.String(r.viewRange.start, r.viewRange.end)
+	content = lipgloss.PlaceHorizontal(r.Width, lipgloss.Left, content)
+
+	return common.DefaultPalette.Normal.MaxWidth(r.Width).Render(content)
 }

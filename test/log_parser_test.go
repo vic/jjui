@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/idursun/jjui/internal/ui/graph"
+	"github.com/idursun/jjui/internal/parser"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
@@ -10,19 +10,19 @@ import (
 
 func TestParser_Parse(t *testing.T) {
 	file, _ := os.Open("testdata/output.log")
-	rows := graph.ParseRows(file)
+	rows := parser.ParseRows(file)
 	assert.Len(t, rows, 11)
 }
 
 func TestParser_Parse_NoCommitId(t *testing.T) {
 	file, _ := os.Open("testdata/no-commit-id.log")
-	rows := graph.ParseRows(file)
+	rows := parser.ParseRows(file)
 	assert.Len(t, rows, 1)
 }
 
 func TestParser_Parse_ShortId(t *testing.T) {
 	file, _ := os.Open("testdata/short-id.log")
-	rows := graph.ParseRows(file)
+	rows := parser.ParseRows(file)
 	assert.Len(t, rows, 2)
 	assert.Equal(t, "X", rows[0].Commit.ChangeId)
 	assert.Equal(t, "E", rows[0].Commit.CommitId)
@@ -32,7 +32,7 @@ func TestParser_Parse_ShortId(t *testing.T) {
 
 func TestParser_Parse_SingleLineWithDescription(t *testing.T) {
 	file, _ := os.Open("testdata/single-line-with-description.log")
-	rows := graph.ParseRows(file)
+	rows := parser.ParseRows(file)
 	assert.Len(t, rows, 1)
 	assert.Equal(t, "x", rows[0].Commit.ChangeId)
 	assert.Equal(t, "4", rows[0].Commit.CommitId)
@@ -40,7 +40,7 @@ func TestParser_Parse_SingleLineWithDescription(t *testing.T) {
 
 func TestParser_Parse_CommitIdOnASeparateLine(t *testing.T) {
 	file, _ := os.Open("testdata/commit-id.log")
-	rows := graph.ParseRows(file)
+	rows := parser.ParseRows(file)
 	assert.Len(t, rows, 1)
 	assert.Equal(t, "o", rows[0].Commit.ChangeId)
 	assert.Equal(t, "5", rows[0].Commit.CommitId)
@@ -48,7 +48,7 @@ func TestParser_Parse_CommitIdOnASeparateLine(t *testing.T) {
 
 func TestParser_Parse_ConflictedLongIds(t *testing.T) {
 	file, _ := os.Open("testdata/conflicted-change-id.log")
-	rows := graph.ParseRows(file)
+	rows := parser.ParseRows(file)
 	assert.Len(t, rows, 3)
 	assert.Equal(t, "p??", rows[0].Commit.ChangeId)
 	assert.Equal(t, "qusvoztl??", rows[1].Commit.ChangeId)
@@ -63,7 +63,7 @@ func TestParser_Parse_Disconnected(t *testing.T) {
 	lb.Write("*   id=abcde author=some@author id=xyrq")
 	lb.Write("│   another commit")
 	lb.Write("~\n")
-	rows := graph.ParseRows(strings.NewReader(lb.String()))
+	rows := parser.ParseRows(strings.NewReader(lb.String()))
 	assert.Len(t, rows, 2)
 }
 
@@ -72,7 +72,7 @@ func TestParser_Parse_Extend(t *testing.T) {
 	lb.Write("*   id=abcde author=some@author id=xyrq")
 	lb.Write("│   some documentation")
 
-	rows := graph.ParseRows(strings.NewReader(lb.String()))
+	rows := parser.ParseRows(strings.NewReader(lb.String()))
 	assert.Len(t, rows, 1)
 	row := rows[0]
 
@@ -87,7 +87,7 @@ func TestParser_Parse_WorkingCopy(t *testing.T) {
 	lb.Write("@   id=kdys author=some@author id=12cd")
 	lb.Write("│   some documentation")
 
-	rows := graph.ParseRows(strings.NewReader(lb.String()))
+	rows := parser.ParseRows(strings.NewReader(lb.String()))
 	assert.Len(t, rows, 2)
 	row := rows[1]
 

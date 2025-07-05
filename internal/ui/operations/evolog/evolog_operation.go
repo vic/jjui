@@ -3,6 +3,8 @@ package evolog
 import (
 	"bytes"
 
+	"github.com/idursun/jjui/internal/parser"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -14,24 +16,19 @@ import (
 	"github.com/idursun/jjui/internal/ui/operations"
 )
 
-type viewRange struct {
-	start int
-	end   int
-}
-
 type updateEvologMsg struct {
-	rows []graph.Row
+	rows []parser.Row
 }
 
 type Operation struct {
-	context   *context.MainContext
-	revision  *jj.Commit
-	rows      []graph.Row
-	viewRange *viewRange
-	cursor    int
-	width     int
-	height    int
-	keyMap    config.KeyMappings[key.Binding]
+	context  *context.MainContext
+	w        *graph.Renderer
+	revision *jj.Commit
+	rows     []parser.Row
+	cursor   int
+	width    int
+	height   int
+	keyMap   config.KeyMappings[key.Binding]
 }
 
 func (o *Operation) ShortHelp() []key.Binding {
@@ -88,43 +85,10 @@ func (o *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 		return "loading"
 	}
 	h := min(o.height-5, len(o.rows)*2)
-	highlightBackground := lipgloss.AdaptiveColor{
-		Light: config.Current.UI.HighlightLight,
-		Dark:  config.Current.UI.HighlightDark,
-	}
-	var w graph.Renderer
-	selectedLineStart := -1
-	selectedLineEnd := -1
-	for i, row := range o.rows {
-		nodeRenderer := graph.DefaultRowDecorator{
-			Palette:             common.DefaultPalette,
-			HighlightBackground: highlightBackground,
-			Op:                  &operations.Default{},
-			IsHighlighted:       i == o.cursor,
-			Width:               o.width,
-		}
-
-		if i == o.cursor {
-			selectedLineStart = w.LineCount()
-		}
-		graph.RenderRow(&w, row, nodeRenderer)
-		if i == o.cursor {
-			selectedLineEnd = w.LineCount()
-		}
-		if selectedLineEnd > 0 && w.LineCount() > h && w.LineCount() > o.viewRange.end {
-			break
-		}
-	}
-
-	if selectedLineStart <= o.viewRange.start {
-		o.viewRange.start = selectedLineStart
-		o.viewRange.end = selectedLineStart + h
-	} else if selectedLineEnd > o.viewRange.end {
-		o.viewRange.end = selectedLineEnd
-		o.viewRange.start = selectedLineEnd - h
-	}
-
-	content := w.String(o.viewRange.start, o.viewRange.end)
+	o.w.SetSize(o.width, h)
+	renderer := graph.NewDefaultRowIterator(o.rows, o.width)
+	renderer.Cursor = o.cursor
+	content := o.w.Render(renderer)
 	content = lipgloss.PlaceHorizontal(o.width, lipgloss.Left, content)
 	return content
 }
@@ -135,23 +99,23 @@ func (o *Operation) Name() string {
 
 func (o *Operation) load() tea.Msg {
 	output, _ := o.context.RunCommandImmediate(jj.Evolog(o.revision.GetChangeId()))
-	rows := graph.ParseRows(bytes.NewReader(output))
+	rows := parser.ParseRows(bytes.NewReader(output))
 	return updateEvologMsg{
 		rows: rows,
 	}
 }
 
 func NewOperation(context *context.MainContext, revision *jj.Commit, width int, height int) (operations.Operation, tea.Cmd) {
-	v := viewRange{start: 0, end: 0}
+	w := graph.NewRenderer(width, height)
 	o := &Operation{
-		context:   context,
-		keyMap:    config.Current.GetKeyMap(),
-		revision:  revision,
-		rows:      nil,
-		viewRange: &v,
-		cursor:    0,
-		width:     width,
-		height:    height,
+		context:  context,
+		keyMap:   config.Current.GetKeyMap(),
+		w:        w,
+		revision: revision,
+		rows:     nil,
+		cursor:   0,
+		width:    width,
+		height:   height,
 	}
 	return o, o.load
 }

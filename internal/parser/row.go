@@ -1,4 +1,4 @@
-package graph
+package parser
 
 import (
 	"github.com/idursun/jjui/internal/jj"
@@ -86,7 +86,7 @@ func (gr *GraphRowLine) ContainsRune(r rune, indent int) bool {
 	return false
 }
 
-func IsChangeIdLike(s string) bool {
+func isChangeIdLike(s string) bool {
 	for _, r := range s {
 		if !unicode.IsLetter(r) {
 			return false
@@ -95,7 +95,7 @@ func IsChangeIdLike(s string) bool {
 	return true
 }
 
-func IsHexLike(s string) bool {
+func isHexLike(s string) bool {
 	for _, r := range s {
 		// Convert the rune to lowercase for case-insensitive comparison
 		lowerChar := unicode.ToLower(r)
@@ -108,18 +108,17 @@ func IsHexLike(s string) bool {
 
 func (gr *GraphRowLine) FindPossibleChangeIdIdx() int {
 	for i, segment := range gr.Segments {
-		if IsChangeIdLike(segment.Text) {
+		if isChangeIdLike(segment.Text) {
 			return i
 		}
 	}
-
 	return -1
 }
 
 func (gr *GraphRowLine) FindPossibleCommitIdIdx(after int) int {
 	for i := after; i < len(gr.Segments); i++ {
 		segment := gr.Segments[i]
-		if IsHexLike(segment.Text) {
+		if isHexLike(segment.Text) {
 			return i
 		}
 	}
@@ -133,46 +132,59 @@ func NewGraphRow() Row {
 	}
 }
 
-func (r *Row) AddLine(line *GraphRowLine) {
-	if r.Commit == nil {
+func (row *Row) AddLine(line *GraphRowLine) {
+	if row.Commit == nil {
 		return
 	}
-	switch len(r.Lines) {
+	switch len(row.Lines) {
 	case 0:
 		line.Flags = Revision | Highlightable
-		r.Commit.IsWorkingCopy = line.ContainsRune('@', r.Indent)
+		row.Commit.IsWorkingCopy = line.ContainsRune('@', row.Indent)
 		for i := line.ChangeIdIdx; i < line.CommitIdIdx; i++ {
 			segment := line.Segments[i]
 			if strings.TrimSpace(segment.Text) == "hidden" {
-				r.Commit.Hidden = true
+				row.Commit.Hidden = true
 			}
 		}
 	default:
-		if line.ContainsRune('~', r.Indent) {
+		if line.ContainsRune('~', row.Indent) {
 			line.Flags = Elided
 		} else {
-			if r.Commit.CommitId == "" {
+			if row.Commit.CommitId == "" {
 				commitIdIdx := line.FindPossibleCommitIdIdx(0)
 				if commitIdIdx != -1 {
 					line.CommitIdIdx = commitIdIdx
-					r.Commit.CommitId = line.Segments[commitIdIdx].Text
+					row.Commit.CommitId = line.Segments[commitIdIdx].Text
 					line.Flags = Revision | Highlightable
 				}
 			}
-			lastLine := r.Lines[len(r.Lines)-1]
+			lastLine := row.Lines[len(row.Lines)-1]
 			line.Flags = lastLine.Flags & ^Revision & ^Elided
 		}
 	}
-	r.Lines = append(r.Lines, line)
+	row.Lines = append(row.Lines, line)
 }
 
-func (r *Row) Last(flag RowLineFlags) *GraphRowLine {
-	for i := len(r.Lines) - 1; i >= 0; i-- {
-		if r.Lines[i].Flags&flag == flag {
-			return r.Lines[i]
+func (row *Row) Last(flag RowLineFlags) *GraphRowLine {
+	for i := len(row.Lines) - 1; i >= 0; i-- {
+		if row.Lines[i].Flags&flag == flag {
+			return row.Lines[i]
 		}
 	}
 	return &GraphRowLine{}
+}
+
+func (row *Row) RowLinesIter(predicate RowLinesIteratorPredicate) func(yield func(line *GraphRowLine) bool) {
+	return func(yield func(line *GraphRowLine) bool) {
+		for i := range row.Lines {
+			line := row.Lines[i]
+			if predicate(line.Flags) {
+				if !yield(line) {
+					return
+				}
+			}
+		}
+	}
 }
 
 type RowLinesIteratorPredicate func(f RowLineFlags) bool
@@ -186,18 +198,5 @@ func Including(flags RowLineFlags) RowLinesIteratorPredicate {
 func Excluding(flags RowLineFlags) RowLinesIteratorPredicate {
 	return func(f RowLineFlags) bool {
 		return f&flags != flags
-	}
-}
-
-func (r *Row) RowLinesIter(predicate RowLinesIteratorPredicate) func(yield func(line *GraphRowLine) bool) {
-	return func(yield func(line *GraphRowLine) bool) {
-		for i := range r.Lines {
-			line := r.Lines[i]
-			if predicate(line.Flags) {
-				if !yield(line) {
-					return
-				}
-			}
-		}
 	}
 }
