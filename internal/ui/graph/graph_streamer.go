@@ -20,7 +20,7 @@ type GraphStreamer struct {
 	batchSize   int
 }
 
-func NewGraphStreamer(ctx *appContext.MainContext, revset string) (*GraphStreamer, error) {
+func NewGraphStreamer(ctx appContext.CommandRunner, revset string) (*GraphStreamer, error) {
 	streamerCtx, cancel := context.WithCancel(context.Background())
 
 	command, err := ctx.RunCommandStreaming(streamerCtx, jj.Log(revset))
