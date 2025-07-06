@@ -2,6 +2,7 @@ package context
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
 )
@@ -48,7 +49,7 @@ type MainContext struct {
 	CommandRunner
 	SelectedItem SelectedItem
 	Location     string
-	JJConfig     *jj.Config
+	JJConfig     *config.JJConfig
 }
 
 func (a *MainContext) SetSelectedItem(item SelectedItem) tea.Cmd {
@@ -70,9 +71,9 @@ func NewAppContext(location string) *MainContext {
 		Location: location,
 	}
 
-	m.JJConfig = &jj.Config{}
+	m.JJConfig = &config.JJConfig{}
 	if output, err := m.RunCommandImmediate(jj.ConfigListAll()); err == nil {
-		if m.JJConfig, err = jj.DefaultConfig(output); err == nil {
+		if m.JJConfig, err = config.DefaultConfig(output); err == nil {
 			common.DefaultPalette.Update(m.JJConfig.Colors)
 		}
 	}
