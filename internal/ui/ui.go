@@ -49,55 +49,65 @@ func (m Model) Init() tea.Cmd {
 	return tea.Sequence(tea.SetWindowTitle(fmt.Sprintf("jjui - %s", m.context.Location)), m.revisions.Init(), m.scheduleAutoRefresh())
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if _, ok := msg.(common.CloseViewMsg); ok && (m.diff != nil || m.stacked != nil || m.oplog != nil) {
+func (m Model) handleFocusInputMessage(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
+	var cmd tea.Cmd
+	if _, ok := msg.(common.CloseViewMsg); ok {
 		if m.diff != nil {
 			m.diff = nil
-			return m, nil
+			return m, nil, true
 		}
 		if m.stacked != nil {
 			m.stacked = nil
-			return m, nil
+			return m, nil, true
 		}
 		if m.oplog != nil {
 			m.oplog = nil
-			return m, common.SelectionChanged
+			return m, common.SelectionChanged, true
 		}
-		m.oplog = nil
-		return m, nil
+		return m, nil, false
 	}
-
-	var cmd tea.Cmd
-	if m.diff != nil {
-		m.diff, cmd = m.diff.Update(msg)
-		return m, cmd
-	}
-
-	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.diff != nil {
+			m.diff, cmd = m.diff.Update(msg)
+			return m, cmd, true
+		}
+
 		if m.revsetModel.Editing {
 			m.revsetModel, cmd = m.revsetModel.Update(msg)
 			m.state = common.Loading
-			return m, cmd
+			return m, cmd, true
 		}
 
 		if m.status.IsFocused() {
 			m.status, cmd = m.status.Update(msg)
-			return m, cmd
+			return m, cmd, true
 		}
 
 		if m.revisions.IsFocused() {
 			m.revisions, cmd = m.revisions.Update(msg)
-			return m, cmd
+			return m, cmd, true
 		}
 
 		if m.stacked != nil {
 			m.stacked, cmd = m.stacked.Update(msg)
-			return m, cmd
+			return m, cmd, true
 		}
+	}
+	return m, nil, false
+}
 
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m, cmd, handled := m.handleFocusInputMessage(msg); handled {
+		return m, cmd
+	}
+
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keyMap.Cancel) && m.state == common.Error:
 			m.state = common.Ready
