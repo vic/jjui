@@ -63,7 +63,7 @@ func Abandon(revision SelectedRevisions) CommandArgs {
 func Diff(revision string, fileName string, extraArgs ...string) CommandArgs {
 	args := []string{"diff", "-r", revision, "--color", "always"}
 	if fileName != "" {
-		args = append(args, fmt.Sprintf("file:\"%s\"", fileName))
+		args = append(args, escapeFileName(fileName))
 	}
 	if extraArgs != nil {
 		args = append(args, extraArgs...)
@@ -198,7 +198,7 @@ func TemplatedArgs(templatedArgs []string, replacements map[string]string) Comma
 	var args []string
 	if fileReplacement, exists := replacements[FilePlaceholder]; exists {
 		// Ensure that the file replacement is quoted
-		replacements[FilePlaceholder] = fmt.Sprintf("file:\"%s\"", fileReplacement)
+		replacements[FilePlaceholder] = escapeFileName(fileReplacement)
 	}
 	for _, arg := range templatedArgs {
 		for k, v := range replacements {
@@ -249,4 +249,11 @@ func GetParent(revisions SelectedRevisions) CommandArgs {
 
 func GetIdsFromRevset(revset string) CommandArgs {
 	return []string{"log", "-r", revset, "--color", "never", "--no-graph", "--quiet", "--ignore-working-copy", "--template", "change_id.shortest() ++ '\n'"}
+}
+
+func escapeFileName(fileName string) string {
+	if strings.Contains(fileName, "\"") {
+		fileName = strings.ReplaceAll(fileName, "\"", "\\\"")
+	}
+	return fmt.Sprintf("file:\"%s\"", fileName)
 }
