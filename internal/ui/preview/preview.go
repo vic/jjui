@@ -143,6 +143,7 @@ func (m *Model) View() string {
 	current := 0
 	for scanner.Scan() {
 		line := scanner.Text()
+		line = strings.ReplaceAll(line, "\r", "")
 		if current >= m.viewRange.start && current <= m.viewRange.end {
 			if current > m.viewRange.start {
 				w.WriteString("\n")
