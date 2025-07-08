@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
@@ -115,7 +117,7 @@ func main() {
 		} else {
 			appContext.CustomCommands = registry
 		}
-	} else {
+	} else if !errors.Is(err, fs.ErrNotExist) {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
