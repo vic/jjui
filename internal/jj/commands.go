@@ -252,6 +252,10 @@ func GetIdsFromRevset(revset string) CommandArgs {
 }
 
 func escapeFileName(fileName string) string {
+	// Escape backslashes and quotes in the file name for shell compatibility
+	if strings.Contains(fileName, "\\") {
+		fileName = strings.ReplaceAll(fileName, "\\", "\\\\")
+	}
 	if strings.Contains(fileName, "\"") {
 		fileName = strings.ReplaceAll(fileName, "\"", "\\\"")
 	}
