@@ -69,7 +69,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case updatePreviewContentMsg:
 		m.content = msg.Content
-		m.contentLineCount = strings.Count(m.content, "\n")
+		m.contentLineCount = lipgloss.Height(m.content)
 		m.reset()
 	case common.SelectionChangedMsg, common.RefreshMsg:
 		m.tag++

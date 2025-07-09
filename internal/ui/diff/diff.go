@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/common"
+	"strings"
 )
 
 type Model struct {
@@ -51,7 +52,7 @@ func (m *Model) View() string {
 
 func New(output string, width int, height int) *Model {
 	view := viewport.New(width, height)
-	content := output
+	content := strings.ReplaceAll(output, "\r", "")
 	if content == "" {
 		content = "(empty)"
 	}
