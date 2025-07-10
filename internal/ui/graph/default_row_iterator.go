@@ -75,25 +75,13 @@ func (s *DefaultRowIterator) RowHeight() int {
 func (s *DefaultRowIterator) Render(r io.Writer) {
 	row := s.Rows[s.current]
 	// will render by extending the previous connections
-	before := s.RenderBefore(row.Commit)
-	if before != "" {
+	if before := s.RenderBefore(row.Commit); before != "" {
 		extended := parser.GraphRowLine{}
 		if row.Previous != nil {
 			extended = row.Previous.Last(parser.Highlightable).Extend(row.Indent)
 		}
-		lines := strings.Split(before, "\n")
-		for _, line := range lines {
-			for _, segment := range extended.Segments {
-				fmt.Fprint(r, segment.String())
-			}
-			fmt.Fprintln(r, line)
-		}
+		s.writeSection(r, extended, before)
 	}
-	highlightColor := s.HighlightBackground.Light
-	if lipgloss.HasDarkBackground() {
-		highlightColor = s.HighlightBackground.Dark
-	}
-	highlightSeq := lipgloss.ColorProfile().Color(highlightColor).Sequence(true)
 	var lastLine *parser.GraphRowLine
 	for segmentedLine := range row.RowLinesIter(parser.Including(parser.Highlightable)) {
 		lastLine = segmentedLine
@@ -146,14 +134,7 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 
 	afterSection := s.RenderAfter(row.Commit)
 	if afterSection != "" && lastLine != nil {
-		extended := lastLine.Extend(row.Indent)
-		lines := strings.Split(afterSection, "\n")
-		for _, line := range lines {
-			for _, segment := range extended.Segments {
-				fmt.Fprint(r, segment.String())
-			}
-			fmt.Fprintln(r, line)
-		}
+		s.writeSection(r, lastLine.Extend(row.Indent), afterSection)
 	}
 
 	for segmentedLine := range row.RowLinesIter(parser.Excluding(parser.Highlightable)) {
@@ -161,6 +142,16 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 			fmt.Fprint(r, segment.String())
 		}
 		fmt.Fprint(r, "\n")
+	}
+}
+
+func (s *DefaultRowIterator) writeSection(r io.Writer, extended parser.GraphRowLine, section string) {
+	lines := strings.Split(section, "\n")
+	for _, line := range lines {
+		for _, segment := range extended.Segments {
+			fmt.Fprint(r, segment.String())
+		}
+		fmt.Fprintln(r, line)
 	}
 }
 
