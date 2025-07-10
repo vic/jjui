@@ -26,6 +26,7 @@ type DefaultRowIterator struct {
 	isSelected          bool
 	current             int
 	Cursor              int
+	highlightSeq        string
 }
 
 func NewDefaultRowIterator(rows []parser.Row, width int) *DefaultRowIterator {
@@ -33,6 +34,11 @@ func NewDefaultRowIterator(rows []parser.Row, width int) *DefaultRowIterator {
 		Light: config.Current.UI.HighlightLight,
 		Dark:  config.Current.UI.HighlightDark,
 	}
+	highlightColor := highlightBackground.Light
+	if lipgloss.HasDarkBackground() {
+		highlightColor = highlightBackground.Dark
+	}
+	highlightSeq := lipgloss.ColorProfile().Color(highlightColor).Sequence(true)
 	return &DefaultRowIterator{
 		Palette:             common.DefaultPalette,
 		HighlightBackground: highlightBackground,
@@ -41,6 +47,7 @@ func NewDefaultRowIterator(rows []parser.Row, width int) *DefaultRowIterator {
 		Rows:                rows,
 		Selections:          make(map[string]bool),
 		current:             -1,
+		highlightSeq:        highlightSeq,
 	}
 }
 
@@ -103,7 +110,7 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 				}
 			}
 			if s.isHighlighted {
-				segment = segment.WithBackground(highlightSeq)
+				segment = segment.WithBackground(s.highlightSeq)
 			}
 
 			if s.isHighlighted && s.SearchText != "" && strings.Contains(segment.Text, s.SearchText) {
@@ -127,7 +134,7 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 			lineWidth := lipgloss.Width(line)
 			gap := s.Width - lineWidth
 			if gap > 0 {
-				fmt.Fprintf(r, "\033[%sm%s\033[0m", highlightSeq, strings.Repeat(" ", gap))
+				fmt.Fprintf(r, "\033[%sm%s\033[0m", s.highlightSeq, strings.Repeat(" ", gap))
 			}
 		}
 		fmt.Fprint(r, "\n")
