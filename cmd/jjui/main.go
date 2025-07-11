@@ -36,6 +36,7 @@ func getVersion() string {
 var (
 	revset     string
 	period     int
+	limit      int
 	version    bool
 	editConfig bool
 	help       bool
@@ -46,6 +47,8 @@ func init() {
 	flag.StringVar(&revset, "r", "", "Set default revset (same as --revset)")
 	flag.IntVar(&period, "period", -1, "Override auto-refresh interval (seconds, set to 0 to disable)")
 	flag.IntVar(&period, "p", -1, "Override auto-refresh interval (alias for --period)")
+	flag.IntVar(&limit, "limit", 0, "Number of revisions to show (default: 0)")
+	flag.IntVar(&limit, "n", 0, "Number of revisions to show (alias for --limit)")
 	flag.BoolVar(&version, "version", false, "Show version information")
 	flag.BoolVar(&editConfig, "config", false, "Open configuration file in $EDITOR")
 	flag.BoolVar(&help, "help", false, "Show help information")
@@ -105,6 +108,10 @@ func main() {
 		log.SetOutput(f)
 	} else {
 		log.SetOutput(io.Discard)
+	}
+
+	if limit > 0 {
+		config.Current.Limit = limit
 	}
 
 	appContext := context.NewAppContext(rootLocation)

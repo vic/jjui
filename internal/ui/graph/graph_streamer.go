@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/parser"
 	appContext "github.com/idursun/jjui/internal/ui/context"
@@ -24,7 +25,7 @@ type GraphStreamer struct {
 func NewGraphStreamer(ctx appContext.CommandRunner, revset string) (*GraphStreamer, error) {
 	streamerCtx, cancel := context.WithCancel(context.Background())
 
-	command, err := ctx.RunCommandStreaming(streamerCtx, jj.Log(revset))
+	command, err := ctx.RunCommandStreaming(streamerCtx, jj.Log(revset, config.Current.Limit))
 	if err != nil {
 		cancel()
 		return nil, err

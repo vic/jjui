@@ -43,6 +43,7 @@ type Config struct {
 	Preview                        PreviewConfig     `toml:"preview"`
 	OpLog                          OpLogConfig       `toml:"oplog"`
 	ExperimentalLogBatchingEnabled bool              `toml:"experimental_log_batching_enabled"`
+	Limit                          int
 }
 
 type Color struct {

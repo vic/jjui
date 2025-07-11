@@ -18,10 +18,13 @@ func ConfigListAll() CommandArgs {
 	return []string{"config", "list", "--color", "never", "--include-defaults"}
 }
 
-func Log(revset string) CommandArgs {
+func Log(revset string, limit int) CommandArgs {
 	args := []string{"log", "--color", "always", "--quiet"}
 	if revset != "" {
 		args = append(args, "-r", revset)
+	}
+	if limit > 0 {
+		args = append(args, "--limit", strconv.Itoa(limit))
 	}
 	return args
 }

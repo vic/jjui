@@ -416,7 +416,7 @@ func (m *Model) View() string {
 
 func (m *Model) load(revset string, selectedRevision string) tea.Cmd {
 	return func() tea.Msg {
-		output, err := m.context.RunCommandImmediate(jj.Log(revset))
+		output, err := m.context.RunCommandImmediate(jj.Log(revset, config.Current.Limit))
 		if err != nil {
 			return common.UpdateRevisionsFailedMsg{
 				Err:    err,
