@@ -5,6 +5,7 @@ import (
 	"context"
 	appContext "github.com/idursun/jjui/internal/ui/context"
 	"io"
+	"slices"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,22 +24,20 @@ func (e *ExpectedCommand) SetOutput(output []byte) *ExpectedCommand {
 	return e
 }
 
-type TestCommandRunner struct {
+type CommandRunner struct {
 	*testing.T
 	expectations map[string][]*ExpectedCommand
 }
 
-func (t *TestCommandRunner) RunCommandImmediate(args []string) ([]byte, error) {
+func (t *CommandRunner) RunCommandImmediate(args []string) ([]byte, error) {
 	subCommand := args[0]
-	if _, ok := t.expectations[subCommand]; !ok {
+	expectations, ok := t.expectations[subCommand]
+	if !ok || len(expectations) == 0 {
 		assert.Fail(t, "unexpected command", subCommand)
 	}
-	expectations := t.expectations[subCommand]
-	if len(expectations) == 0 {
-		assert.Fail(t, "unexpected command", subCommand)
-	}
+
 	for _, e := range expectations {
-		if assert.Equal(t.T, e.args, args) {
+		if slices.Equal(e.args, args) {
 			e.called = true
 			return e.output, nil
 		}
@@ -47,7 +46,7 @@ func (t *TestCommandRunner) RunCommandImmediate(args []string) ([]byte, error) {
 	return nil, nil
 }
 
-func (t *TestCommandRunner) RunCommandStreaming(_ context.Context, args []string) (*appContext.StreamingCommand, error) {
+func (t *CommandRunner) RunCommandStreaming(_ context.Context, args []string) (*appContext.StreamingCommand, error) {
 	reader, err := t.RunCommandImmediate(args)
 	return &appContext.StreamingCommand{
 		ReadCloser: io.NopCloser(bytes.NewReader(reader)),
@@ -55,7 +54,7 @@ func (t *TestCommandRunner) RunCommandStreaming(_ context.Context, args []string
 	}, err
 }
 
-func (t *TestCommandRunner) RunCommand(args []string, continuations ...tea.Cmd) tea.Cmd {
+func (t *CommandRunner) RunCommand(args []string, continuations ...tea.Cmd) tea.Cmd {
 	cmds := make([]tea.Cmd, 0)
 	cmds = append(cmds, func() tea.Msg {
 		_, _ = t.RunCommandImmediate(args)
@@ -65,11 +64,11 @@ func (t *TestCommandRunner) RunCommand(args []string, continuations ...tea.Cmd) 
 	return tea.Batch(cmds...)
 }
 
-func (t *TestCommandRunner) RunInteractiveCommand(args []string, continuation tea.Cmd) tea.Cmd {
+func (t *CommandRunner) RunInteractiveCommand(args []string, continuation tea.Cmd) tea.Cmd {
 	return t.RunCommand(args, continuation)
 }
 
-func (t *TestCommandRunner) Expect(args []string) *ExpectedCommand {
+func (t *CommandRunner) Expect(args []string) *ExpectedCommand {
 	subCommand := args[0]
 	if _, ok := t.expectations[subCommand]; !ok {
 		t.expectations[subCommand] = make([]*ExpectedCommand, 0)
@@ -81,9 +80,9 @@ func (t *TestCommandRunner) Expect(args []string) *ExpectedCommand {
 	return e
 }
 
-func (t *TestCommandRunner) Verify() {
-	for subCommand, expectations := range t.expectations {
-		for _, e := range expectations {
+func (t *CommandRunner) Verify() {
+	for subCommand, subCommandExpectations := range t.expectations {
+		for _, e := range subCommandExpectations {
 			if !e.called {
 				assert.Fail(t, "expected command not called", subCommand)
 			}
@@ -91,8 +90,8 @@ func (t *TestCommandRunner) Verify() {
 	}
 }
 
-func NewTestCommandRunner(t *testing.T) *TestCommandRunner {
-	return &TestCommandRunner{
+func NewTestCommandRunner(t *testing.T) *CommandRunner {
+	return &CommandRunner{
 		T:            t,
 		expectations: make(map[string][]*ExpectedCommand),
 	}

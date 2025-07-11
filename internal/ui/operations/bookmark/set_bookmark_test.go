@@ -13,6 +13,7 @@ import (
 
 func TestSetBookmarkModel_Update(t *testing.T) {
 	commandRunner := test.NewTestCommandRunner(t)
+	commandRunner.Expect(jj.BookmarkListMovable("revision"))
 	commandRunner.Expect(jj.BookmarkSet("revision", "name"))
 	defer commandRunner.Verify()
 

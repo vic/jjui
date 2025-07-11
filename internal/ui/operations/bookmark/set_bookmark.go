@@ -1,9 +1,11 @@
 package bookmark
 
 import (
+	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/config"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
@@ -14,22 +16,33 @@ import (
 type SetBookmarkOperation struct {
 	context  *context.MainContext
 	revision string
-	name     textarea.Model
+	name     textinput.Model
 }
 
-func (s SetBookmarkOperation) Init() tea.Cmd {
-	return textarea.Blink
+func (s *SetBookmarkOperation) Init() tea.Cmd {
+	if output, err := s.context.RunCommandImmediate(jj.BookmarkListMovable(s.revision)); err == nil {
+		bookmarks := jj.ParseBookmarkListOutput(string(output))
+		var suggestions []string
+		for _, b := range bookmarks {
+			if b.Name != "" && !b.Backwards {
+				suggestions = append(suggestions, b.Name)
+			}
+		}
+		s.name.SetSuggestions(suggestions)
+	}
+
+	return textinput.Blink
 }
 
-func (s SetBookmarkOperation) View() string {
+func (s *SetBookmarkOperation) View() string {
 	return s.name.View()
 }
 
-func (s SetBookmarkOperation) IsFocused() bool {
+func (s *SetBookmarkOperation) IsFocused() bool {
 	return true
 }
 
-func (s SetBookmarkOperation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
+func (s *SetBookmarkOperation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -41,34 +54,40 @@ func (s SetBookmarkOperation) Update(msg tea.Msg) (operations.OperationWithOverl
 	}
 	var cmd tea.Cmd
 	s.name, cmd = s.name.Update(msg)
-	if s.name.Length() >= s.name.Width() {
-		s.name.SetWidth(s.name.Length() + 3)
-	}
 	s.name.SetValue(strings.ReplaceAll(s.name.Value(), " ", "-"))
 	return s, cmd
 }
 
-func (s SetBookmarkOperation) Render(_ *jj.Commit, pos operations.RenderPosition) string {
+func (s *SetBookmarkOperation) Render(_ *jj.Commit, pos operations.RenderPosition) string {
 	if pos != operations.RenderBeforeCommitId {
 		return ""
 	}
-	return s.name.View()
+	return s.name.View() + s.name.TextStyle.Render(" ")
 }
 
-func (s SetBookmarkOperation) Name() string {
+func (s *SetBookmarkOperation) Name() string {
 	return "bookmark"
 }
 
 func NewSetBookmarkOperation(context *context.MainContext, changeId string) (operations.Operation, tea.Cmd) {
-	t := textarea.New()
+	t := textinput.New()
+	t.Width = 0
+	t.ShowSuggestions = true
 	t.CharLimit = 120
-	t.ShowLineNumbers = false
+	t.Prompt = ""
+	highlightBackground := lipgloss.AdaptiveColor{
+		Light: config.Current.UI.HighlightLight,
+		Dark:  config.Current.UI.HighlightDark,
+	}
+	t.TextStyle = lipgloss.NewStyle().Background(highlightBackground)
+	t.PromptStyle = t.TextStyle
+	t.Cursor.TextStyle = t.TextStyle
+	t.CompletionStyle = lipgloss.NewStyle().Inherit(common.DefaultPalette.Dimmed).Inline(true).Background(highlightBackground)
+	t.PlaceholderStyle = lipgloss.NewStyle().Inherit(common.DefaultPalette.Dimmed).Inline(true).Background(highlightBackground)
 	t.SetValue("")
-	t.SetWidth(30)
-	t.SetHeight(1)
 	t.Focus()
 
-	op := SetBookmarkOperation{
+	op := &SetBookmarkOperation{
 		name:     t,
 		revision: changeId,
 		context:  context,
