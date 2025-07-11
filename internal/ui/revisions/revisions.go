@@ -393,7 +393,6 @@ func (m *Model) updateGraphRows(rows []parser.Row, selectedRevision string) {
 	} else {
 		m.cursor = 0
 	}
-	m.w.ResetViewRange()
 }
 
 func (m *Model) View() string {
