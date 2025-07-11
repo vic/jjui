@@ -32,7 +32,7 @@ type Renderer struct {
 func NewRenderer(width int, height int) *Renderer {
 	return &Renderer{
 		buffer:    bytes.Buffer{},
-		viewRange: &viewRange{},
+		viewRange: &viewRange{start: 0, end: height, lastRowIndex: -1},
 		Width:     width,
 		Height:    height,
 	}
@@ -99,10 +99,9 @@ func (r *Renderer) Reset() {
 
 func (r *Renderer) Render(iterator RowIterator) string {
 	r.Reset()
-	h := r.Height
 	viewHeight := r.viewRange.end - r.viewRange.start
-	if viewHeight != h {
-		r.viewRange.end = r.viewRange.start + h
+	if viewHeight != r.Height {
+		r.viewRange.end = r.viewRange.start + r.Height
 	}
 
 	selectedLineStart := -1
@@ -129,7 +128,7 @@ func (r *Renderer) Render(iterator RowIterator) string {
 		if iterator.IsHighlighted() {
 			selectedLineEnd = r.LineCount()
 		}
-		if selectedLineEnd > 0 && r.LineCount() > r.Height && r.LineCount() > r.viewRange.end {
+		if selectedLineEnd > 0 && r.LineCount() > r.viewRange.end {
 			lastRenderedRowIndex = i
 			break
 		}
