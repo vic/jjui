@@ -28,7 +28,7 @@ func ParseRowsStreaming(reader io.Reader, controlChannel <-chan ControlMsg, batc
 		rawSegments := screen.ParseFromReader(reader)
 		for segmentedLine := range screen.BreakNewLinesIter(rawSegments) {
 			rowLine := NewGraphRowLine(segmentedLine)
-			if changeIdIdx := rowLine.FindPossibleChangeIdIdx(); changeIdIdx != -1 {
+			if changeIdIdx := rowLine.FindPossibleChangeIdIdx(); changeIdIdx != -1 && changeIdIdx != len(rowLine.Segments)-1 {
 				rowLine.Flags = Revision | Highlightable
 				previousRow := row
 				if len(rows) > batchSize {

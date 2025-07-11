@@ -93,3 +93,9 @@ func TestParser_Parse_WorkingCopy(t *testing.T) {
 
 	assert.True(t, row.Commit.IsWorkingCopy)
 }
+
+func TestParser_ChangeIdLikeDescription(t *testing.T) {
+	file, _ := os.Open("testdata/change-id-like-description.log")
+	rows := parser.ParseRows(file)
+	assert.Len(t, rows, 1)
+}
