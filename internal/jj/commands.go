@@ -46,7 +46,11 @@ func DiffEdit(changeId string) CommandArgs {
 
 func Split(revision string, files []string) CommandArgs {
 	args := []string{"split", "-r", revision}
-	args = append(args, files...)
+	var escapedFiles []string
+	for _, file := range files {
+		escapedFiles = append(escapedFiles, escapeFileName(file))
+	}
+	args = append(args, escapedFiles...)
 	return args
 }
 
@@ -73,7 +77,11 @@ func Diff(revision string, fileName string, extraArgs ...string) CommandArgs {
 
 func Restore(revision string, files []string) CommandArgs {
 	args := []string{"restore", "-c", revision}
-	args = append(args, files...)
+	var escapedFiles []string
+	for _, file := range files {
+		escapedFiles = append(escapedFiles, escapeFileName(file))
+	}
+	args = append(args, escapedFiles...)
 	return args
 }
 
@@ -211,7 +219,11 @@ func TemplatedArgs(templatedArgs []string, replacements map[string]string) Comma
 
 func Absorb(changeId string, files ...string) CommandArgs {
 	args := []string{"absorb", "--from", changeId}
-	args = append(args, files...)
+	var escapedFiles []string
+	for _, file := range files {
+		escapedFiles = append(escapedFiles, escapeFileName(file))
+	}
+	args = append(args, escapedFiles...)
 	return args
 }
 
