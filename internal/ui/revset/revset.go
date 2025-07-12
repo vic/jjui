@@ -13,12 +13,11 @@ type EditRevSetMsg struct {
 }
 
 type Model struct {
-	Editing       bool
-	Value         string
-	defaultRevSet string
-	autoComplete  *common.AutoCompletionInput
-	help          help.Model
-	keymap        keymap
+	Editing      bool
+	Value        string
+	autoComplete *common.AutoCompletionInput
+	help         help.Model
+	keymap       keymap
 
 	History         []string
 	historyIndex    int
@@ -48,7 +47,7 @@ func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{k.ShortHelp()}
 }
 
-func New(context *appContext.MainContext, defaultRevSet string) *Model {
+func New(context *appContext.MainContext) *Model {
 	revsetAliases := context.JJConfig.RevsetAliases
 	completionProvider := NewCompletionProvider(revsetAliases)
 	autoComplete := common.NewAutoCompletionInput(completionProvider)
@@ -57,7 +56,7 @@ func New(context *appContext.MainContext, defaultRevSet string) *Model {
 	autoComplete.TextInput.Cursor.Style = cursorStyle
 	autoComplete.SelectedStyle = common.DefaultPalette.Modified.Background(common.BrightBlack).Inline(true)
 	autoComplete.UnselectedStyle = common.DefaultPalette.Dimmed
-	autoComplete.SetValue(defaultRevSet)
+	autoComplete.SetValue(context.DefaultRevset)
 	autoComplete.Focus()
 
 	h := help.New()
@@ -67,8 +66,7 @@ func New(context *appContext.MainContext, defaultRevSet string) *Model {
 	return &Model{
 		context:         context,
 		Editing:         false,
-		Value:           defaultRevSet,
-		defaultRevSet:   defaultRevSet,
+		Value:           context.CurrentRevset,
 		help:            h,
 		keymap:          keymap{},
 		autoComplete:    autoComplete,
@@ -127,7 +125,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			m.Value = m.autoComplete.Value()
 			m.AddToHistory(m.Value)
 			if m.Value == "" {
-				m.Value = m.defaultRevSet
+				m.Value = m.context.DefaultRevset
 			}
 			return m, tea.Batch(common.Close, common.UpdateRevSet(m.Value))
 		case tea.KeyUp:

@@ -38,7 +38,6 @@ type Model struct {
 	controlChan       chan parser.ControlMsg
 	hasMore           bool
 	op                operations.Operation
-	revsetValue       string
 	cursor            int
 	width             int
 	height            int
@@ -143,7 +142,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		m.op = operations.NewDefault()
 		return m, m.updateSelection()
 	case common.UpdateRevSetMsg:
-		m.revsetValue = string(msg)
 		return m, common.Refresh
 	case common.QuickSearchMsg:
 		m.quickSearch = string(msg)
@@ -171,9 +169,9 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		cmd, _ := m.updateOperation(msg)
 		if config.Current.ExperimentalLogBatchingEnabled {
 			m.tag += 1
-			return m, tea.Batch(m.loadStreaming(m.revsetValue, msg.SelectedRevision, m.tag), cmd)
+			return m, tea.Batch(m.loadStreaming(m.context.CurrentRevset, msg.SelectedRevision, m.tag), cmd)
 		} else {
-			return m, tea.Batch(m.load(m.revsetValue, msg.SelectedRevision), cmd)
+			return m, tea.Batch(m.load(m.context.CurrentRevset, msg.SelectedRevision), cmd)
 		}
 	case updateRevisionsMsg:
 		m.isLoading = false
@@ -506,14 +504,13 @@ func (m *Model) GetCommitIds() []string {
 	return commitIds
 }
 
-func New(c *appContext.MainContext, revset string) Model {
+func New(c *appContext.MainContext) Model {
 	keymap := config.Current.GetKeyMap()
 	w := graph.NewRenderer(20, 10)
 	return Model{
 		context:           c,
 		w:                 w,
 		keymap:            keymap,
-		revsetValue:       revset,
 		rows:              nil,
 		offScreenRows:     nil,
 		op:                operations.NewDefault(),

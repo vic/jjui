@@ -51,6 +51,8 @@ type MainContext struct {
 	Location       string
 	CustomCommands map[string]CustomCommand
 	JJConfig       *config.JJConfig
+	DefaultRevset  string
+	CurrentRevset  string
 }
 
 func (a *MainContext) SetSelectedItem(item SelectedItem) tea.Cmd {

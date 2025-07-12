@@ -189,6 +189,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		})
 	case common.UpdateRevSetMsg:
 		var revsetCmd tea.Cmd
+		m.context.CurrentRevset = string(msg)
 		m.revsetModel, revsetCmd = m.revsetModel.Update(msg)
 		var revisionsCmd tea.Cmd
 		m.revisions, revisionsCmd = m.revisions.Update(msg)
@@ -323,12 +324,8 @@ func (m Model) isSafeToQuit() bool {
 	return false
 }
 
-func New(c *context.MainContext, initialRevset string) tea.Model {
-	if initialRevset == "" {
-		defaultRevset := c.JJConfig.Revsets.Log
-		initialRevset = defaultRevset
-	}
-	revisionsModel := revisions.New(c, initialRevset)
+func New(c *context.MainContext) tea.Model {
+	revisionsModel := revisions.New(c)
 	previewModel := preview.New(c)
 	statusModel := status.New(c)
 	return Model{
@@ -340,6 +337,6 @@ func New(c *context.MainContext, initialRevset string) tea.Model {
 		previewVisible:          config.Current.Preview.ShowAtStart,
 		previewWindowPercentage: config.Current.Preview.WidthPercentage,
 		status:                  &statusModel,
-		revsetModel:             revset.New(c, initialRevset),
+		revsetModel:             revset.New(c),
 	}
 }

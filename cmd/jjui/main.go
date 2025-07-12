@@ -135,8 +135,14 @@ func main() {
 	if period >= 0 {
 		config.Current.UI.AutoRefreshInterval = period
 	}
+	if revset != "" {
+		appContext.DefaultRevset = revset
+	} else {
+		appContext.DefaultRevset = appContext.JJConfig.Revsets.Log
+	}
+	appContext.CurrentRevset = appContext.DefaultRevset
 
-	p := tea.NewProgram(ui.New(appContext, revset), tea.WithAltScreen())
+	p := tea.NewProgram(ui.New(appContext), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running program: %v\n", err)
 		os.Exit(1)
