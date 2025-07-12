@@ -146,7 +146,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, m.stacked.Init())
 		case key.Matches(msg, m.keyMap.Bookmark.Mode) && m.revisions.InNormalMode():
 			changeIds := m.revisions.GetCommitIds()
-			m.stacked = bookmarks.NewModel(m.context, m.revisions.SelectedRevision(), changeIds, m.width, m.height)
+			m.stacked = bookmarks.NewModel(m.context, m.revisions.SelectedRevision(), changeIds, 80, 30)
 			cmds = append(cmds, m.stacked.Init())
 		case key.Matches(msg, m.keyMap.Help):
 			cmds = append(cmds, common.ToggleHelp)
@@ -160,7 +160,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keyMap.Preview.Shrink):
 			m.previewWindowPercentage -= config.Current.Preview.WidthIncrementPercentage
 		case key.Matches(msg, m.keyMap.CustomCommands):
-			m.stacked = customcommands.NewModel(m.context, m.width, m.height)
+			m.stacked = customcommands.NewModel(m.context, 80, 30)
 			cmds = append(cmds, m.stacked.Init())
 		case key.Matches(msg, m.keyMap.Leader):
 			m.leader = leader.New(m.context.Leader)
