@@ -206,6 +206,13 @@ func RebaseInsert(from SelectedRevisions, insertAfter string, insertBefore strin
 	return args
 }
 
+func Duplicate(from SelectedRevisions, to string, target string) CommandArgs {
+	args := []string{"duplicate"}
+	args = append(args, from.AsPrefixedArgs("-r")...)
+	args = append(args, target, to)
+	return args
+}
+
 func Evolog(revision string) CommandArgs {
 	return []string{"evolog", "-r", revision, "--color", "always", "--quiet"}
 }

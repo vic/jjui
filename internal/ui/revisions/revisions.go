@@ -3,6 +3,7 @@ package revisions
 import (
 	"bytes"
 	"fmt"
+	"github.com/idursun/jjui/internal/ui/operations/duplicate"
 	"log"
 	"slices"
 	"strings"
@@ -321,6 +322,8 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				m.op = squash.NewOperation(m.context, selectedRevisions)
 			case key.Matches(msg, m.keymap.Rebase.Mode):
 				m.op = rebase.NewOperation(m.context, m.SelectedRevisions(), rebase.SourceRevision, rebase.TargetDestination)
+			case key.Matches(msg, m.keymap.Duplicate.Mode):
+				m.op = duplicate.NewOperation(m.context, m.SelectedRevisions(), duplicate.TargetDestination)
 			}
 		}
 	}

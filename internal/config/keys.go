@@ -43,6 +43,12 @@ var DefaultKeyMappings = KeyMappings[keys]{
 		Onto:     []string{"d"},
 		Insert:   []string{"i"},
 	},
+	Duplicate: duplicateModeKeys[keys]{
+		Mode:   []string{"y"},
+		After:  []string{"a"},
+		Before: []string{"b"},
+		Onto:   []string{"d"},
+	},
 	Squash: squashModeKeys[keys]{
 		Mode:        []string{"S"},
 		KeepEmptied: []string{"e"},
@@ -128,6 +134,12 @@ func Convert(m KeyMappings[keys]) KeyMappings[key.Binding] {
 			Before:   key.NewBinding(key.WithKeys(m.Rebase.Before...), key.WithHelp(JoinKeys(m.Rebase.Before), "insert before")),
 			Onto:     key.NewBinding(key.WithKeys(m.Rebase.Onto...), key.WithHelp(JoinKeys(m.Rebase.Onto), "onto")),
 			Insert:   key.NewBinding(key.WithKeys(m.Rebase.Insert...), key.WithHelp(JoinKeys(m.Rebase.Insert), "insert between")),
+		},
+		Duplicate: duplicateModeKeys[key.Binding]{
+			Mode:   key.NewBinding(key.WithKeys(m.Duplicate.Mode...), key.WithHelp(JoinKeys(m.Duplicate.Mode), "duplicate")),
+			After:  key.NewBinding(key.WithKeys(m.Duplicate.After...), key.WithHelp(JoinKeys(m.Duplicate.After), "duplicate after")),
+			Before: key.NewBinding(key.WithKeys(m.Duplicate.Before...), key.WithHelp(JoinKeys(m.Duplicate.Before), "duplicate before")),
+			Onto:   key.NewBinding(key.WithKeys(m.Duplicate.Onto...), key.WithHelp(JoinKeys(m.Duplicate.Onto), "duplicate onto")),
 		},
 		Squash: squashModeKeys[key.Binding]{
 			Mode:        key.NewBinding(key.WithKeys(m.Squash.Mode...), key.WithHelp(JoinKeys(m.Squash.Mode), "squash")),
@@ -229,6 +241,7 @@ type KeyMappings[T any] struct {
 	CustomCommands    T                         `toml:"custom_commands"`
 	Suspend           T                         `toml:"suspend"`
 	Rebase            rebaseModeKeys[T]         `toml:"rebase"`
+	Duplicate         duplicateModeKeys[T]      `toml:"duplicate"`
 	Squash            squashModeKeys[T]         `toml:"squash"`
 	Details           detailsModeKeys[T]        `toml:"details"`
 	Preview           previewModeKeys[T]        `toml:"preview"`
@@ -263,6 +276,13 @@ type rebaseModeKeys[T any] struct {
 	Before   T `toml:"before"`
 	Onto     T `toml:"onto"`
 	Insert   T `toml:"insert"`
+}
+
+type duplicateModeKeys[T any] struct {
+	Mode   T `toml:"mode"`
+	After  T `toml:"after"`
+	Before T `toml:"before"`
+	Onto   T `toml:"onto"`
 }
 
 type detailsModeKeys[T any] struct {
