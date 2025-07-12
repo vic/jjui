@@ -83,6 +83,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			case context.SelectedFile:
 				return m, func() tea.Msg {
 					replacements := map[string]string{
+						jj.RevsetPlaceholder:   m.context.CurrentRevset,
 						jj.ChangeIdPlaceholder: msg.ChangeId,
 						jj.FilePlaceholder:     msg.File,
 					}
@@ -91,6 +92,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				}
 			case context.SelectedRevision:
 				replacements := map[string]string{
+					jj.RevsetPlaceholder:   m.context.CurrentRevset,
 					jj.ChangeIdPlaceholder: msg.ChangeId,
 				}
 				return m, func() tea.Msg {
@@ -99,6 +101,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 				}
 			case context.SelectedOperation:
 				replacements := map[string]string{
+					jj.RevsetPlaceholder:      m.context.CurrentRevset,
 					jj.OperationIdPlaceholder: msg.OperationId,
 				}
 				return m, func() tea.Msg {

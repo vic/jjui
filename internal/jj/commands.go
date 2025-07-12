@@ -10,6 +10,7 @@ const (
 	ChangeIdPlaceholder    = "$change_id"
 	FilePlaceholder        = "$file"
 	OperationIdPlaceholder = "$operation_id"
+	RevsetPlaceholder      = "$revset"
 )
 
 type CommandArgs []string

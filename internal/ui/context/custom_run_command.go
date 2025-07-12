@@ -38,12 +38,12 @@ func (c CustomRunCommand) IsApplicableTo(item SelectedItem) bool {
 }
 
 func (c CustomRunCommand) Description(ctx *MainContext) string {
-	args := jj.TemplatedArgs(c.Args, c.createReplacements(ctx.SelectedItem))
+	args := jj.TemplatedArgs(c.Args, c.createReplacements(ctx))
 	return fmt.Sprintf("jj %s", strings.Join(args, " "))
 }
 
 func (c CustomRunCommand) Prepare(ctx *MainContext) tea.Cmd {
-	replacements := c.createReplacements(ctx.SelectedItem)
+	replacements := c.createReplacements(ctx)
 	switch {
 	case c.Show == config.ShowOptionDiff:
 		return func() tea.Msg {
@@ -57,8 +57,10 @@ func (c CustomRunCommand) Prepare(ctx *MainContext) tea.Cmd {
 	}
 }
 
-func (c CustomRunCommand) createReplacements(selectedItem SelectedItem) map[string]string {
+func (c CustomRunCommand) createReplacements(ctx *MainContext) map[string]string {
+	selectedItem := ctx.SelectedItem
 	replacements := make(map[string]string)
+	replacements[jj.RevsetPlaceholder] = ctx.CurrentRevset
 
 	switch selectedItem := selectedItem.(type) {
 	case SelectedRevision:

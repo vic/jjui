@@ -16,6 +16,7 @@ type CustomRevsetCommand struct {
 func (c CustomRevsetCommand) Description(ctx *MainContext) string {
 	if item, ok := ctx.SelectedItem.(SelectedRevision); ok {
 		rendered := strings.ReplaceAll(c.Revset, jj.ChangeIdPlaceholder, item.ChangeId)
+		rendered = strings.ReplaceAll(rendered, jj.RevsetPlaceholder, ctx.CurrentRevset)
 		return fmt.Sprintf("change revset to %s", rendered)
 	}
 	return ""
@@ -29,6 +30,7 @@ func (c CustomRevsetCommand) IsApplicableTo(item SelectedItem) bool {
 func (c CustomRevsetCommand) Prepare(ctx *MainContext) tea.Cmd {
 	if item, ok := ctx.SelectedItem.(SelectedRevision); ok {
 		rendered := strings.ReplaceAll(c.Revset, jj.ChangeIdPlaceholder, item.ChangeId)
+		rendered = strings.ReplaceAll(rendered, jj.RevsetPlaceholder, ctx.CurrentRevset)
 		return common.UpdateRevSet(rendered)
 	}
 	return nil
