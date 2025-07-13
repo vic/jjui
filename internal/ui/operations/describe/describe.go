@@ -67,10 +67,7 @@ func (o Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cmd
 		case key.Matches(keyMsg, o.keyMap.Cancel):
 			return o, common.Close
 		case key.Matches(keyMsg, o.keyMap.InlineDescribe.Accept):
-			if o.input.Value() != "" {
-				return o, o.context.RunCommand(jj.SetDescription(o.revision, o.input.Value()), common.Close, common.Refresh)
-			}
-			return o, common.Close
+			return o, o.context.RunCommand(jj.SetDescription(o.revision, o.input.Value()), common.Close, common.Refresh)
 		}
 	}
 	var cmd tea.Cmd
