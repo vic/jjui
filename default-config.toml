@@ -36,6 +36,11 @@ experimental_log_batching_enabled = false
     before = ["b"]
     onto = ["d"]
     insert = ["i"]
+  [keys.duplicate]
+    mode = ["y"]
+    after = ["a"]
+    before = ["b"]
+    onto = ["d"]
   [keys.squash]
     mode = ["S"]
     keep_emptied = ["e"]
@@ -65,6 +70,9 @@ experimental_log_batching_enabled = false
     forget = ["f"]
     track = ["t"]
     untrack = ["u"]
+  [keys.inline_describe]
+    mode = ["enter"]
+    accept = ["alt+enter", "ctrl+s"]
   [keys.git]
     mode = ["g"]
     push = ["p"]
@@ -91,4 +99,3 @@ experimental_log_batching_enabled = false
   limit = 200
 
 [custom_commands]
-
