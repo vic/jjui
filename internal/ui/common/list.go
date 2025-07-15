@@ -55,6 +55,8 @@ func NewFilterableList(items []list.Item, width int, height int, keyMap config.K
 	l.SetShowHelp(false)
 	l.DisableQuitKeybindings()
 	l.Styles.NoItems = styles.dimmed
+	l.FilterInput.PromptStyle = styles.matched
+	l.FilterInput.Cursor.Style = styles.text
 
 	m := FilterableList{
 		List:          l,
