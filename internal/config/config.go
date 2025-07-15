@@ -66,10 +66,13 @@ type Config struct {
 }
 
 type Color struct {
-	Fg        string `toml:"fg"`
-	Bg        string `toml:"bg"`
-	Bold      bool   `toml:"bold"`
-	Underline bool   `toml:"underline"`
+	Fg            string `toml:"fg"`
+	Bg            string `toml:"bg"`
+	Bold          bool   `toml:"bold"`
+	Italic        bool   `toml:"italic"`
+	Underline     bool   `toml:"underline"`
+	Strikethrough bool   `toml:"strikethrough"`
+	Reverse       bool   `toml:"reverse"`
 }
 
 type UIConfig struct {

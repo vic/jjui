@@ -88,6 +88,15 @@ func createStyleFrom(color config.Color) lipgloss.Style {
 	if color.Underline {
 		style = style.Underline(true)
 	}
+	if color.Reverse {
+		style = style.Reverse(true)
+	}
+	if color.Italic {
+		style = style.Italic(true)
+	}
+	if color.Strikethrough {
+		style = style.Strikethrough(true)
+	}
 	return style
 }
 
