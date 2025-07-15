@@ -157,7 +157,7 @@ func (m *Model) View() string {
 		k := cancel.Help().Key
 		return lipgloss.JoinVertical(0,
 			ret,
-			m.styles.error.Render(strings.Trim(m.output, "\n")),
+			strings.Trim(m.output, "\n"),
 			m.styles.shortcut.Render("press ", k, " to dismiss"))
 	}
 	return ret
