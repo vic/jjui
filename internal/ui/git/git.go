@@ -163,7 +163,7 @@ func NewModel(c *context.MainContext, commit *jj.Commit, width int, height int) 
 	}
 	items = append(items,
 		item{name: "git push --deleted", desc: "Push all deleted bookmarks", command: jj.GitPush("--deleted"), category: itemCategoryPush, key: "d"},
-		item{name: "git push --tracked", desc: "Push all tracked bookmarks (including deleted bookmarks)", command: jj.GitPush("--tracked"), category: itemCategoryPush},
+		item{name: "git push --tracked", desc: "Push all tracked bookmarks (including deleted bookmarks)", command: jj.GitPush("--tracked"), category: itemCategoryPush, key: "t"},
 		item{name: "git push --allow-new", desc: "Allow pushing new bookmarks", command: jj.GitPush("--allow-new"), category: itemCategoryPush},
 		item{name: "git fetch", desc: "Fetch from remote", command: jj.GitFetch(), category: itemCategoryFetch, key: "f"},
 		item{name: "git fetch --all-remotes", desc: "Fetch from all remotes", command: jj.GitFetch("--all-remotes"), category: itemCategoryFetch, key: "a"},
