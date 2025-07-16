@@ -36,7 +36,8 @@ func NewModel(context *context.MainContext) Model {
 	output, _ := context.RunCommandImmediate(jj.OpLog(1))
 	message := fmt.Sprintf("%s\n\nAre you sure you want to undo last change?", style.Render(string(output)))
 	model := confirmation.New(message)
-	model.SetBorderStyle(lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(2))
+	borderStyle := common.DefaultPalette.GetBorder("undo border", lipgloss.NormalBorder()).Padding(2)
+	model.SetBorderStyle(borderStyle)
 	model.AddOption("Yes", context.RunCommand(jj.Undo(), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))
 	return Model{

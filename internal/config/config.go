@@ -28,6 +28,7 @@ var Current = &Config{
 			"source_marker":         {Fg: "black", Bg: "cyan"},
 			"success":               {Fg: "green"},
 			"error":                 {Fg: "red"},
+			"border":                {Fg: "bright white"},
 			"confirmation text":     {Fg: "magenta", Bold: true},
 			"confirmation selected": {Fg: "bright white", Bg: "blue", Bold: true},
 			"confirmation dimmed":   {Fg: "white"},

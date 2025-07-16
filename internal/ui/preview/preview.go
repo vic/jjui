@@ -30,11 +30,10 @@ type Model struct {
 	contentLineCount int
 	context          *context.MainContext
 	keyMap           config.KeyMappings[key.Binding]
+	borderStyle      lipgloss.Style
 }
 
 const DebounceTime = 50 * time.Millisecond
-
-var border = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 
 type refreshPreviewContentMsg struct {
 	Tag int
@@ -159,7 +158,7 @@ func (m *Model) View() string {
 		}
 	}
 	view := lipgloss.Place(m.width-2, m.height-2, 0, 0, w.String())
-	return border.Render(view)
+	return m.borderStyle.Render(view)
 }
 
 func (m *Model) reset() {
@@ -167,10 +166,13 @@ func (m *Model) reset() {
 }
 
 func New(context *context.MainContext) Model {
+	borderStyle := common.DefaultPalette.GetBorder("preview border", lipgloss.NormalBorder())
+
 	return Model{
-		viewRange: &viewRange{start: 0, end: 0},
-		context:   context,
-		keyMap:    config.Current.GetKeyMap(),
-		help:      help.New(),
+		viewRange:   &viewRange{start: 0, end: 0},
+		context:     context,
+		keyMap:      config.Current.GetKeyMap(),
+		help:        help.New(),
+		borderStyle: borderStyle,
 	}
 }

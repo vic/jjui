@@ -2,6 +2,7 @@ package helppage
 
 import (
 	"fmt"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -83,8 +84,6 @@ func (h *Model) printMode(key key.Binding, name string) string {
 	help := fmt.Sprintf("%v %s", h.styles.shortcut.Render(keyAligned), h.styles.title.Render(name))
 	return help
 }
-
-var border = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(2)
 
 func (h *Model) View() string {
 	leftView := lipgloss.JoinVertical(lipgloss.Left,
@@ -186,14 +185,14 @@ func (h *Model) View() string {
 
 	content := lipgloss.JoinHorizontal(lipgloss.Left, leftView, "  ", middleView, "  ", rightView)
 
-	return border.Render(content)
+	return h.styles.border.Render(content)
 }
 
 func New(context *context.MainContext) *Model {
 	styles := styles{
 		title:    common.DefaultPalette.Get("help title"),
 		dimmed:   common.DefaultPalette.Get("help dimmed"),
-		border:   common.DefaultPalette.Get("help border"),
+		border:   common.DefaultPalette.GetBorder("help border", lipgloss.NormalBorder()),
 		help:     common.DefaultPalette.Get("help text"),
 		shortcut: common.DefaultPalette.Get("help shortcut"),
 	}

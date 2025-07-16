@@ -1,11 +1,12 @@
 package confirmation
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/ui/common"
-	"strings"
 )
 
 var (
@@ -90,7 +91,7 @@ func (m *Model) SetBorderStyle(style lipgloss.Style) {
 
 func New(message string) Model {
 	styles := styles{
-		borderStyle:      lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 1, 0, 1),
+		borderStyle:      common.DefaultPalette.GetBorder("confirmation border", lipgloss.RoundedBorder()).Padding(0, 1, 0, 1),
 		text:             common.DefaultPalette.Get("confirmation text"),
 		selectedButton:   common.DefaultPalette.Get("confirmation selected").PaddingLeft(2).PaddingRight(2),
 		unselectedButton: common.DefaultPalette.Get("confirmation dimmed").PaddingLeft(2).PaddingRight(2),

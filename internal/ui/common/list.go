@@ -19,6 +19,7 @@ type FilterableList struct {
 	Title         string
 	styles        styles
 }
+
 type styles struct {
 	title    lipgloss.Style
 	shortcut lipgloss.Style
@@ -26,6 +27,7 @@ type styles struct {
 	selected lipgloss.Style
 	matched  lipgloss.Style
 	text     lipgloss.Style
+	border   lipgloss.Style
 }
 
 type FilterMatchFunc func(list.Item, string) bool
@@ -42,6 +44,7 @@ func NewFilterableList(items []list.Item, width int, height int, keyMap config.K
 		dimmed:   DefaultPalette.Get("menu dimmed"),
 		shortcut: DefaultPalette.Get("menu shortcut"),
 		text:     DefaultPalette.Get("menu text"),
+		border:   DefaultPalette.GetBorder("menu border", lipgloss.NormalBorder()),
 	}
 
 	delegate := ListItemDelegate{styles: styles}
@@ -150,5 +153,5 @@ func (m *FilterableList) View(helpKeys []key.Binding) string {
 	helpView := m.RenderHelpView(helpKeys)
 	content := lipgloss.JoinVertical(0, titleView, "", filterView, listView, "", helpView)
 	content = lipgloss.Place(m.Width, m.Height, 0, 0, content)
-	return lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Render(content)
+	return m.styles.border.Render(content)
 }

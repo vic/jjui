@@ -1,9 +1,10 @@
 package common
 
 import (
-	"github.com/idursun/jjui/internal/config"
 	"strconv"
 	"strings"
+
+	"github.com/idursun/jjui/internal/config"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -72,6 +73,11 @@ func (p *Palette) Get(selector string) lipgloss.Style {
 		}
 	}
 	return finalStyle
+}
+
+func (p *Palette) GetBorder(selector string, border lipgloss.Border) lipgloss.Style {
+	style := p.Get(selector)
+	return lipgloss.NewStyle().Border(border).BorderForeground(style.GetForeground())
 }
 
 func createStyleFrom(color config.Color) lipgloss.Style {
