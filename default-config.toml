@@ -129,7 +129,7 @@ Limit = 0
       bold = false
       underline = false
     [ui.colors."menu matched"]
-      fg = "bright white"
+      fg = "magenta"
       bg = ""
       bold = true
       underline = false

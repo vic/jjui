@@ -37,7 +37,7 @@ var Current = &Config{
 			"revset text":           {Fg: "green", Bold: true},
 			"status title":          {Fg: "black", Bg: "magenta", Bold: true},
 			"menu title":            {Fg: "230", Bg: "62", Bold: true},
-			"menu matched":          {Fg: "bright white", Bold: true},
+			"menu matched":          {Fg: "magenta", Bold: true},
 			"menu selected":         {Fg: "cyan", Bold: true},
 		},
 	},
