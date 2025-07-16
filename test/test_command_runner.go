@@ -6,6 +6,7 @@ import (
 	appContext "github.com/idursun/jjui/internal/ui/context"
 	"io"
 	"slices"
+	"sync"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,9 +28,13 @@ func (e *ExpectedCommand) SetOutput(output []byte) *ExpectedCommand {
 type CommandRunner struct {
 	*testing.T
 	expectations map[string][]*ExpectedCommand
+	mutex        sync.Mutex
 }
 
 func (t *CommandRunner) RunCommandImmediate(args []string) ([]byte, error) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
 	subCommand := args[0]
 	expectations, ok := t.expectations[subCommand]
 	if !ok || len(expectations) == 0 {
