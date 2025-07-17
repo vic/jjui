@@ -76,6 +76,36 @@ type Color struct {
 	Reverse       bool   `toml:"reverse"`
 }
 
+func (c *Color) UnmarshalTOML(text any) error {
+	switch v := text.(type) {
+	case string:
+		c.Fg = v
+	case map[string]interface{}:
+		if p, ok := v["fg"]; ok {
+			c.Fg = p.(string)
+		}
+		if p, ok := v["bg"]; ok {
+			c.Bg = p.(string)
+		}
+		if p, ok := v["bold"]; ok {
+			c.Bold = p.(bool)
+		}
+		if p, ok := v["italic"]; ok {
+			c.Italic = p.(bool)
+		}
+		if p, ok := v["underline"]; ok {
+			c.Underline = p.(bool)
+		}
+		if p, ok := v["strikethrough"]; ok {
+			c.Strikethrough = p.(bool)
+		}
+		if p, ok := v["reverse"]; ok {
+			c.Reverse = p.(bool)
+		}
+	}
+	return nil
+}
+
 type UIConfig struct {
 	HighlightLight string           `toml:"highlight_light"`
 	HighlightDark  string           `toml:"highlight_dark"`
