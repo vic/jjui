@@ -15,7 +15,6 @@ import (
 )
 
 type DefaultRowIterator struct {
-	Palette             common.Palette
 	HighlightBackground lipgloss.AdaptiveColor
 	SearchText          string
 	Selections          map[string]bool
@@ -42,7 +41,6 @@ func NewDefaultRowIterator(rows []parser.Row, width int) *DefaultRowIterator {
 	}
 	highlightSeq := lipgloss.ColorProfile().Color(highlightColor).Sequence(true)
 	return &DefaultRowIterator{
-		Palette:             common.DefaultPalette,
 		HighlightBackground: highlightBackground,
 		Op:                  &operations.Default{},
 		Width:               width,
