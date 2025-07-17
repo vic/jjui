@@ -85,13 +85,13 @@ func (m *FilterableList) Height() int {
 func (m *FilterableList) SetWidth(w int) {
 	maxWidth, minWidth := 80, 40
 	m.width = max(min(maxWidth, w), minWidth)
-	m.List.SetWidth(m.width)
+	m.List.SetWidth(m.width - 2)
 }
 
 func (m *FilterableList) SetHeight(h int) {
 	maxHeight, minHeight := 30, 10
-	m.height = max(min(maxHeight, h-4), minHeight)
-	m.List.SetHeight(m.height - 6)
+	m.height = max(min(maxHeight, h-2), minHeight)
+	m.List.SetHeight(m.height - 2)
 }
 
 func (m *FilterableList) ShowShortcuts(show bool) {
@@ -158,7 +158,7 @@ func (m *FilterableList) renderKey(k key.Binding) string {
 func (m *FilterableList) View(helpKeys []key.Binding) string {
 	titleView := m.styles.title.Render(m.Title)
 	filterView := m.RenderFilterView()
-	listView := m.List.View()
+	listView := lipgloss.Place(m.List.Width(), m.List.Height(), 0, 0, m.List.View())
 	helpView := m.RenderHelpView(helpKeys)
 	content := lipgloss.JoinVertical(0, titleView, "", filterView, listView, "", helpView)
 	content = lipgloss.Place(m.width, m.height, 0, 0, content)

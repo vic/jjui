@@ -82,7 +82,7 @@ func (l ListItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 }
 
 func (l ListItemDelegate) Height() int {
-	return 1
+	return 2
 }
 
 func (l ListItemDelegate) Spacing() int {
