@@ -13,8 +13,8 @@ type FilterableList struct {
 	Items         []list.Item
 	Filter        string
 	KeyMap        config.KeyMappings[key.Binding]
-	Width         int
-	Height        int
+	width         int
+	height        int
 	FilterMatches func(item list.Item, filter string) bool
 	Title         string
 	styles        styles
@@ -65,8 +65,8 @@ func NewFilterableList(items []list.Item, width int, height int, keyMap config.K
 		List:          l,
 		Items:         items,
 		KeyMap:        keyMap,
-		Width:         width,
-		Height:        height,
+		width:         width,
+		height:        height,
 		FilterMatches: DefaultFilterMatch,
 		styles:        styles,
 	}
@@ -74,15 +74,24 @@ func NewFilterableList(items []list.Item, width int, height int, keyMap config.K
 	return m
 }
 
+func (m *FilterableList) Width() int {
+	return m.width
+}
+
+func (m *FilterableList) Height() int {
+	return m.height
+}
+
 func (m *FilterableList) SetWidth(w int) {
-	m.Width = w
-	m.List.SetWidth(w)
+	maxWidth, minWidth := 80, 40
+	m.width = max(min(maxWidth, w), minWidth)
+	m.List.SetWidth(m.width)
 }
 
 func (m *FilterableList) SetHeight(h int) {
 	maxHeight, minHeight := 30, 10
-	m.Height = max(min(maxHeight, h-4), minHeight)
-	m.List.SetHeight(m.Height - 6)
+	m.height = max(min(maxHeight, h-4), minHeight)
+	m.List.SetHeight(m.height - 6)
 }
 
 func (m *FilterableList) ShowShortcuts(show bool) {
@@ -152,6 +161,6 @@ func (m *FilterableList) View(helpKeys []key.Binding) string {
 	listView := m.List.View()
 	helpView := m.RenderHelpView(helpKeys)
 	content := lipgloss.JoinVertical(0, titleView, "", filterView, listView, "", helpView)
-	content = lipgloss.Place(m.Width, m.Height, 0, 0, content)
+	content = lipgloss.Place(m.width, m.height, 0, 0, content)
 	return m.styles.border.Render(content)
 }

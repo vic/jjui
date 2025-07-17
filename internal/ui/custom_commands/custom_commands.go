@@ -43,11 +43,11 @@ type Model struct {
 }
 
 func (m *Model) Width() int {
-	return m.filterableList.Width
+	return m.filterableList.Width()
 }
 
 func (m *Model) Height() int {
-	return m.filterableList.Height
+	return m.filterableList.Height()
 }
 
 func (m *Model) SetWidth(w int) {
