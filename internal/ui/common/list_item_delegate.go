@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/idursun/jjui/internal/config"
 )
 
 type ListItem interface {
@@ -61,15 +60,10 @@ func (l ListItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 		shortcutStyle = l.styles.shortcut
 	)
 
-	highlightColor := lipgloss.AdaptiveColor{
-		Light: config.Current.UI.HighlightLight,
-		Dark:  config.Current.UI.HighlightDark,
-	}
-
 	if index == m.Index() {
-		selectedStyle = l.styles.selected.Background(highlightColor)
-		descStyle = l.styles.selected.Background(highlightColor)
-		shortcutStyle = shortcutStyle.Background(highlightColor)
+		selectedStyle = l.styles.selected
+		descStyle = l.styles.selected
+		shortcutStyle = shortcutStyle.Background(l.styles.selected.GetBackground())
 	}
 
 	selectedStyle = selectedStyle.Width(titleWidth)
