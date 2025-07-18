@@ -179,7 +179,8 @@ func (m *Model) View() string {
 			strings.Trim(m.output, "\n"),
 			m.styles.shortcut.Render("press ", k, " to dismiss"))
 	}
-	return ret
+	height := lipgloss.Height(ret)
+	return lipgloss.Place(m.width, height, 0, 0, ret, lipgloss.WithWhitespaceBackground(m.styles.text.GetBackground()))
 }
 
 func (m *Model) SetHelp(keyMap help.KeyMap) {
@@ -209,6 +210,9 @@ func New(context *context.MainContext) Model {
 	h.Styles.ShortDesc = styles.dimmed
 	h.Styles.ShortSeparator = styles.dimmed
 	h.Styles.FullSeparator = styles.dimmed
+	h.Styles.FullKey = styles.shortcut
+	h.Styles.FullDesc = styles.dimmed
+	h.Styles.Ellipsis = styles.dimmed
 
 	t := textinput.New()
 	t.Width = 50
