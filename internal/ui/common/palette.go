@@ -55,7 +55,10 @@ func (p *Palette) Get(selector string) lipgloss.Style {
 
 func (p *Palette) GetBorder(selector string, border lipgloss.Border) lipgloss.Style {
 	style := p.Get(selector)
-	return lipgloss.NewStyle().Border(border).BorderForeground(style.GetForeground())
+	return lipgloss.NewStyle().
+		Border(border).
+		BorderForeground(style.GetForeground()).
+		BorderBackground(style.GetBackground())
 }
 
 func createStyleFrom(color config.Color) lipgloss.Style {

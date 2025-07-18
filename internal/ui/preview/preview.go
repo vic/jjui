@@ -167,6 +167,7 @@ func (m *Model) reset() {
 
 func New(context *context.MainContext) Model {
 	borderStyle := common.DefaultPalette.GetBorder("preview border", lipgloss.NormalBorder())
+	borderStyle = borderStyle.Inherit(common.DefaultPalette.Get("preview text"))
 
 	return Model{
 		viewRange:   &viewRange{start: 0, end: 0},
