@@ -39,6 +39,7 @@ type Model struct {
 type styles struct {
 	shortcut lipgloss.Style
 	dimmed   lipgloss.Style
+	text     lipgloss.Style
 	title    lipgloss.Style
 	success  lipgloss.Style
 	error    lipgloss.Style
@@ -154,9 +155,9 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	commandStatusMark := common.DefaultPalette.Normal.Render(" ")
+	commandStatusMark := m.styles.text.Render(" ")
 	if m.running {
-		commandStatusMark = common.DefaultPalette.Normal.Render(m.spinner.View())
+		commandStatusMark = m.styles.text.Render(m.spinner.View())
 	} else if m.error != nil {
 		commandStatusMark = m.styles.error.Render("✗ ")
 	} else if m.command != "" {
@@ -164,7 +165,7 @@ func (m *Model) View() string {
 	} else {
 		commandStatusMark = m.help.View(m.keyMap)
 	}
-	ret := common.DefaultPalette.Normal.Render(strings.ReplaceAll(m.command, "\n", "⏎"))
+	ret := m.styles.text.Render(strings.ReplaceAll(m.command, "\n", "⏎"))
 	if m.editing {
 		commandStatusMark = ""
 		ret = m.input.View()
@@ -195,6 +196,7 @@ func New(context *context.MainContext) Model {
 	styles := styles{
 		shortcut: common.DefaultPalette.Get("status shortcut"),
 		dimmed:   common.DefaultPalette.Get("status dimmed"),
+		text:     common.DefaultPalette.Get("status text"),
 		title:    common.DefaultPalette.Get("status title"),
 		success:  common.DefaultPalette.Get("status success"),
 		error:    common.DefaultPalette.Get("status error"),
