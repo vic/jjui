@@ -17,7 +17,7 @@ var LightTheme = map[string]config.Color{
 	"confirmation selected":      {Fg: "bright white", Bg: "blue", Bold: true},
 	"confirmation dimmed":        {Fg: "white"},
 	"help title":                 {Fg: "green", Bold: true},
-	"details selected":           {Bg: "bright black"},
+	"revisions details selected": {Bg: "bright black"},
 	"revset title":               {Fg: "magenta"},
 	"revset text":                {Fg: "green", Bold: true},
 	"revset completion text":     {Fg: "white"},

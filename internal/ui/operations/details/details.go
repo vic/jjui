@@ -1,12 +1,8 @@
 package details
 
 import (
+	"bufio"
 	"fmt"
-	"io"
-	"path"
-	"slices"
-	"strings"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -16,6 +12,10 @@ import (
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/confirmation"
 	"github.com/idursun/jjui/internal/ui/context"
+	"io"
+	"path"
+	"slices"
+	"strings"
 )
 
 type status uint8
@@ -55,6 +55,7 @@ type itemDelegate struct {
 	selectedHint        string
 	unselectedHint      string
 	isVirtuallySelected bool
+	styles              styles
 }
 
 func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
@@ -65,16 +66,19 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	var style lipgloss.Style
 	switch item.status {
 	case Added:
-		style = common.DefaultPalette.Get("details added")
+		style = i.styles.Added
 	case Deleted:
-		style = common.DefaultPalette.Get("details deleted")
+		style = i.styles.Deleted
 	case Modified:
-		style = common.DefaultPalette.Get("details modified")
+		style = i.styles.Modified
 	case Renamed:
-		style = common.DefaultPalette.Get("details renamed")
+		style = i.styles.Renamed
 	}
+
 	if index == m.Index() {
-		style = style.Bold(true).Background(common.DefaultPalette.Get("details selected").GetBackground())
+		style = style.Bold(true).Background(i.styles.Selected.GetBackground())
+	} else {
+		style = style.Background(i.styles.Text.GetBackground())
 	}
 
 	title := item.Title()
@@ -93,7 +97,7 @@ func (i itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		}
 	}
 
-	fmt.Fprint(w, style.PaddingRight(1).Render(title), " ", common.DefaultPalette.Get("details dimmed").Render(hint))
+	fmt.Fprint(w, style.PaddingRight(1).Render(title), i.styles.Dimmed.Render(hint))
 }
 
 func (i itemDelegate) Height() int                         { return 1 }
@@ -104,6 +108,16 @@ func (i itemDelegate) showHint() bool {
 	return i.selectedHint != "" || i.unselectedHint != ""
 }
 
+type styles struct {
+	Added    lipgloss.Style
+	Deleted  lipgloss.Style
+	Modified lipgloss.Style
+	Renamed  lipgloss.Style
+	Selected lipgloss.Style
+	Dimmed   lipgloss.Style
+	Text     lipgloss.Style
+}
+
 type Model struct {
 	revision     string
 	files        list.Model
@@ -111,6 +125,7 @@ type Model struct {
 	confirmation tea.Model
 	context      *context.MainContext
 	keyMap       config.KeyMappings[key.Binding]
+	styles       styles
 }
 
 type updateCommitStatusMsg struct {
@@ -120,7 +135,18 @@ type updateCommitStatusMsg struct {
 
 func New(context *context.MainContext, revision string) tea.Model {
 	keyMap := config.Current.GetKeyMap()
-	l := list.New(nil, itemDelegate{}, 0, 0)
+
+	s := styles{
+		Added:    common.DefaultPalette.Get("details added"),
+		Deleted:  common.DefaultPalette.Get("details deleted"),
+		Modified: common.DefaultPalette.Get("details modified"),
+		Renamed:  common.DefaultPalette.Get("details renamed"),
+		Selected: common.DefaultPalette.Get("revisions details selected"),
+		Dimmed:   common.DefaultPalette.Get("revisions details dimmed"),
+		Text:     common.DefaultPalette.Get("revisions details text"),
+	}
+
+	l := list.New(nil, itemDelegate{styles: s}, 0, 0)
 	l.SetFilteringEnabled(false)
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
@@ -133,6 +159,7 @@ func New(context *context.MainContext, revision string) tea.Model {
 		files:    l,
 		context:  context,
 		keyMap:   keyMap,
+		styles:   s,
 	}
 }
 
@@ -166,6 +193,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				isVirtuallySelected: isVirtuallySelected,
 				selectedHint:        "stays as is",
 				unselectedHint:      "moves to the new revision",
+				styles:              m.styles,
 			})
 			model := confirmation.New("Are you sure you want to split the selected files?")
 
@@ -179,6 +207,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				isVirtuallySelected: isVirtuallySelected,
 				selectedHint:        "gets restored",
 				unselectedHint:      "stays as is",
+				styles:              m.styles,
 			})
 			model := confirmation.New("Are you sure you want to restore the selected files?")
 			model.AddOption("Yes", m.context.RunCommand(jj.Restore(m.revision, selectedFiles), common.Refresh, confirmation.Close), key.NewBinding(key.WithKeys("y")))
@@ -191,6 +220,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				isVirtuallySelected: isVirtuallySelected,
 				selectedHint:        "might get absorbed into parents",
 				unselectedHint:      "stays as is",
+				styles:              m.styles,
 			})
 			model := confirmation.New("Are you sure you want to absorb changes from the selected files?")
 			model.AddOption("Yes", m.context.RunCommand(jj.Absorb(m.revision, selectedFiles...), common.Refresh, confirmation.Close), key.NewBinding(key.WithKeys("y")))
@@ -221,7 +251,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case confirmation.CloseMsg:
 		m.confirmation = nil
-		m.files.SetDelegate(itemDelegate{})
+		m.files.SetDelegate(itemDelegate{styles: m.styles})
 		return m, nil
 	case common.RefreshMsg:
 		return m, m.load(m.revision)
@@ -310,7 +340,20 @@ func (m Model) View() string {
 	}
 	m.files.SetHeight(min(m.height-5-ch, len(m.files.Items())))
 	filesView := m.files.View()
-	return lipgloss.JoinVertical(lipgloss.Top, filesView, confirmationView)
+
+	view := lipgloss.JoinVertical(lipgloss.Top, filesView, confirmationView)
+	// We are trimming spaces from each line to prevent visual artefacts
+	// Empty lines use the default background colour, and it looks bad if the user has a custom background colour
+	var lines []string
+	scanner := bufio.NewScanner(strings.NewReader(view))
+	for scanner.Scan() {
+		line := scanner.Text()
+		line = strings.TrimSpace(line)
+		lines = append(lines, line)
+	}
+	view = strings.Join(lines, "\n")
+	w, h := lipgloss.Size(view)
+	return lipgloss.Place(w, h, 0, 0, view, lipgloss.WithWhitespaceBackground(m.styles.Text.GetBackground()))
 }
 
 func (m Model) load(revision string) tea.Cmd {
