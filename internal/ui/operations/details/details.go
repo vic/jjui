@@ -137,7 +137,7 @@ func New(context *context.MainContext, revision string) tea.Model {
 }
 
 func (m Model) Init() tea.Cmd {
-	return m.load(m.revision)
+	return tea.Batch(m.load(m.revision), tea.WindowSize())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -232,6 +232,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			selectionChangedCmd = m.context.SetSelectedItem(context.SelectedFile{ChangeId: m.revision, File: items[0].(item).fileName})
 		}
 		return m, tea.Batch(selectionChangedCmd, m.files.SetItems(items))
+	case tea.WindowSizeMsg:
+		m.height = msg.Height
 	}
 	return m, nil
 }
