@@ -5,10 +5,10 @@ import "github.com/idursun/jjui/internal/config"
 var LightTheme = map[string]config.Color{
 	"dimmed":                     {Fg: "bright black"},
 	"title":                      {Fg: "magenta", Bold: true},
-	"text":                       {Fg: "white"},
+	"text":                       {Fg: "black"},
 	"shortcut":                   {Fg: "magenta"},
 	"matched":                    {Fg: "cyan"},
-	"selected":                   {Bg: "bright black"},
+	"selected":                   {Bg: "white"},
 	"target_marker":              {Fg: "black", Bg: "red", Bold: true},
 	"source_marker":              {Fg: "black", Bg: "cyan"},
 	"success":                    {Fg: "green"},
