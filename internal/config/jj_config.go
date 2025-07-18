@@ -5,11 +5,11 @@ import (
 )
 
 type JJConfig struct {
-	Colors        map[string]Color
-	RevsetAliases map[string]string
+	Colors        map[string]Color  `toml:"colors"`
+	RevsetAliases map[string]string `toml:"revset-aliases"`
 	Revsets       struct {
-		Log string
-	}
+		Log string `toml:"log"`
+	} `toml:"revsets"`
 }
 
 func parseConfig(configContent string) (*JJConfig, error) {
