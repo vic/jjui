@@ -409,11 +409,12 @@ func (m *Model) View() string {
 	renderer.Cursor = m.cursor
 	renderer.Selections = m.selectedRevisions
 	renderer.SearchText = m.quickSearch
-	renderer.TextStyle = common.DefaultPalette.Get("revisions text").Inline(true)
+	renderer.TextStyle = common.DefaultPalette.Get("revisions text")
 	renderer.SelectedStyle = common.DefaultPalette.Get("revisions selected").Inline(true)
 	m.w.SetSize(m.width, m.height)
 	output := m.w.Render(renderer)
-	return output
+	output = common.DefaultPalette.Normal.MaxWidth(m.width).Render(output)
+	return lipgloss.Place(m.width, m.height, 0, 0, output)
 }
 
 func (m *Model) load(revset string, selectedRevision string) tea.Cmd {

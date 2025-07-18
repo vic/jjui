@@ -3,9 +3,6 @@ package graph
 import (
 	"bytes"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
-	"github.com/idursun/jjui/internal/ui/common"
 )
 
 type viewRange struct {
@@ -146,8 +143,5 @@ func (r *Renderer) Render(iterator RowIterator) string {
 		r.viewRange.start = selectedLineEnd - r.Height
 	}
 
-	content := r.String(r.viewRange.start, r.viewRange.end)
-	content = lipgloss.PlaceHorizontal(r.Width, lipgloss.Left, content)
-
-	return common.DefaultPalette.Normal.MaxWidth(r.Width).Render(content)
+	return r.String(r.viewRange.start, r.viewRange.end)
 }
