@@ -142,14 +142,10 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 	for segmentedLine := range row.RowLinesIter(parser.Excluding(parser.Highlightable)) {
 		var lw strings.Builder
 		for _, segment := range segmentedLine.Segments {
-			fmt.Fprint(&lw, segment.String())
+			fmt.Fprint(&lw, segment.Style.Inherit(s.TextStyle).Render(segment.Text))
 		}
 		line := lw.String()
-		if s.isHighlighted && segmentedLine.Flags&parser.Highlightable == parser.Highlightable {
-			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.SelectedStyle.GetBackground())))
-		} else {
-			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.TextStyle.GetBackground())))
-		}
+		fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.TextStyle.GetBackground())))
 		fmt.Fprint(r, "\n")
 	}
 }
@@ -159,10 +155,8 @@ func (s *DefaultRowIterator) writeSection(r io.Writer, extended parser.GraphRowL
 	for _, sectionLine := range lines {
 		lw := strings.Builder{}
 		for _, segment := range extended.Segments {
-			style := segment.Style
 			if s.isHighlighted && highlight {
 				fmt.Fprint(&lw, segment.Style.Inherit(s.SelectedStyle).Render(segment.Text))
-				style = style.Background(s.SelectedStyle.GetBackground())
 			} else {
 				fmt.Fprint(&lw, segment.Style.Inherit(s.TextStyle).Render(segment.Text))
 			}
