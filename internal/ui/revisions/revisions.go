@@ -51,6 +51,7 @@ type Model struct {
 	previousOpLogId   string
 	isLoading         bool
 	w                 *graph.Renderer
+	textStyle         lipgloss.Style
 }
 
 type updateRevisionsMsg struct {
@@ -413,7 +414,7 @@ func (m *Model) View() string {
 	renderer.SelectedStyle = common.DefaultPalette.Get("revisions selected").Inline(true)
 	m.w.SetSize(m.width, m.height)
 	output := m.w.Render(renderer)
-	output = common.DefaultPalette.Normal.MaxWidth(m.width).Render(output)
+	output = m.textStyle.MaxWidth(m.width).Render(output)
 	return lipgloss.Place(m.width, m.height, 0, 0, output)
 }
 
@@ -524,6 +525,7 @@ func New(c *appContext.MainContext) Model {
 		width:             20,
 		height:            10,
 		selectedRevisions: make(map[string]bool),
+		textStyle:         common.DefaultPalette.Get("revisions text"),
 	}
 }
 

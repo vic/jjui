@@ -18,13 +18,14 @@ type updateOpLogMsg struct {
 }
 
 type Model struct {
-	context *context.MainContext
-	w       *graph.Renderer
-	rows    []row
-	cursor  int
-	keymap  config.KeyMappings[key.Binding]
-	width   int
-	height  int
+	context   *context.MainContext
+	w         *graph.Renderer
+	rows      []row
+	cursor    int
+	keymap    config.KeyMappings[key.Binding]
+	width     int
+	height    int
+	textStyle lipgloss.Style
 }
 
 func (m *Model) ShortHelp() []key.Binding {
@@ -101,7 +102,7 @@ func (m *Model) View() string {
 	renderer := newIterator(m.rows, m.cursor, m.width)
 	content := m.w.Render(renderer)
 	content = lipgloss.PlaceHorizontal(m.width, lipgloss.Left, content)
-	return common.DefaultPalette.Normal.MaxWidth(m.width).Render(content)
+	return m.textStyle.MaxWidth(m.width).Render(content)
 }
 
 func (m *Model) load() tea.Cmd {
@@ -120,12 +121,13 @@ func New(context *context.MainContext, width int, height int) *Model {
 	keyMap := config.Current.GetKeyMap()
 	w := graph.NewRenderer(width, height)
 	return &Model{
-		context: context,
-		w:       w,
-		keymap:  keyMap,
-		rows:    nil,
-		cursor:  0,
-		width:   width,
-		height:  height,
+		context:   context,
+		w:         w,
+		keymap:    keyMap,
+		rows:      nil,
+		cursor:    0,
+		width:     width,
+		height:    height,
+		textStyle: common.DefaultPalette.Get("oplog text"),
 	}
 }
