@@ -93,7 +93,7 @@ func (r *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 	if pos == operations.RenderBeforeChangeId {
 		changeId := commit.GetChangeId()
 		if slices.Contains(r.highlightedIds, changeId) {
-			return r.styles.sourceMarker.Render("<< move >>") + " "
+			return r.styles.sourceMarker.Render("<< move >>")
 		}
 		return ""
 	}
@@ -125,13 +125,9 @@ func (r *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
 		r.styles.targetMarker.Render("<< "+ret+" >>"),
-		" ",
-		r.styles.dimmed.Render("duplicate"),
-		" ",
+		r.styles.dimmed.Render(" duplicate "),
 		r.styles.changeId.Render(strings.Join(r.From.GetIds(), " ")),
-		" ",
-		r.styles.dimmed.Render(ret),
-		" ",
+		r.styles.dimmed.Render("", ret, ""),
 		r.styles.changeId.Render(r.To.GetChangeId()),
 	)
 }
@@ -142,7 +138,7 @@ func (r *Operation) Name() string {
 
 func NewOperation(context *appContext.MainContext, from jj.SelectedRevisions, target Target) *Operation {
 	styles := styles{
-		changeId:     common.DefaultPalette.Get("change_id"),
+		changeId:     common.DefaultPalette.Get("duplicate change_id"),
 		dimmed:       common.DefaultPalette.Get("duplicate dimmed"),
 		sourceMarker: common.DefaultPalette.Get("duplicate source_marker"),
 		targetMarker: common.DefaultPalette.Get("duplicate target_marker"),

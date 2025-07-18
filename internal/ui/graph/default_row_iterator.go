@@ -191,12 +191,28 @@ func (s *DefaultRowIterator) RenderBeforeChangeId(commit *jj.Commit) string {
 	selectedMarker := ""
 	if s.isSelected {
 		if s.isHighlighted {
-			selectedMarker = s.checkStyle.Background(s.SelectedStyle.GetBackground()).Render("✓ ")
+			selectedMarker = s.checkStyle.Background(s.SelectedStyle.GetBackground()).Render("✓")
 		} else {
-			selectedMarker = s.checkStyle.Background(s.TextStyle.GetBackground()).Render("✓ ")
+			selectedMarker = s.checkStyle.Background(s.TextStyle.GetBackground()).Render("✓")
 		}
 	}
-	return opMarker + selectedMarker
+	if opMarker == "" && selectedMarker == "" {
+		return ""
+	}
+	var sections []string
+
+	space := s.TextStyle.Render(" ")
+	if s.isHighlighted {
+		space = s.SelectedStyle.Render(" ")
+	}
+
+	if opMarker != "" {
+		sections = append(sections, opMarker, space)
+	}
+	if selectedMarker != "" {
+		sections = append(sections, selectedMarker, space)
+	}
+	return lipgloss.JoinHorizontal(0, sections...)
 }
 
 func (s *DefaultRowIterator) RenderBeforeCommitId(commit *jj.Commit) string {

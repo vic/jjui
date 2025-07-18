@@ -54,7 +54,7 @@ func (s *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 
 	isSelected := s.current != nil && s.current.GetChangeId() == commit.GetChangeId()
 	if isSelected {
-		return s.styles.targetMarker.Render("<< into >>") + " "
+		return s.styles.targetMarker.Render("<< into >>")
 	}
 	sourceIds := s.from.GetIds()
 	if slices.Contains(sourceIds, commit.ChangeId) {
@@ -65,7 +65,7 @@ func (s *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 		if s.interactive {
 			marker += " (interactive)"
 		}
-		return s.styles.sourceMarker.Render(marker) + " "
+		return s.styles.sourceMarker.Render(marker)
 	}
 	return ""
 }

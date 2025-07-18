@@ -136,13 +136,13 @@ func (r *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 	if pos == operations.RenderBeforeChangeId {
 		changeId := commit.GetChangeId()
 		if slices.Contains(r.highlightedIds, changeId) {
-			return r.styles.sourceMarker.Render("<< move >>") + " "
+			return r.styles.sourceMarker.Render("<< move >>")
 		}
 		if r.Target == TargetInsert && r.InsertStart.GetChangeId() == commit.GetChangeId() {
-			return r.styles.sourceMarker.Render("<< after this >>") + " "
+			return r.styles.sourceMarker.Render("<< after this >>")
 		}
 		if r.Target == TargetInsert && r.To.GetChangeId() == commit.GetChangeId() {
-			return r.styles.sourceMarker.Render("<< before this >>") + " "
+			return r.styles.sourceMarker.Render("<< before this >>")
 		}
 		return ""
 	}
