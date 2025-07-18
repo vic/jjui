@@ -63,6 +63,7 @@ type styles struct {
 	sourceMarker lipgloss.Style
 	targetMarker lipgloss.Style
 	changeId     lipgloss.Style
+	text         lipgloss.Style
 }
 
 func (r *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
@@ -206,14 +207,12 @@ func (r *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
 		r.styles.targetMarker.Render("<< "+ret+" >>"),
-		" ",
-		r.styles.dimmed.Render("rebase"),
-		" ",
+		r.styles.dimmed.Render(" rebase "),
 		r.styles.dimmed.Render(source),
 		r.styles.changeId.Render(strings.Join(r.From.GetIds(), " ")),
-		" ",
+		r.styles.dimmed.Render(" "),
 		r.styles.dimmed.Render(ret),
-		" ",
+		r.styles.dimmed.Render(" "),
 		r.styles.changeId.Render(r.To.GetChangeId()),
 	)
 }
