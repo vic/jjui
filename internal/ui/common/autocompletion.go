@@ -213,7 +213,7 @@ func (ac *AutoCompletionInput) View() string {
 			}
 
 			if i < visibleCount-1 {
-				builder.WriteString(" ")
+				builder.WriteString(ac.Styles.Text.Render(" "))
 			}
 		}
 

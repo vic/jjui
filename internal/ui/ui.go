@@ -226,6 +226,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.status.SetWidth(m.width)
 		m.revisions.SetHeight(m.height)
 		m.revisions.SetWidth(m.width)
+		m.revsetModel.SetWidth(m.width)
+		m.revsetModel.SetHeight(1)
 	}
 
 	if m.revsetModel.Editing {

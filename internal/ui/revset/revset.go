@@ -25,6 +25,23 @@ type Model struct {
 	MaxHistoryItems int
 	context         *appContext.MainContext
 	styles          styles
+	width, height   int
+}
+
+func (m *Model) Width() int {
+	return m.width
+}
+
+func (m *Model) Height() int {
+	return m.height
+}
+
+func (m *Model) SetWidth(w int) {
+	m.width = w
+}
+
+func (m *Model) SetHeight(h int) {
+	m.height = h
 }
 
 type styles struct {
@@ -186,7 +203,6 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 func (m *Model) View() string {
 	var w strings.Builder
 	w.WriteString(m.styles.promptStyle.Render("revset:"))
-	w.WriteString(" ")
 	if m.Editing {
 		w.WriteString(m.autoComplete.View())
 	} else {
@@ -194,7 +210,7 @@ func (m *Model) View() string {
 		if m.Value != "" {
 			revset = m.Value
 		}
-		w.WriteString(m.styles.textStyle.Render(revset))
+		w.WriteString(m.styles.textStyle.Render("", revset))
 	}
-	return w.String()
+	return lipgloss.Place(m.width, m.height, 0, 0, w.String(), lipgloss.WithWhitespaceBackground(m.styles.textStyle.GetBackground()))
 }
