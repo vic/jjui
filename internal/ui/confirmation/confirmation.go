@@ -50,7 +50,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selected--
 			}
 		case key.Matches(msg, right):
-			if m.selected < len(m.options) {
+			if m.selected < len(m.options)-1 {
 				m.selected++
 			}
 		case key.Matches(msg, enter):
