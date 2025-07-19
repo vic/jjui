@@ -33,9 +33,6 @@ func NewModel(context *context.MainContext) Model {
 	lastOperation := lipgloss.NewStyle().PaddingBottom(1).Render(string(output))
 	model := confirmation.New(lastOperation, "Are you sure you want to undo last change?")
 	model.Styles.Border = common.DefaultPalette.GetBorder("undo border", lipgloss.NormalBorder()).Padding(1)
-	//model.Styles.Text = common.DefaultPalette.Get("undo text").PaddingRight(1)
-	//model.Styles.Dimmed = common.DefaultPalette.Get("undo dimmed").PaddingLeft(2).PaddingRight(2)
-	//model.Styles.Selected = common.DefaultPalette.Get("undo selected").PaddingLeft(2).PaddingRight(2)
 	model.AddOption("Yes", context.RunCommand(jj.Undo(), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))
 	return Model{
