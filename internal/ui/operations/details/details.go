@@ -3,6 +3,11 @@ package details
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"path"
+	"slices"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,10 +17,6 @@ import (
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/confirmation"
 	"github.com/idursun/jjui/internal/ui/context"
-	"io"
-	"path"
-	"slices"
-	"strings"
 )
 
 type status uint8
@@ -137,10 +138,10 @@ func New(context *context.MainContext, revision string) tea.Model {
 	keyMap := config.Current.GetKeyMap()
 
 	s := styles{
-		Added:    common.DefaultPalette.Get("details added"),
-		Deleted:  common.DefaultPalette.Get("details deleted"),
-		Modified: common.DefaultPalette.Get("details modified"),
-		Renamed:  common.DefaultPalette.Get("details renamed"),
+		Added:    common.DefaultPalette.Get("revisions details added"),
+		Deleted:  common.DefaultPalette.Get("revisions details deleted"),
+		Modified: common.DefaultPalette.Get("revisions details modified"),
+		Renamed:  common.DefaultPalette.Get("revisions details renamed"),
 		Selected: common.DefaultPalette.Get("revisions details selected"),
 		Dimmed:   common.DefaultPalette.Get("revisions details dimmed"),
 		Text:     common.DefaultPalette.Get("revisions details text"),
@@ -195,10 +196,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "moves to the new revision",
 				styles:              m.styles,
 			})
-			model := confirmation.New("Are you sure you want to split the selected files?")
-
-			model.AddOption("Yes", tea.Batch(m.context.RunInteractiveCommand(jj.Split(m.revision, selectedFiles), common.Refresh), common.Close), key.NewBinding(key.WithKeys("y")))
-			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
+			model := confirmation.New(
+				[]string{"Are you sure you want to split the selected files?"},
+				confirmation.WithStylePrefix("revisions"),
+				confirmation.WithOption("Yes", tea.Batch(m.context.RunInteractiveCommand(jj.Split(m.revision, selectedFiles), common.Refresh), common.Close), key.NewBinding(key.WithKeys("y"))),
+				confirmation.WithOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc"))),
+			)
 			m.confirmation = &model
 			return m, m.confirmation.Init()
 		case key.Matches(msg, m.keyMap.Details.Restore):
@@ -209,9 +212,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "stays as is",
 				styles:              m.styles,
 			})
-			model := confirmation.New("Are you sure you want to restore the selected files?")
-			model.AddOption("Yes", m.context.RunCommand(jj.Restore(m.revision, selectedFiles), common.Refresh, confirmation.Close), key.NewBinding(key.WithKeys("y")))
-			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
+			model := confirmation.New(
+				[]string{"Are you sure you want to restore the selected files?"},
+				confirmation.WithStylePrefix("revisions"),
+				confirmation.WithOption("Yes", m.context.RunCommand(jj.Restore(m.revision, selectedFiles), common.Refresh, confirmation.Close), key.NewBinding(key.WithKeys("y"))),
+				confirmation.WithOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc"))),
+			)
 			m.confirmation = &model
 			return m, m.confirmation.Init()
 		case key.Matches(msg, m.keyMap.Details.Absorb):
@@ -222,9 +228,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				unselectedHint:      "stays as is",
 				styles:              m.styles,
 			})
-			model := confirmation.New("Are you sure you want to absorb changes from the selected files?")
-			model.AddOption("Yes", m.context.RunCommand(jj.Absorb(m.revision, selectedFiles...), common.Refresh, confirmation.Close), key.NewBinding(key.WithKeys("y")))
-			model.AddOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc")))
+			model := confirmation.New(
+				[]string{"Are you sure you want to absorb changes from the selected files?"},
+				confirmation.WithStylePrefix("revisions"),
+				confirmation.WithOption("Yes", m.context.RunCommand(jj.Absorb(m.revision, selectedFiles...), common.Refresh, confirmation.Close), key.NewBinding(key.WithKeys("y"))),
+				confirmation.WithOption("No", confirmation.Close, key.NewBinding(key.WithKeys("n", "esc"))),
+			)
 			m.confirmation = &model
 			return m, m.confirmation.Init()
 		case key.Matches(msg, m.keyMap.Details.ToggleSelect):

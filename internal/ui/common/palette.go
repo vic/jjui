@@ -25,31 +25,39 @@ func (p *Palette) Update(styleMap map[string]config.Color) {
 	}
 
 	if color, ok := styleMap["diff added"]; ok {
-		p.styles["details added"] = createStyleFrom(color)
+		p.styles["added"] = createStyleFrom(color)
 	}
 	if color, ok := styleMap["diff renamed"]; ok {
-		p.styles["details renamed"] = createStyleFrom(color)
+		p.styles["renamed"] = createStyleFrom(color)
 	}
 	if color, ok := styleMap["diff modified"]; ok {
-		p.styles["details modified"] = createStyleFrom(color)
+		p.styles["modified"] = createStyleFrom(color)
 	}
 	if color, ok := styleMap["diff removed"]; ok {
-		p.styles["details deleted"] = createStyleFrom(color)
+		p.styles["deleted"] = createStyleFrom(color)
 	}
 }
 
 func (p *Palette) Get(selector string) lipgloss.Style {
+	var finalStyle lipgloss.Style
 	if style, ok := p.styles[selector]; ok {
-		return style
+		finalStyle = style
 	}
 
-	fields := strings.Fields(selector)
-	finalStyle := lipgloss.NewStyle()
-	for _, field := range fields {
-		if style, ok := p.styles[field]; ok {
+	index := strings.Index(selector, " ")
+	for index != -1 {
+		// Extract the prefix before the space
+		prefix := selector[:index]
+		if style, ok := p.styles[prefix]; ok {
 			finalStyle = finalStyle.Inherit(style)
 		}
+		selector = selector[index+1:]
+		if style, ok := p.styles[selector]; ok {
+			finalStyle = finalStyle.Inherit(style)
+		}
+		index = strings.Index(selector, " ")
 	}
+
 	return finalStyle
 }
 

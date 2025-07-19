@@ -31,9 +31,12 @@ func (m Model) View() string {
 func NewModel(context *context.MainContext) Model {
 	output, _ := context.RunCommandImmediate(jj.OpLog(1))
 	lastOperation := lipgloss.NewStyle().PaddingBottom(1).Render(string(output))
-	model := confirmation.New(lastOperation, "Are you sure you want to undo last change?")
+	model := confirmation.New(
+		[]string{lastOperation, "Are you sure you want to undo last change?"},
+		confirmation.WithStylePrefix("undo"),
+		confirmation.WithOption("Yes", context.RunCommand(jj.Undo(), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y"))),
+	)
 	model.Styles.Border = common.DefaultPalette.GetBorder("undo border", lipgloss.NormalBorder()).Padding(1)
-	model.AddOption("Yes", context.RunCommand(jj.Undo(), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
 	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))
 	return Model{
 		confirmation: &model,

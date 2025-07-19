@@ -31,10 +31,28 @@ type Styles struct {
 }
 
 type Model struct {
-	options  []option
-	selected int
-	Styles   Styles
-	messages []string
+	options     []option
+	selected    int
+	Styles      Styles
+	messages    []string
+	stylePrefix string
+}
+
+// Option is a function that configures a Model
+type Option func(*Model)
+
+// WithStylePrefix returns an Option that sets the style prefix for palette lookups
+func WithStylePrefix(prefix string) Option {
+	return func(m *Model) {
+		m.stylePrefix = prefix
+	}
+}
+
+// WithOption adds an option to the confirmation dialog
+func WithOption(label string, cmd tea.Cmd, keyBinding key.Binding) Option {
+	return func(m *Model) {
+		m.options = append(m.options, option{label, cmd, keyBinding})
+	}
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -88,23 +106,40 @@ func (m *Model) View() string {
 	return m.Styles.Border.Render(content)
 }
 
+// AddOption adds an option to the confirmation dialog (legacy method)
 func (m *Model) AddOption(label string, cmd tea.Cmd, keyBinding key.Binding) {
 	m.options = append(m.options, option{label, cmd, keyBinding})
 }
 
-func New(messages ...string) Model {
-	styles := Styles{
-		Border:   common.DefaultPalette.GetBorder("confirmation border", lipgloss.RoundedBorder()),
-		Text:     common.DefaultPalette.Get("confirmation text").PaddingRight(1),
-		Selected: common.DefaultPalette.Get("confirmation selected").PaddingLeft(2).PaddingRight(2),
-		Dimmed:   common.DefaultPalette.Get("confirmation dimmed").PaddingLeft(2).PaddingRight(2),
+// getStyleKey prefixes the key with the style prefix if one is set
+func (m *Model) getStyleKey(key string) string {
+	if m.stylePrefix == "" {
+		return key
 	}
-	return Model{
+	return m.stylePrefix + " " + key
+}
+
+func New(messages []string, opts ...Option) Model {
+	m := Model{
 		messages: messages,
 		options:  []option{},
 		selected: 0,
-		Styles:   styles,
 	}
+
+	// Apply options if provided
+	for _, opt := range opts {
+		opt(&m)
+	}
+
+	// Set styles after options are applied so stylePrefix is considered
+	m.Styles = Styles{
+		Border:   common.DefaultPalette.GetBorder(m.getStyleKey("confirmation border"), lipgloss.RoundedBorder()),
+		Text:     common.DefaultPalette.Get(m.getStyleKey("confirmation text")).PaddingRight(1),
+		Selected: common.DefaultPalette.Get(m.getStyleKey("confirmation selected")).PaddingLeft(2).PaddingRight(2),
+		Dimmed:   common.DefaultPalette.Get(m.getStyleKey("confirmation dimmed")).PaddingLeft(2).PaddingRight(2),
+	}
+
+	return m
 }
 
 func Close() tea.Msg {

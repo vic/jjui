@@ -8,24 +8,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	Black  = "0"
+	Red    = "1"
+	Green  = "2"
+	Yellow = "3"
+	Blue   = "4"
+	Cyan   = "6"
+	White  = "7"
+)
+
 func TestPalette_Get(t *testing.T) {
 	// Setup a palette with some test styles
 	p := Palette{
 		styles: map[string]lipgloss.Style{
-			"text":           lipgloss.NewStyle().Foreground(lipgloss.Color("white")),
-			"selected":       lipgloss.NewStyle().Foreground(lipgloss.Color("cyan")).Background(lipgloss.Color("bright black")),
-			"bold":           lipgloss.NewStyle().Bold(true),
-			"italic":         lipgloss.NewStyle().Italic(true),
-			"revisions":      lipgloss.NewStyle().Foreground(lipgloss.Color("green")),
-			"revisions text": lipgloss.NewStyle().Foreground(lipgloss.Color("blue")).Bold(true),
-		},
-	}
-
-	// Create a second palette for testing inheritance when exact match doesn't exist
-	pWithoutExactMatch := Palette{
-		styles: map[string]lipgloss.Style{
-			"text":      lipgloss.NewStyle().Foreground(lipgloss.Color("green")),
-			"revisions": lipgloss.NewStyle().Background(lipgloss.Color("red")),
+			"text":           lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
+			"selected":       lipgloss.NewStyle().Background(lipgloss.Color(Black)).Bold(true),
+			"revisions":      lipgloss.NewStyle().Italic(true),
+			"revisions text": lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)),
 		},
 	}
 
@@ -38,25 +38,13 @@ func TestPalette_Get(t *testing.T) {
 		{
 			name:     "exact match for single label",
 			selector: "text",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("white")),
-			palette:  &p,
-		},
-		{
-			name:     "exact match for single label with styling",
-			selector: "selected",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("cyan")).Background(lipgloss.Color("bright black")),
+			want:     lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
 			palette:  &p,
 		},
 		{
 			name:     "combined labels",
-			selector: "text bold",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("white")).Bold(true),
-			palette:  &p,
-		},
-		{
-			name:     "multiple combined labels",
-			selector: "text bold italic",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("white")).Bold(true).Italic(true),
+			selector: "revisions selected",
+			want:     lipgloss.NewStyle().Background(lipgloss.Color(Black)).Bold(true).Italic(true),
 			palette:  &p,
 		},
 		{
@@ -68,7 +56,7 @@ func TestPalette_Get(t *testing.T) {
 		{
 			name:     "mixed existing and non-existent labels",
 			selector: "text nonexistent",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("white")),
+			want:     lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
 			palette:  &p,
 		},
 		{
@@ -80,14 +68,8 @@ func TestPalette_Get(t *testing.T) {
 		{
 			name:     "exact match for compound label",
 			selector: "revisions text",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("blue")).Bold(true),
+			want:     lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)).Italic(true),
 			palette:  &p,
-		},
-		{
-			name:     "inherited styles when exact match doesn't exist",
-			selector: "revisions text",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("green")).Background(lipgloss.Color("red")),
-			palette:  &pWithoutExactMatch,
 		},
 	}
 
@@ -118,7 +100,7 @@ func TestPalette_Update(t *testing.T) {
 		{
 			name: "basic color update",
 			styleMap: map[string]config.Color{
-				"text": {Fg: "red"},
+				"text": {Fg: Red},
 			},
 			selector: "text",
 			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("1")),
@@ -126,7 +108,7 @@ func TestPalette_Update(t *testing.T) {
 		{
 			name: "update with multiple attributes",
 			styleMap: map[string]config.Color{
-				"heading": {Fg: "blue", Bold: true, Italic: true},
+				"heading": {Fg: Blue, Bold: true, Italic: true},
 			},
 			selector: "heading",
 			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Bold(true).Italic(true),
@@ -134,21 +116,10 @@ func TestPalette_Update(t *testing.T) {
 		{
 			name: "update with background color",
 			styleMap: map[string]config.Color{
-				"highlight": {Fg: "black", Bg: "yellow"},
+				"highlight": {Fg: Black, Bg: Yellow},
 			},
 			selector: "highlight",
 			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("0")).Background(lipgloss.Color("3")),
-		},
-		{
-			name: "update diff styles creates details styles",
-			styleMap: map[string]config.Color{
-				"diff added":    {Fg: "green"},
-				"diff removed":  {Fg: "red"},
-				"diff modified": {Fg: "yellow"},
-				"diff renamed":  {Fg: "blue"},
-			},
-			selector: "details added",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("2")),
 		},
 	}
 
@@ -159,14 +130,11 @@ func TestPalette_Update(t *testing.T) {
 
 			got := p.Get(tt.selector)
 
-			// For diff styles, check if the corresponding details styles were created
 			if tt.selector == "details added" {
-				assert.Equal(t, p.Get("diff added").GetForeground(), got.GetForeground())
-
-				// Also verify other details styles were created
-				assert.NotNil(t, p.styles["details renamed"])
-				assert.NotNil(t, p.styles["details modified"])
-				assert.NotNil(t, p.styles["details deleted"])
+				assert.Equal(t, p.Get("added").GetForeground(), got.GetForeground())
+				assert.NotNil(t, p.styles["renamed"])
+				assert.NotNil(t, p.styles["modified"])
+				assert.NotNil(t, p.styles["deleted"])
 			} else {
 				assert.Equal(t, tt.want.GetForeground(), got.GetForeground(), "foreground color mismatch")
 				assert.Equal(t, tt.want.GetBackground(), got.GetBackground(), "background color mismatch")

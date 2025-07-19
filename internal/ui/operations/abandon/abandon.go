@@ -53,9 +53,11 @@ func NewOperation(context *context.MainContext, selectedRevisions jj.SelectedRev
 	if len(selectedRevisions.Revisions) > 1 {
 		message = fmt.Sprintf("Are you sure you want to abandon %d %srevisions?", len(selectedRevisions.Revisions), conflictingWarning)
 	}
-	model := confirmation.New(message)
-	model.AddOption("Yes", context.RunCommand(jj.Abandon(selectedRevisions), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y")))
-	model.AddOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc")))
+	model := confirmation.New(
+		[]string{message},
+		confirmation.WithOption("Yes", context.RunCommand(jj.Abandon(selectedRevisions), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y"))),
+		confirmation.WithOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc"))),
+	)
 
 	op := &Operation{
 		model: &model,
