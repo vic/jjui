@@ -71,7 +71,6 @@ func (m *Model) View() string {
 	w := strings.Builder{}
 	w.WriteString(m.styles.text.Render(m.message))
 	for i, option := range m.options {
-		w.WriteString(" ")
 		if i == m.selected {
 			w.WriteString(m.styles.selectedButton.Render(option.label))
 		} else {
@@ -91,8 +90,8 @@ func (m *Model) SetBorderStyle(style lipgloss.Style) {
 
 func New(message string) Model {
 	styles := styles{
-		borderStyle:      common.DefaultPalette.GetBorder("confirmation border", lipgloss.RoundedBorder()).Padding(0, 1, 0, 1),
-		text:             common.DefaultPalette.Get("confirmation text"),
+		borderStyle:      common.DefaultPalette.GetBorder("confirmation border", lipgloss.RoundedBorder()),
+		text:             common.DefaultPalette.Get("confirmation text").PaddingLeft(1).PaddingRight(1),
 		selectedButton:   common.DefaultPalette.Get("confirmation selected").PaddingLeft(2).PaddingRight(2),
 		unselectedButton: common.DefaultPalette.Get("confirmation dimmed").PaddingLeft(2).PaddingRight(2),
 	}
