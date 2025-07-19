@@ -216,6 +216,7 @@ func New(context *context.MainContext) Model {
 
 	t := textinput.New()
 	t.Width = 50
+	t.TextStyle = styles.text
 
 	return Model{
 		context: context,
