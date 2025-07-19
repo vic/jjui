@@ -17,7 +17,15 @@ func (s Segment) String() string {
 }
 
 func (s Segment) StyleEqual(other Segment) bool {
-	return s.Style.String() == other.Style.String()
+	return s.Style.GetForeground() == other.Style.GetForeground() &&
+		s.Style.GetBackground() == other.Style.GetBackground() &&
+		s.Style.GetBold() == other.Style.GetBold() &&
+		s.Style.GetItalic() == other.Style.GetItalic() &&
+		s.Style.GetUnderline() == other.Style.GetUnderline() &&
+		s.Style.GetStrikethrough() == other.Style.GetStrikethrough() &&
+		s.Style.GetBlink() == other.Style.GetBlink() &&
+		s.Style.GetReverse() == other.Style.GetReverse() &&
+		s.Style.GetFaint() == other.Style.GetFaint()
 }
 
 func (s Segment) FindSubstringRange(substr string) (int, int) {
