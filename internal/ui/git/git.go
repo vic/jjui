@@ -43,25 +43,25 @@ func (i item) Description() string {
 }
 
 type Model struct {
-	context        *context.MainContext
-	keymap         config.KeyMappings[key.Binding]
-	filterableList common.FilterableList
+	context *context.MainContext
+	keymap  config.KeyMappings[key.Binding]
+	menu    common.Menu
 }
 
 func (m *Model) Width() int {
-	return m.filterableList.Width()
+	return m.menu.Width()
 }
 
 func (m *Model) Height() int {
-	return m.filterableList.Height()
+	return m.menu.Height()
 }
 
 func (m *Model) SetWidth(w int) {
-	m.filterableList.SetWidth(w)
+	m.menu.SetWidth(w)
 }
 
 func (m *Model) SetHeight(h int) {
-	m.filterableList.SetHeight(h)
+	m.menu.SetHeight(h)
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -71,38 +71,38 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.filterableList.List.SettingFilter() {
+		if m.menu.List.SettingFilter() {
 			break
 		}
 		switch {
 		case key.Matches(msg, m.keymap.Apply):
-			action := m.filterableList.List.SelectedItem().(item)
+			action := m.menu.List.SelectedItem().(item)
 			return m, m.context.RunCommand(jj.Args(action.command...), common.Refresh, common.Close)
 		case key.Matches(msg, m.keymap.Cancel):
-			if m.filterableList.Filter != "" || m.filterableList.List.IsFiltered() {
-				m.filterableList.List.ResetFilter()
+			if m.menu.Filter != "" || m.menu.List.IsFiltered() {
+				m.menu.List.ResetFilter()
 				return m.filtered("")
 			}
 			return m, common.Close
-		case key.Matches(msg, m.keymap.Git.Push) && m.filterableList.Filter != string(itemCategoryPush):
+		case key.Matches(msg, m.keymap.Git.Push) && m.menu.Filter != string(itemCategoryPush):
 			return m.filtered(string(itemCategoryPush))
-		case key.Matches(msg, m.keymap.Git.Fetch) && m.filterableList.Filter != string(itemCategoryFetch):
+		case key.Matches(msg, m.keymap.Git.Fetch) && m.menu.Filter != string(itemCategoryFetch):
 			return m.filtered(string(itemCategoryFetch))
 		default:
-			for _, listItem := range m.filterableList.List.Items() {
-				if item, ok := listItem.(item); ok && m.filterableList.Filter != "" && item.key == msg.String() {
+			for _, listItem := range m.menu.List.Items() {
+				if item, ok := listItem.(item); ok && m.menu.Filter != "" && item.key == msg.String() {
 					return m, m.context.RunCommand(jj.Args(item.command...), common.Refresh, common.Close)
 				}
 			}
 		}
 	}
 	var cmd tea.Cmd
-	m.filterableList.List, cmd = m.filterableList.List.Update(msg)
+	m.menu.List, cmd = m.menu.List.Update(msg)
 	return m, cmd
 }
 
 func (m *Model) filtered(filter string) (tea.Model, tea.Cmd) {
-	return m, m.filterableList.Filtered(filter)
+	return m, m.menu.Filtered(filter)
 }
 
 func (m *Model) View() string {
@@ -111,7 +111,7 @@ func (m *Model) View() string {
 		m.keymap.Git.Fetch,
 	}
 
-	return m.filterableList.View(helpKeys)
+	return m.menu.View(helpKeys)
 }
 
 func loadBookmarks(c context.CommandRunner, changeId string) []jj.Bookmark {
@@ -170,9 +170,9 @@ func NewModel(c *context.MainContext, commit *jj.Commit, width int, height int) 
 	)
 
 	keymap := config.Current.GetKeyMap()
-	filterableList := common.NewFilterableList(items, width, height, keymap)
-	filterableList.Title = "Git Operations"
-	filterableList.FilterMatches = func(i list.Item, filter string) bool {
+	menu := common.NewMenu(items, width, height, keymap)
+	menu.Title = "Git Operations"
+	menu.FilterMatches = func(i list.Item, filter string) bool {
 		if gitItem, ok := i.(item); ok {
 			return gitItem.category == itemCategory(filter)
 		}
@@ -180,9 +180,9 @@ func NewModel(c *context.MainContext, commit *jj.Commit, width int, height int) 
 	}
 
 	m := &Model{
-		context:        c,
-		filterableList: filterableList,
-		keymap:         keymap,
+		context: c,
+		menu:    menu,
+		keymap:  keymap,
 	}
 	m.SetWidth(width)
 	m.SetHeight(height)

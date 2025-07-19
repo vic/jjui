@@ -36,26 +36,26 @@ func (i item) Description() string {
 }
 
 type Model struct {
-	context        *context.MainContext
-	keymap         config.KeyMappings[key.Binding]
-	filterableList common.FilterableList
-	help           help.Model
+	context *context.MainContext
+	keymap  config.KeyMappings[key.Binding]
+	menu    common.Menu
+	help    help.Model
 }
 
 func (m *Model) Width() int {
-	return m.filterableList.Width()
+	return m.menu.Width()
 }
 
 func (m *Model) Height() int {
-	return m.filterableList.Height()
+	return m.menu.Height()
 }
 
 func (m *Model) SetWidth(w int) {
-	m.filterableList.SetWidth(w)
+	m.menu.SetWidth(w)
 }
 
 func (m *Model) SetHeight(h int) {
-	m.filterableList.SetHeight(h)
+	m.menu.SetHeight(h)
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -65,22 +65,22 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.filterableList.List.SettingFilter() {
+		if m.menu.List.SettingFilter() {
 			break
 		}
 		switch {
 		case key.Matches(msg, m.keymap.Apply):
-			if item, ok := m.filterableList.List.SelectedItem().(item); ok {
+			if item, ok := m.menu.List.SelectedItem().(item); ok {
 				return m, tea.Batch(item.command, common.Close)
 			}
 		case key.Matches(msg, m.keymap.Cancel):
-			if m.filterableList.Filter != "" || m.filterableList.List.IsFiltered() {
-				m.filterableList.List.ResetFilter()
-				return m, m.filterableList.Filtered("")
+			if m.menu.Filter != "" || m.menu.List.IsFiltered() {
+				m.menu.List.ResetFilter()
+				return m, m.menu.Filtered("")
 			}
 			return m, common.Close
 		default:
-			for _, listItem := range m.filterableList.List.Items() {
+			for _, listItem := range m.menu.List.Items() {
 				if i, ok := listItem.(item); ok && key.Matches(msg, i.key) {
 					return m, tea.Batch(i.command, common.Close)
 				}
@@ -88,12 +88,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	var cmd tea.Cmd
-	m.filterableList.List, cmd = m.filterableList.List.Update(msg)
+	m.menu.List, cmd = m.menu.List.Update(msg)
 	return m, cmd
 }
 
 func (m *Model) View() string {
-	return m.filterableList.View(nil)
+	return m.menu.View(nil)
 }
 
 func NewModel(ctx *context.MainContext, width int, height int) *Model {
@@ -106,18 +106,18 @@ func NewModel(ctx *context.MainContext, width int, height int) *Model {
 		}
 	}
 	keyMap := config.Current.GetKeyMap()
-	filterableList := common.NewFilterableList(items, width, height, keyMap)
-	filterableList.Title = "Custom Commands"
-	filterableList.ShowShortcuts(true)
-	filterableList.FilterMatches = func(i list.Item, filter string) bool {
+	menu := common.NewMenu(items, width, height, keyMap)
+	menu.Title = "Custom Commands"
+	menu.ShowShortcuts(true)
+	menu.FilterMatches = func(i list.Item, filter string) bool {
 		return strings.Contains(strings.ToLower(i.FilterValue()), strings.ToLower(filter))
 	}
 
 	m := &Model{
-		context:        ctx,
-		keymap:         keyMap,
-		filterableList: filterableList,
-		help:           help.New(),
+		context: ctx,
+		keymap:  keyMap,
+		menu:    menu,
+		help:    help.New(),
 	}
 	m.SetWidth(width)
 	m.SetHeight(height)

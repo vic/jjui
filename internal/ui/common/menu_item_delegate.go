@@ -8,23 +8,23 @@ import (
 	"io"
 )
 
-type ListItem interface {
+type MenuItem interface {
 	list.DefaultItem
 	ShortCut() string
 }
 
-type ListItemDelegate struct {
+type MenuItemDelegate struct {
 	ShowShortcuts bool
 	styles        styles
 }
 
-func (l ListItemDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
+func (l MenuItemDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
 	var (
 		title    string
 		desc     string
 		shortcut string
 	)
-	if item, ok := item.(ListItem); ok {
+	if item, ok := item.(MenuItem); ok {
 		title = item.Title()
 		desc = item.Description()
 		shortcut = item.ShortCut()
@@ -79,14 +79,14 @@ func (l ListItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 	_, _ = fmt.Fprintf(w, descStyle.Render(desc))
 }
 
-func (l ListItemDelegate) Height() int {
+func (l MenuItemDelegate) Height() int {
 	return 2
 }
 
-func (l ListItemDelegate) Spacing() int {
+func (l MenuItemDelegate) Spacing() int {
 	return 1
 }
 
-func (l ListItemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
+func (l MenuItemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	return nil
 }

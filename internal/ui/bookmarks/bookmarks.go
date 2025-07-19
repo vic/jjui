@@ -20,27 +20,27 @@ type updateItemsMsg struct {
 }
 
 type Model struct {
-	context        *context.MainContext
-	current        *jj.Commit
-	filterableList common.FilterableList
-	keymap         config.KeyMappings[key.Binding]
-	distanceMap    map[string]int
+	context     *context.MainContext
+	current     *jj.Commit
+	menu        common.Menu
+	keymap      config.KeyMappings[key.Binding]
+	distanceMap map[string]int
 }
 
 func (m *Model) Width() int {
-	return m.filterableList.Width()
+	return m.menu.Width()
 }
 
 func (m *Model) Height() int {
-	return m.filterableList.Height()
+	return m.menu.Height()
 }
 
 func (m *Model) SetWidth(w int) {
-	m.filterableList.SetWidth(w)
+	m.menu.SetWidth(w)
 }
 
 func (m *Model) SetHeight(h int) {
-	m.filterableList.SetHeight(h)
+	m.menu.SetHeight(h)
 }
 
 type commandType int
@@ -84,7 +84,7 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) filtered(filter string) (tea.Model, tea.Cmd) {
-	return m, m.filterableList.Filtered(filter)
+	return m, m.menu.Filtered(filter)
 }
 
 func (m *Model) loadMovables() tea.Msg {
@@ -171,46 +171,46 @@ func (m *Model) loadAll() tea.Msg {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.filterableList.List.SettingFilter() {
+		if m.menu.List.SettingFilter() {
 			break
 		}
 		switch {
 		case key.Matches(msg, m.keymap.Cancel):
-			if m.filterableList.Filter != "" || m.filterableList.List.IsFiltered() {
-				m.filterableList.List.ResetFilter()
+			if m.menu.Filter != "" || m.menu.List.IsFiltered() {
+				m.menu.List.ResetFilter()
 				return m.filtered("")
 			}
 			return m, common.Close
 		case key.Matches(msg, m.keymap.Apply):
-			if m.filterableList.List.SelectedItem() == nil {
+			if m.menu.List.SelectedItem() == nil {
 				break
 			}
-			action := m.filterableList.List.SelectedItem().(item)
+			action := m.menu.List.SelectedItem().(item)
 			return m, m.context.RunCommand(action.args, common.Refresh, common.Close)
-		case key.Matches(msg, m.keymap.Bookmark.Move) && m.filterableList.Filter != "move":
+		case key.Matches(msg, m.keymap.Bookmark.Move) && m.menu.Filter != "move":
 			return m.filtered("move")
-		case key.Matches(msg, m.keymap.Bookmark.Delete) && m.filterableList.Filter != "delete":
+		case key.Matches(msg, m.keymap.Bookmark.Delete) && m.menu.Filter != "delete":
 			return m.filtered("delete")
-		case key.Matches(msg, m.keymap.Bookmark.Forget) && m.filterableList.Filter != "forget":
+		case key.Matches(msg, m.keymap.Bookmark.Forget) && m.menu.Filter != "forget":
 			return m.filtered("forget")
-		case key.Matches(msg, m.keymap.Bookmark.Track) && m.filterableList.Filter != "track":
+		case key.Matches(msg, m.keymap.Bookmark.Track) && m.menu.Filter != "track":
 			return m.filtered("track")
-		case key.Matches(msg, m.keymap.Bookmark.Untrack) && m.filterableList.Filter != "untrack":
+		case key.Matches(msg, m.keymap.Bookmark.Untrack) && m.menu.Filter != "untrack":
 			return m.filtered("untrack")
 		default:
-			for _, listItem := range m.filterableList.List.Items() {
-				if item, ok := listItem.(item); ok && m.filterableList.Filter != "" && item.key == msg.String() {
+			for _, listItem := range m.menu.List.Items() {
+				if item, ok := listItem.(item); ok && m.menu.Filter != "" && item.key == msg.String() {
 					return m, m.context.RunCommand(jj.Args(item.args...), common.Refresh, common.Close)
 				}
 			}
 		}
 	case updateItemsMsg:
-		m.filterableList.Items = append(m.filterableList.Items, msg.items...)
-		slices.SortFunc(m.filterableList.Items, itemSorter)
-		return m, m.filterableList.List.SetItems(m.filterableList.Items)
+		m.menu.Items = append(m.menu.Items, msg.items...)
+		slices.SortFunc(m.menu.Items, itemSorter)
+		return m, m.menu.List.SetItems(m.menu.Items)
 	}
 	var cmd tea.Cmd
-	m.filterableList.List, cmd = m.filterableList.List.Update(msg)
+	m.menu.List, cmd = m.menu.List.Update(msg)
 	return m, cmd
 }
 
@@ -241,7 +241,7 @@ func (m *Model) View() string {
 		m.keymap.Bookmark.Untrack,
 	}
 
-	return m.filterableList.View(helpKeys)
+	return m.menu.View(helpKeys)
 }
 
 func (m *Model) distance(commitId string) int {
@@ -255,18 +255,18 @@ func NewModel(c *context.MainContext, current *jj.Commit, commitIds []string, wi
 	var items []list.Item
 	keymap := config.Current.GetKeyMap()
 
-	filterableList := common.NewFilterableList(items, width, height, keymap)
-	filterableList.Title = "Bookmark Operations"
-	filterableList.FilterMatches = func(i list.Item, filter string) bool {
+	menu := common.NewMenu(items, width, height, keymap)
+	menu.Title = "Bookmark Operations"
+	menu.FilterMatches = func(i list.Item, filter string) bool {
 		return strings.HasPrefix(i.FilterValue(), filter)
 	}
 
 	m := &Model{
-		context:        c,
-		keymap:         keymap,
-		filterableList: filterableList,
-		current:        current,
-		distanceMap:    calcDistanceMap(current.CommitId, commitIds),
+		context:     c,
+		keymap:      keymap,
+		menu:        menu,
+		current:     current,
+		distanceMap: calcDistanceMap(current.CommitId, commitIds),
 	}
 	m.SetWidth(width)
 	m.SetHeight(height)

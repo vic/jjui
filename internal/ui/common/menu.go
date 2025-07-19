@@ -9,7 +9,7 @@ import (
 	"github.com/idursun/jjui/internal/config"
 )
 
-type FilterableList struct {
+type Menu struct {
 	List          list.Model
 	Items         []list.Item
 	Filter        string
@@ -37,7 +37,7 @@ func DefaultFilterMatch(item list.Item, filter string) bool {
 	return true
 }
 
-func NewFilterableList(items []list.Item, width int, height int, keyMap config.KeyMappings[key.Binding]) FilterableList {
+func NewMenu(items []list.Item, width int, height int, keyMap config.KeyMappings[key.Binding]) Menu {
 	styles := styles{
 		title:    DefaultPalette.Get("menu title").Padding(0, 1, 0, 1),
 		selected: DefaultPalette.Get("menu selected"),
@@ -48,7 +48,7 @@ func NewFilterableList(items []list.Item, width int, height int, keyMap config.K
 		border:   DefaultPalette.GetBorder("menu border", lipgloss.NormalBorder()),
 	}
 
-	delegate := ListItemDelegate{styles: styles}
+	delegate := MenuItemDelegate{styles: styles}
 
 	l := list.New(items, delegate, width, height)
 	l.SetShowTitle(false)
@@ -58,7 +58,7 @@ func NewFilterableList(items []list.Item, width int, height int, keyMap config.K
 	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 	l.DisableQuitKeybindings()
-	m := FilterableList{
+	m := Menu{
 		List:          l,
 		Items:         items,
 		KeyMap:        keyMap,
@@ -78,38 +78,38 @@ func NewFilterableList(items []list.Item, width int, height int, keyMap config.K
 	return m
 }
 
-func (m *FilterableList) Width() int {
+func (m *Menu) Width() int {
 	return m.width
 }
 
-func (m *FilterableList) Height() int {
+func (m *Menu) Height() int {
 	return m.height
 }
 
-func (m *FilterableList) SetWidth(w int) {
+func (m *Menu) SetWidth(w int) {
 	maxWidth, minWidth := 80, 40
 	m.width = max(min(maxWidth, w), minWidth)
 	m.List.SetWidth(m.width - 2)
 }
 
-func (m *FilterableList) SetHeight(h int) {
+func (m *Menu) SetHeight(h int) {
 	maxHeight, minHeight := 30, 10
 	m.height = max(min(maxHeight, h-2), minHeight)
 	m.List.SetHeight(m.height - 2)
 }
 
-func (m *FilterableList) ShowShortcuts(show bool) {
-	m.List.SetDelegate(ListItemDelegate{ShowShortcuts: show, styles: m.styles})
+func (m *Menu) ShowShortcuts(show bool) {
+	m.List.SetDelegate(MenuItemDelegate{ShowShortcuts: show, styles: m.styles})
 }
 
-func (m *FilterableList) Filtered(filter string) tea.Cmd {
+func (m *Menu) Filtered(filter string) tea.Cmd {
 	m.Filter = filter
 	if m.Filter == "" {
-		m.List.SetDelegate(ListItemDelegate{ShowShortcuts: false, styles: m.styles})
+		m.List.SetDelegate(MenuItemDelegate{ShowShortcuts: false, styles: m.styles})
 		return m.List.SetItems(m.Items)
 	}
 
-	m.List.SetDelegate(ListItemDelegate{ShowShortcuts: true, styles: m.styles})
+	m.List.SetDelegate(MenuItemDelegate{ShowShortcuts: true, styles: m.styles})
 	var filtered []list.Item
 	for _, i := range m.Items {
 		if m.FilterMatches(i, m.Filter) {
@@ -120,7 +120,7 @@ func (m *FilterableList) Filtered(filter string) tea.Cmd {
 	return m.List.SetItems(filtered)
 }
 
-func (m *FilterableList) renderFilterView() string {
+func (m *Menu) renderFilterView() string {
 	filterStyle := m.styles.text.PaddingLeft(1)
 	filterValueStyle := m.styles.matched
 
@@ -134,7 +134,7 @@ func (m *FilterableList) renderFilterView() string {
 	return m.styles.text.Width(m.width).Render(content)
 }
 
-func (m *FilterableList) renderHelpView(helpKeys []key.Binding) string {
+func (m *Menu) renderHelpView(helpKeys []key.Binding) string {
 	if m.List.SettingFilter() {
 		return ""
 	}
@@ -155,14 +155,14 @@ func (m *FilterableList) renderHelpView(helpKeys []key.Binding) string {
 	return m.styles.text.PaddingLeft(1).Width(m.width).Render(lipgloss.JoinHorizontal(0, bindings...))
 }
 
-func (m *FilterableList) renderKey(k key.Binding) string {
+func (m *Menu) renderKey(k key.Binding) string {
 	if !k.Enabled() {
 		return ""
 	}
 	return lipgloss.JoinHorizontal(0, m.styles.shortcut.Render(k.Help().Key, ""), m.styles.dimmed.Render(k.Help().Desc, ""))
 }
 
-func (m *FilterableList) View(helpKeys []key.Binding) string {
+func (m *Menu) View(helpKeys []key.Binding) string {
 	titleView := m.styles.text.Width(m.width).Render(m.styles.title.Render(m.Title))
 	filterView := m.renderFilterView()
 	listView := m.List.View()
