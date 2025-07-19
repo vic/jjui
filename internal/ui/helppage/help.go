@@ -2,6 +2,7 @@ package helppage
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,7 +22,7 @@ type Model struct {
 type styles struct {
 	border   lipgloss.Style
 	title    lipgloss.Style
-	help     lipgloss.Style
+	text     lipgloss.Style
 	shortcut lipgloss.Style
 	dimmed   lipgloss.Style
 }
@@ -71,8 +72,7 @@ func (h *Model) printHelp(k key.Binding) string {
 
 func (h *Model) printHelpExt(key string, desc string) string {
 	keyAligned := fmt.Sprintf("%9s", key)
-	help := fmt.Sprintf("%s %s", h.styles.shortcut.Render(keyAligned), h.styles.dimmed.Render(desc))
-	return help
+	return lipgloss.JoinHorizontal(0, h.styles.shortcut.Render(keyAligned), h.styles.dimmed.Render(desc))
 }
 
 func (h *Model) printHeader(header string) string {
@@ -81,12 +81,12 @@ func (h *Model) printHeader(header string) string {
 
 func (h *Model) printMode(key key.Binding, name string) string {
 	keyAligned := fmt.Sprintf("%9s", key.Help().Key)
-	help := fmt.Sprintf("%v %s", h.styles.shortcut.Render(keyAligned), h.styles.title.Render(name))
-	return help
+	return lipgloss.JoinHorizontal(0, h.styles.shortcut.Render(keyAligned), h.styles.title.Render(name))
 }
 
 func (h *Model) View() string {
-	leftView := lipgloss.JoinVertical(lipgloss.Left,
+	var left []string
+	left = append(left,
 		h.printHeader("UI"),
 		h.printHelp(h.keyMap.Refresh),
 		h.printHelp(h.keyMap.Help),
@@ -119,7 +119,8 @@ func (h *Model) View() string {
 		h.printHelp(h.keyMap.InlineDescribe.Mode),
 	)
 
-	middleView := lipgloss.JoinVertical(lipgloss.Left,
+	var middle []string
+	middle = append(middle,
 		h.printMode(h.keyMap.Preview.Mode, "Preview"),
 		h.printHelp(h.keyMap.Preview.ScrollUp),
 		h.printHelp(h.keyMap.Preview.ScrollDown),
@@ -148,7 +149,8 @@ func (h *Model) View() string {
 		h.printHelp(h.keyMap.Bookmark.Forget),
 	)
 
-	rightView := lipgloss.JoinVertical(lipgloss.Left,
+	var right []string
+	right = append(right,
 		h.printMode(h.keyMap.Squash.Mode, "Squash"),
 		h.printHelp(h.keyMap.Squash.KeepEmptied),
 		h.printHelp(h.keyMap.Squash.Interactive),
@@ -179,24 +181,28 @@ func (h *Model) View() string {
 		customCommands = append(customCommands, h.printHelp(command.Binding()))
 	}
 
-	if len(customCommands) > 0 {
-		rightView = lipgloss.JoinVertical(lipgloss.Left,
-			rightView,
-			lipgloss.JoinVertical(lipgloss.Left, customCommands...),
-		)
-	}
+	right = append(right, customCommands...)
 
-	content := lipgloss.JoinHorizontal(lipgloss.Left, leftView, "  ", middleView, "  ", rightView)
-
+	maxHeight := max(len(left), len(right), len(middle))
+	content := lipgloss.JoinHorizontal(lipgloss.Left,
+		h.renderColumn(40, maxHeight, left...),
+		h.renderColumn(40, maxHeight, middle...),
+		h.renderColumn(40, maxHeight, right...),
+	)
 	return h.styles.border.Render(content)
+}
+
+func (h *Model) renderColumn(width int, height int, lines ...string) string {
+	column := lipgloss.Place(width, height, 0, 0, strings.Join(lines, "\n"), lipgloss.WithWhitespaceBackground(h.styles.text.GetBackground()))
+	return column
 }
 
 func New(context *context.MainContext) *Model {
 	styles := styles{
-		title:    common.DefaultPalette.Get("help title"),
-		dimmed:   common.DefaultPalette.Get("help dimmed"),
-		border:   common.DefaultPalette.GetBorder("help border", lipgloss.NormalBorder()),
-		help:     common.DefaultPalette.Get("help text"),
+		border:   common.DefaultPalette.GetBorder("help border", lipgloss.NormalBorder()).Padding(1),
+		title:    common.DefaultPalette.Get("help title").PaddingLeft(1),
+		text:     common.DefaultPalette.Get("help text"),
+		dimmed:   common.DefaultPalette.Get("help dimmed").PaddingLeft(1),
 		shortcut: common.DefaultPalette.Get("help shortcut"),
 	}
 	return &Model{
