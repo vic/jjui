@@ -2,11 +2,10 @@ package common
 
 import (
 	"fmt"
-	"io"
-
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"io"
 )
 
 type ListItem interface {
@@ -55,30 +54,29 @@ func (l ListItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 	}
 
 	var (
-		selectedStyle = l.styles.text
+		titleStyle    = l.styles.text
 		descStyle     = l.styles.dimmed
 		shortcutStyle = l.styles.shortcut
+		rowStyle      = l.styles.text
 	)
 
 	if index == m.Index() {
-		selectedStyle = l.styles.selected
+		titleStyle = l.styles.selected
 		descStyle = l.styles.selected
 		shortcutStyle = shortcutStyle.Background(l.styles.selected.GetBackground())
+		rowStyle = l.styles.selected
 	}
 
-	selectedStyle = selectedStyle.Width(titleWidth)
-	descStyle = descStyle.Width(m.Width())
+	rowStyle = rowStyle.PaddingLeft(1).PaddingRight(1).Width(m.Width() + 2)
 
-	_, _ = fmt.Fprint(w, " ")
 	if shortcut != "" {
-		_, _ = fmt.Fprint(w, lipgloss.JoinHorizontal(0, shortcutStyle.Render(shortcut, ""), selectedStyle.Render(title)))
+		_, _ = fmt.Fprintln(w, rowStyle.Render(lipgloss.JoinHorizontal(0, shortcutStyle.Render(shortcut), titleStyle.Render("", title))))
 	} else {
-		_, _ = fmt.Fprint(w, selectedStyle.Render(title))
+		_, _ = fmt.Fprintln(w, rowStyle.Render(titleStyle.Render(title)))
 	}
-	_, _ = fmt.Fprintln(w)
-	_, _ = fmt.Fprint(w, " ")
+
+	descStyle = descStyle.PaddingLeft(1).PaddingRight(1).Width(m.Width() + 2)
 	_, _ = fmt.Fprintf(w, descStyle.Render(desc))
-	_, _ = fmt.Fprint(w, " ")
 }
 
 func (l ListItemDelegate) Height() int {

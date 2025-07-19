@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -53,23 +54,26 @@ func NewFilterableList(items []list.Item, width int, height int, keyMap config.K
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
 	l.SetShowFilter(true)
-	l.SetShowPagination(true)
+	l.SetShowPagination(false)
 	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 	l.DisableQuitKeybindings()
-	l.Styles.NoItems = styles.dimmed
-	l.FilterInput.PromptStyle = styles.matched
-	l.FilterInput.Cursor.Style = styles.text
-
 	m := FilterableList{
 		List:          l,
 		Items:         items,
 		KeyMap:        keyMap,
-		width:         width,
-		height:        height,
 		FilterMatches: DefaultFilterMatch,
 		styles:        styles,
 	}
+	m.SetWidth(width)
+	m.SetHeight(height)
+
+	l.Styles.NoItems = styles.dimmed
+	l.Styles.PaginationStyle = styles.title.Width(10)
+	l.Styles.ActivePaginationDot = styles.title
+	l.Styles.InactivePaginationDot = styles.title
+	l.FilterInput.PromptStyle = styles.matched
+	l.FilterInput.Cursor.Style = styles.text
 
 	return m
 }
@@ -116,7 +120,7 @@ func (m *FilterableList) Filtered(filter string) tea.Cmd {
 	return m.List.SetItems(filtered)
 }
 
-func (m *FilterableList) RenderFilterView() string {
+func (m *FilterableList) renderFilterView() string {
 	filterStyle := m.styles.text.PaddingLeft(1)
 	filterValueStyle := m.styles.matched
 
@@ -124,10 +128,13 @@ func (m *FilterableList) RenderFilterView() string {
 	if m.Filter != "" {
 		filterView = lipgloss.JoinHorizontal(0, filterStyle.Render("Showing only "), filterValueStyle.Render(m.Filter))
 	}
-	return filterView
+	filterViewWidth := lipgloss.Width(filterView)
+	paginationView := m.styles.text.AlignHorizontal(1).PaddingRight(1).Width(m.width - filterViewWidth).Render(fmt.Sprintf("%d/%d", m.List.Paginator.Page+1, m.List.Paginator.TotalPages))
+	content := lipgloss.JoinHorizontal(0, filterView, paginationView)
+	return m.styles.text.Width(m.width).Render(content)
 }
 
-func (m *FilterableList) RenderHelpView(helpKeys []key.Binding) string {
+func (m *FilterableList) renderHelpView(helpKeys []key.Binding) string {
 	if m.List.SettingFilter() {
 		return ""
 	}
@@ -145,7 +152,7 @@ func (m *FilterableList) RenderHelpView(helpKeys []key.Binding) string {
 		bindings = append(bindings, m.renderKey(m.List.KeyMap.Filter))
 	}
 
-	return " " + lipgloss.JoinHorizontal(0, bindings...)
+	return m.styles.text.PaddingLeft(1).Width(m.width).Render(lipgloss.JoinHorizontal(0, bindings...))
 }
 
 func (m *FilterableList) renderKey(k key.Binding) string {
@@ -156,11 +163,12 @@ func (m *FilterableList) renderKey(k key.Binding) string {
 }
 
 func (m *FilterableList) View(helpKeys []key.Binding) string {
-	titleView := m.styles.title.Render(m.Title)
-	filterView := m.RenderFilterView()
-	listView := lipgloss.Place(m.List.Width(), m.List.Height(), 0, 0, m.List.View())
-	helpView := m.RenderHelpView(helpKeys)
-	content := lipgloss.JoinVertical(0, titleView, "", filterView, listView, "", helpView)
+	titleView := m.styles.text.Width(m.width).Render(m.styles.title.Render(m.Title))
+	filterView := m.renderFilterView()
+	listView := m.List.View()
+	helpView := m.renderHelpView(helpKeys)
+	content := lipgloss.JoinVertical(0, titleView, "", filterView, listView, helpView)
 	content = lipgloss.Place(m.width, m.height, 0, 0, content)
+	content = m.styles.text.Width(m.width).Height(m.height).Render(content)
 	return m.styles.border.Render(content)
 }
