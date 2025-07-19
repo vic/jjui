@@ -23,18 +23,18 @@ type option struct {
 	keyBinding key.Binding
 }
 
-type styles struct {
-	borderStyle      lipgloss.Style
-	selectedButton   lipgloss.Style
-	unselectedButton lipgloss.Style
-	text             lipgloss.Style
+type Styles struct {
+	Border   lipgloss.Style
+	Selected lipgloss.Style
+	Dimmed   lipgloss.Style
+	Text     lipgloss.Style
 }
 
 type Model struct {
-	message  string
 	options  []option
 	selected int
-	styles   styles
+	Styles   Styles
+	messages []string
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -69,37 +69,41 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) View() string {
 	w := strings.Builder{}
-	w.WriteString(m.styles.text.Render(m.message))
-	for i, option := range m.options {
-		if i == m.selected {
-			w.WriteString(m.styles.selectedButton.Render(option.label))
-		} else {
-			w.WriteString(m.styles.unselectedButton.Render(option.label))
+	for i, message := range m.messages {
+		w.WriteString(m.Styles.Text.Render(message))
+		if i < len(m.messages)-1 {
+			w.WriteString(m.Styles.Text.Render("\n"))
 		}
 	}
-	return m.styles.borderStyle.Render(w.String())
+	for i, option := range m.options {
+		if i == m.selected {
+			w.WriteString(m.Styles.Selected.Render(option.label))
+		} else {
+			w.WriteString(m.Styles.Dimmed.Render(option.label))
+		}
+	}
+	content := w.String()
+	width, height := lipgloss.Size(content)
+	content = lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content, lipgloss.WithWhitespaceBackground(m.Styles.Text.GetBackground()))
+	return m.Styles.Border.Render(content)
 }
 
 func (m *Model) AddOption(label string, cmd tea.Cmd, keyBinding key.Binding) {
 	m.options = append(m.options, option{label, cmd, keyBinding})
 }
 
-func (m *Model) SetBorderStyle(style lipgloss.Style) {
-	m.styles.borderStyle = style
-}
-
-func New(message string) Model {
-	styles := styles{
-		borderStyle:      common.DefaultPalette.GetBorder("confirmation border", lipgloss.RoundedBorder()),
-		text:             common.DefaultPalette.Get("confirmation text").PaddingLeft(1).PaddingRight(1),
-		selectedButton:   common.DefaultPalette.Get("confirmation selected").PaddingLeft(2).PaddingRight(2),
-		unselectedButton: common.DefaultPalette.Get("confirmation dimmed").PaddingLeft(2).PaddingRight(2),
+func New(messages ...string) Model {
+	styles := Styles{
+		Border:   common.DefaultPalette.GetBorder("confirmation border", lipgloss.RoundedBorder()),
+		Text:     common.DefaultPalette.Get("confirmation text").PaddingRight(1),
+		Selected: common.DefaultPalette.Get("confirmation selected").PaddingLeft(2).PaddingRight(2),
+		Dimmed:   common.DefaultPalette.Get("confirmation dimmed").PaddingLeft(2).PaddingRight(2),
 	}
 	return Model{
-		message:  message,
+		messages: messages,
 		options:  []option{},
 		selected: 0,
-		styles:   styles,
+		Styles:   styles,
 	}
 }
 

@@ -57,6 +57,8 @@ func (p *Palette) GetBorder(selector string, border lipgloss.Border) lipgloss.St
 	style := p.Get(selector)
 	return lipgloss.NewStyle().
 		Border(border).
+		Foreground(style.GetForeground()).
+		Background(style.GetBackground()).
 		BorderForeground(style.GetForeground()).
 		BorderBackground(style.GetBackground())
 }
