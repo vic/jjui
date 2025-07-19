@@ -111,7 +111,12 @@ func (b *cellBuffer) merge(input []byte, offsetX, offsetY int) {
 				width: charWidth,
 			}
 
-			b.grid[currentLine][currentCol] = c
+			// Ensure the grid has enough space for the current character
+			if currentLine < len(b.grid) {
+				if currentCol < len(b.grid[currentLine]) {
+					b.grid[currentLine][currentCol] = c
+				}
+			}
 
 			if charWidth == 2 && currentCol+1 < len(b.grid[currentLine]) {
 				b.grid[currentLine][currentCol+1] = emptyCell
