@@ -57,6 +57,7 @@ func NewOperation(context *context.MainContext, selectedRevisions jj.SelectedRev
 		[]string{message},
 		confirmation.WithOption("Yes", context.RunCommand(jj.Abandon(selectedRevisions), common.Refresh, common.Close), key.NewBinding(key.WithKeys("y"))),
 		confirmation.WithOption("No", common.Close, key.NewBinding(key.WithKeys("n", "esc"))),
+		confirmation.WithStylePrefix("abandon"),
 	)
 
 	op := &Operation{
