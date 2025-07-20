@@ -56,17 +56,6 @@ type MainContext struct {
 	CurrentRevset  string
 }
 
-func (a *MainContext) SetSelectedItem(item SelectedItem) tea.Cmd {
-	if item == nil {
-		return nil
-	}
-	if item.Equal(a.SelectedItem) {
-		return nil
-	}
-	a.SelectedItem = item
-	return common.SelectionChanged
-}
-
 func NewAppContext(location string) *MainContext {
 	m := &MainContext{
 		CommandRunner: &MainCommandRunner{
@@ -77,14 +66,23 @@ func NewAppContext(location string) *MainContext {
 
 	m.JJConfig = &config.JJConfig{}
 	if output, err := m.RunCommandImmediate(jj.ConfigListAll()); err == nil {
-		if m.JJConfig, err = config.DefaultConfig(output); err == nil {
-			common.DefaultPalette.Update(m.JJConfig.Colors)
-		}
+		m.JJConfig, _ = config.DefaultConfig(output)
 	}
 	return m
 }
 
-// context aware replacements for custom commands and exec input.
+func (ctx *MainContext) SetSelectedItem(item SelectedItem) tea.Cmd {
+	if item == nil {
+		return nil
+	}
+	if item.Equal(ctx.SelectedItem) {
+		return nil
+	}
+	ctx.SelectedItem = item
+	return common.SelectionChanged
+}
+
+// CreateReplacements context aware replacements for custom commands and exec input.
 func (ctx *MainContext) CreateReplacements() map[string]string {
 	selectedItem := ctx.SelectedItem
 	replacements := make(map[string]string)

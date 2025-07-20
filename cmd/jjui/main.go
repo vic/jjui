@@ -4,9 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/idursun/jjui/internal/config/themes"
-	"github.com/idursun/jjui/internal/ui/common"
 	"io"
 	"io/fs"
 	"log"
@@ -14,6 +11,10 @@ import (
 	"os/exec"
 	"runtime/debug"
 	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/config/themes"
+	"github.com/idursun/jjui/internal/ui/common"
 
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/context"
@@ -117,14 +118,7 @@ func main() {
 		config.Current.Limit = limit
 	}
 
-	if lipgloss.HasDarkBackground() {
-		config.Current.UI.Colors = themes.DarkTheme
-	} else {
-		config.Current.UI.Colors = themes.LightTheme
-	}
-
 	appContext := context.NewAppContext(rootLocation)
-
 	if output, err := config.LoadConfigFile(); err == nil {
 		if err := config.Current.Load(string(output)); err != nil {
 			fmt.Fprintf(os.Stderr, "Error loading configuration: %v\n", err)
@@ -147,6 +141,24 @@ func main() {
 		os.Exit(1)
 	}
 
+	var theme map[string]config.Color
+	if config.Current.UI.Theme == "" {
+		if lipgloss.HasDarkBackground() {
+			theme = themes.DarkTheme
+		} else {
+			theme = themes.LightTheme
+		}
+	} else {
+		// Load the specified theme from the themes directory
+		theme, err = config.LoadTheme(config.Current.UI.Theme)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading theme '%s': %v\n", config.Current.UI.Theme, err)
+			os.Exit(1)
+		}
+	}
+
+	common.DefaultPalette.Update(theme)
+	common.DefaultPalette.Update(appContext.JJConfig.Colors)
 	common.DefaultPalette.Update(config.Current.UI.Colors)
 
 	if period >= 0 {

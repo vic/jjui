@@ -6,40 +6,13 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
-	"runtime"
 
 	"github.com/idursun/jjui/internal/jj"
 )
 
 var Current = &Config{
 	Keys: DefaultKeyMappings,
-	UI: UIConfig{
-		Colors: map[string]Color{
-			"dimmed":                {Fg: "bright black"},
-			"title":                 {Fg: "magenta", Bold: true},
-			"text":                  {Fg: "white"},
-			"shortcut":              {Fg: "magenta"},
-			"matched":               {Fg: "cyan"},
-			"selected":              {Fg: "cyan", Bg: "bright black"},
-			"target_marker":         {Fg: "black", Bg: "red", Bold: true},
-			"source_marker":         {Fg: "black", Bg: "cyan"},
-			"success":               {Fg: "green"},
-			"error":                 {Fg: "red"},
-			"border":                {Fg: "bright white"},
-			"confirmation text":     {Fg: "magenta", Bold: true},
-			"confirmation selected": {Fg: "bright white", Bg: "blue", Bold: true},
-			"confirmation dimmed":   {Fg: "white"},
-			"help title":            {Fg: "green", Bold: true},
-			"details selected":      {Bg: "bright black"},
-			"revset title":          {Fg: "magenta"},
-			"revset text":           {Fg: "green", Bold: true},
-			"status title":          {Fg: "black", Bg: "magenta", Bold: true},
-			"menu title":            {Fg: "230", Bg: "62", Bold: true},
-			"menu matched":          {Fg: "magenta", Bold: true},
-			"menu selected":         {Fg: "cyan", Bold: true},
-		},
-	},
+	UI:   UIConfig{},
 	Preview: PreviewConfig{
 		ExtraArgs:                []string{},
 		OplogCommand:             []string{"op", "show", jj.OperationIdPlaceholder, "--color", "always"},
@@ -105,6 +78,7 @@ func (c *Color) UnmarshalTOML(text any) error {
 }
 
 type UIConfig struct {
+	Theme  string           `toml:"theme"`
 	Colors map[string]Color `toml:"colors"`
 	// TODO(ilyagr): It might make sense to rename this to `auto_refresh_period` to match `--period` option
 	// once we have a mechanism to deprecate the old name softly.
@@ -142,37 +116,6 @@ func (s *ShowOption) UnmarshalText(text []byte) error {
 	default:
 		return fmt.Errorf("invalid value for 'show': %q. Allowed: none, interactive and diff", val)
 	}
-}
-
-func getConfigFilePath() string {
-	var configDirs []string
-
-	// os.UserConfigDir() already does this for linux leaving darwin to handle
-	if runtime.GOOS == "darwin" {
-		configDirs = append(configDirs, path.Join(os.Getenv("HOME"), ".config"))
-		xdgConfigDir := os.Getenv("XDG_CONFIG_HOME")
-		if xdgConfigDir != "" {
-			configDirs = append(configDirs, xdgConfigDir)
-		}
-	}
-
-	configDir, err := os.UserConfigDir()
-	if err != nil {
-		return ""
-	}
-	configDirs = append(configDirs, configDir)
-
-	for _, dir := range configDirs {
-		configPath := filepath.Join(dir, "jjui", "config.toml")
-		if _, err := os.Stat(configPath); err == nil {
-			return configPath
-		}
-	}
-
-	if len(configDirs) > 0 {
-		return filepath.Join(configDirs[0], "jjui", "config.toml")
-	}
-	return ""
 }
 
 func getDefaultEditor() string {
