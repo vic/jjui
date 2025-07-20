@@ -12,6 +12,23 @@ type JJConfig struct {
 	} `toml:"revsets"`
 }
 
+func (c *JJConfig) GetApplicableColors() map[string]Color {
+	ret := make(map[string]Color)
+	applicableColorKeys := []string{
+		"diff added",
+		"diff renamed",
+		"diff modified",
+		"diff removed",
+		"change_id",
+	}
+	for _, key := range applicableColorKeys {
+		if color, ok := c.Colors[key]; ok {
+			ret[key] = color
+		}
+	}
+	return ret
+}
+
 func parseConfig(configContent string) (*JJConfig, error) {
 	var config JJConfig
 	_, err := toml.Decode(configContent, &config)

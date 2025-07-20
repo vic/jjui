@@ -170,7 +170,7 @@ func NewModel(c *context.MainContext, commit *jj.Commit, width int, height int) 
 	)
 
 	keymap := config.Current.GetKeyMap()
-	menu := common.NewMenu(items, width, height, keymap)
+	menu := common.NewMenu(items, width, height, keymap, common.WithStylePrefix("git"))
 	menu.Title = "Git Operations"
 	menu.FilterMatches = func(i list.Item, filter string) bool {
 		if gitItem, ok := i.(item); ok {

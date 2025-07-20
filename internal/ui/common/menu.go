@@ -37,20 +37,41 @@ func DefaultFilterMatch(item list.Item, filter string) bool {
 	return true
 }
 
-func NewMenu(items []list.Item, width int, height int, keyMap config.KeyMappings[key.Binding]) Menu {
-	styles := styles{
-		title:    DefaultPalette.Get("menu title").Padding(0, 1, 0, 1),
-		selected: DefaultPalette.Get("menu selected"),
-		matched:  DefaultPalette.Get("menu matched"),
-		dimmed:   DefaultPalette.Get("menu dimmed"),
-		shortcut: DefaultPalette.Get("menu shortcut"),
-		text:     DefaultPalette.Get("menu text"),
-		border:   DefaultPalette.GetBorder("menu border", lipgloss.NormalBorder()),
+type Option func(menu *Menu)
+
+func WithStylePrefix(prefix string) Option {
+	return func(menu *Menu) {
+		menu.styles = createStyles(prefix)
+	}
+}
+
+func createStyles(prefix string) styles {
+	if prefix != "" {
+		prefix += " "
+	}
+	return styles{
+		title:    DefaultPalette.Get(prefix+"menu title").Padding(0, 1, 0, 1),
+		selected: DefaultPalette.Get(prefix + "menu selected"),
+		matched:  DefaultPalette.Get(prefix + "menu matched"),
+		dimmed:   DefaultPalette.Get(prefix + "menu dimmed"),
+		shortcut: DefaultPalette.Get(prefix + "menu shortcut"),
+		text:     DefaultPalette.Get(prefix + "menu text"),
+		border:   DefaultPalette.GetBorder(prefix+"menu border", lipgloss.NormalBorder()),
+	}
+}
+
+func NewMenu(items []list.Item, width int, height int, keyMap config.KeyMappings[key.Binding], options ...Option) Menu {
+	m := Menu{
+		Items:         items,
+		KeyMap:        keyMap,
+		FilterMatches: DefaultFilterMatch,
+		styles:        createStyles(""),
+	}
+	for _, opt := range options {
+		opt(&m)
 	}
 
-	delegate := MenuItemDelegate{styles: styles}
-
-	l := list.New(items, delegate, width, height)
+	l := list.New(items, MenuItemDelegate{styles: m.styles}, width, height)
 	l.SetShowTitle(false)
 	l.SetShowStatusBar(false)
 	l.SetShowFilter(true)
@@ -58,22 +79,16 @@ func NewMenu(items []list.Item, width int, height int, keyMap config.KeyMappings
 	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 	l.DisableQuitKeybindings()
-	m := Menu{
-		List:          l,
-		Items:         items,
-		KeyMap:        keyMap,
-		FilterMatches: DefaultFilterMatch,
-		styles:        styles,
-	}
+	l.Styles.NoItems = m.styles.dimmed
+	l.Styles.PaginationStyle = m.styles.title.Width(10)
+	l.Styles.ActivePaginationDot = m.styles.title
+	l.Styles.InactivePaginationDot = m.styles.title
+	l.FilterInput.PromptStyle = m.styles.matched
+	l.FilterInput.Cursor.Style = m.styles.text
+
+	m.List = l
 	m.SetWidth(width)
 	m.SetHeight(height)
-
-	l.Styles.NoItems = styles.dimmed
-	l.Styles.PaginationStyle = styles.title.Width(10)
-	l.Styles.ActivePaginationDot = styles.title
-	l.Styles.InactivePaginationDot = styles.title
-	l.FilterInput.PromptStyle = styles.matched
-	l.FilterInput.Cursor.Style = styles.text
 
 	return m
 }

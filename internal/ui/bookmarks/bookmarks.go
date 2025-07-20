@@ -255,7 +255,7 @@ func NewModel(c *context.MainContext, current *jj.Commit, commitIds []string, wi
 	var items []list.Item
 	keymap := config.Current.GetKeyMap()
 
-	menu := common.NewMenu(items, width, height, keymap)
+	menu := common.NewMenu(items, width, height, keymap, common.WithStylePrefix("bookmarks"))
 	menu.Title = "Bookmark Operations"
 	menu.FilterMatches = func(i list.Item, filter string) bool {
 		return strings.HasPrefix(i.FilterValue(), filter)

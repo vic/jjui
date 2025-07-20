@@ -158,7 +158,7 @@ func main() {
 	}
 
 	common.DefaultPalette.Update(theme)
-	common.DefaultPalette.Update(appContext.JJConfig.Colors)
+	common.DefaultPalette.Update(appContext.JJConfig.GetApplicableColors())
 	common.DefaultPalette.Update(config.Current.UI.Colors)
 
 	if period >= 0 {

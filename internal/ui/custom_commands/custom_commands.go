@@ -106,7 +106,7 @@ func NewModel(ctx *context.MainContext, width int, height int) *Model {
 		}
 	}
 	keyMap := config.Current.GetKeyMap()
-	menu := common.NewMenu(items, width, height, keyMap)
+	menu := common.NewMenu(items, width, height, keyMap, common.WithStylePrefix("custom_commands"))
 	menu.Title = "Custom Commands"
 	menu.ShowShortcuts(true)
 	menu.FilterMatches = func(i list.Item, filter string) bool {
