@@ -19,15 +19,14 @@ const (
 )
 
 func TestPalette_Get(t *testing.T) {
-	// Setup a palette with some test styles
-	p := Palette{
-		styles: map[string]lipgloss.Style{
-			"text":           lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
-			"selected":       lipgloss.NewStyle().Background(lipgloss.Color(Black)).Bold(true),
-			"revisions":      lipgloss.NewStyle().Italic(true),
-			"revisions text": lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)),
-		},
-	}
+	// Set up a palette with test styles using the add method
+	p := NewPalette()
+
+	// Add styles using the palette's add method
+	p.add("text", lipgloss.NewStyle().Foreground(lipgloss.Color(White)))
+	p.add("selected", lipgloss.NewStyle().Background(lipgloss.Color(Black)).Bold(true))
+	p.add("revisions", lipgloss.NewStyle().Italic(true))
+	p.add("revisions text", lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)))
 
 	tests := []struct {
 		name     string
@@ -39,37 +38,37 @@ func TestPalette_Get(t *testing.T) {
 			name:     "exact match for single label",
 			selector: "text",
 			want:     lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
-			palette:  &p,
+			palette:  p,
 		},
 		{
 			name:     "combined labels",
 			selector: "revisions selected",
 			want:     lipgloss.NewStyle().Background(lipgloss.Color(Black)).Bold(true).Italic(true),
-			palette:  &p,
+			palette:  p,
 		},
 		{
 			name:     "non-existent label",
 			selector: "nonexistent",
 			want:     lipgloss.NewStyle(),
-			palette:  &p,
+			palette:  p,
 		},
 		{
 			name:     "mixed existing and non-existent labels",
 			selector: "text nonexistent",
 			want:     lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
-			palette:  &p,
+			palette:  p,
 		},
 		{
 			name:     "empty selector",
 			selector: "",
 			want:     lipgloss.NewStyle(),
-			palette:  &p,
+			palette:  p,
 		},
 		{
 			name:     "exact match for compound label",
 			selector: "revisions text",
 			want:     lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)).Italic(true),
-			palette:  &p,
+			palette:  p,
 		},
 	}
 
@@ -77,10 +76,10 @@ func TestPalette_Get(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.palette.Get(tt.selector)
 
-			// Compare foreground colors
+			// Compare foreground colours
 			assert.Equal(t, tt.want.GetForeground(), got.GetForeground(), "foreground color mismatch")
 
-			// Compare background colors
+			// Compare background colours
 			assert.Equal(t, tt.want.GetBackground(), got.GetBackground(), "background color mismatch")
 
 			// Compare style attributes
@@ -121,20 +120,32 @@ func TestPalette_Update(t *testing.T) {
 			selector: "highlight",
 			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("0")).Background(lipgloss.Color("3")),
 		},
+		{
+			name: "diff shortcuts",
+			styleMap: map[string]config.Color{
+				"diff added":    {Fg: Green},
+				"diff renamed":  {Fg: Blue},
+				"diff modified": {Fg: Yellow},
+				"diff removed":  {Fg: Red},
+			},
+			selector: "added",
+			want:     lipgloss.NewStyle().Foreground(lipgloss.Color("2")),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := Palette{}
+			p := NewPalette()
 			p.Update(tt.styleMap)
 
 			got := p.Get(tt.selector)
 
-			if tt.selector == "details added" {
-				assert.Equal(t, p.Get("added").GetForeground(), got.GetForeground())
-				assert.NotNil(t, p.styles["renamed"])
-				assert.NotNil(t, p.styles["modified"])
-				assert.NotNil(t, p.styles["deleted"])
+			if tt.name == "diff shortcuts" {
+				// Check that all diff shortcuts were properly added
+				assert.Equal(t, lipgloss.Color("2"), p.Get("added").GetForeground(), "added style not set correctly")
+				assert.Equal(t, lipgloss.Color("4"), p.Get("renamed").GetForeground(), "renamed style not set correctly")
+				assert.Equal(t, lipgloss.Color("3"), p.Get("modified").GetForeground(), "modified style not set correctly")
+				assert.Equal(t, lipgloss.Color("1"), p.Get("deleted").GetForeground(), "deleted style not set correctly")
 			} else {
 				assert.Equal(t, tt.want.GetForeground(), got.GetForeground(), "foreground color mismatch")
 				assert.Equal(t, tt.want.GetBackground(), got.GetBackground(), "background color mismatch")

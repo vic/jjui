@@ -18,13 +18,11 @@ const (
 	Blue  = "4"
 )
 
-func TestConfirmationWithStylePrefix(t *testing.T) {
-	palette := common.Palette{}
+func TestConfirmationWithoutStylePrefix(t *testing.T) {
+	palette := common.NewPalette()
 	palette.Update(map[string]config.Color{
 		"confirmation text":             {Fg: White},
 		"confirmation selected":         {Fg: Green},
-		"details text":                  {Fg: Blue},
-		"details selected":              {Fg: Red},
 		"details confirmation text":     {Fg: Blue},
 		"details confirmation selected": {Fg: Red},
 	})
@@ -36,6 +34,20 @@ func TestConfirmationWithStylePrefix(t *testing.T) {
 	defaultModel := New([]string{"Test message"})
 	assert.Equal(t, lipgloss.Color(White), defaultModel.Styles.Text.GetForeground())
 	assert.Equal(t, lipgloss.Color(Green), defaultModel.Styles.Selected.GetForeground())
+}
+
+func TestConfirmationWithStylePrefix(t *testing.T) {
+	palette := common.NewPalette()
+	palette.Update(map[string]config.Color{
+		"confirmation text":             {Fg: White},
+		"confirmation selected":         {Fg: Green},
+		"details confirmation text":     {Fg: Blue},
+		"details confirmation selected": {Fg: Red},
+	})
+
+	originalPalette := common.DefaultPalette
+	common.DefaultPalette = palette
+	defer func() { common.DefaultPalette = originalPalette }()
 
 	detailsModel := New(
 		[]string{"Test message"},

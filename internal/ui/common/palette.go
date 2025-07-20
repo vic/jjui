@@ -9,55 +9,99 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var DefaultPalette = Palette{}
+var DefaultPalette = NewPalette()
+
+type node struct {
+	style    lipgloss.Style
+	children map[string]*node
+}
 
 type Palette struct {
-	styles map[string]lipgloss.Style
+	root  *node
+	cache map[string]lipgloss.Style
+}
+
+func NewPalette() *Palette {
+	return &Palette{
+		root:  nil,
+		cache: make(map[string]lipgloss.Style),
+	}
+}
+
+func (p *Palette) add(key string, style lipgloss.Style) {
+	if p.root == nil {
+		p.root = &node{children: make(map[string]*node)}
+	}
+	current := p.root
+	prefixes := strings.Fields(key)
+	for _, prefix := range prefixes {
+		if child, ok := current.children[prefix]; ok {
+			current = child
+		} else {
+			child = &node{children: make(map[string]*node)}
+			current.children[prefix] = child
+			current = child
+		}
+	}
+	current.style = style
+}
+
+func (p *Palette) get(fields ...string) lipgloss.Style {
+	if p.root == nil {
+		return lipgloss.NewStyle()
+	}
+
+	current := p.root
+	for _, field := range fields {
+		if child, ok := current.children[field]; ok {
+			current = child
+		} else {
+			return lipgloss.NewStyle() // Return default style if not found
+		}
+	}
+
+	return current.style
 }
 
 func (p *Palette) Update(styleMap map[string]config.Color) {
-	if p.styles == nil {
-		p.styles = make(map[string]lipgloss.Style)
-	}
-
 	for key, color := range styleMap {
-		p.styles[key] = createStyleFrom(color)
+		p.add(key, createStyleFrom(color))
 	}
 
 	if color, ok := styleMap["diff added"]; ok {
-		p.styles["added"] = createStyleFrom(color)
+		p.add("added", createStyleFrom(color))
 	}
 	if color, ok := styleMap["diff renamed"]; ok {
-		p.styles["renamed"] = createStyleFrom(color)
+		p.add("renamed", createStyleFrom(color))
 	}
 	if color, ok := styleMap["diff modified"]; ok {
-		p.styles["modified"] = createStyleFrom(color)
+		p.add("modified", createStyleFrom(color))
 	}
 	if color, ok := styleMap["diff removed"]; ok {
-		p.styles["deleted"] = createStyleFrom(color)
+		p.add("deleted", createStyleFrom(color))
 	}
 }
 
 func (p *Palette) Get(selector string) lipgloss.Style {
-	var finalStyle lipgloss.Style
-	if style, ok := p.styles[selector]; ok {
-		finalStyle = style
+	if style, ok := p.cache[selector]; ok {
+		return style
 	}
+	fields := strings.Fields(selector)
+	length := len(fields)
 
-	index := strings.Index(selector, " ")
-	for index != -1 {
-		// Extract the prefix before the space
-		prefix := selector[:index]
-		if style, ok := p.styles[prefix]; ok {
-			finalStyle = finalStyle.Inherit(style)
+	finalStyle := lipgloss.NewStyle()
+	// for a selector like "a b c", we want to inherit styles from the most specific to the least specific
+	// first pass: "a b c", "a b", "a"
+	// second pass: "b c", "b"
+	// third pass: "c"
+	start := 0
+	for start < length {
+		for end := length; end > start; end-- {
+			finalStyle = finalStyle.Inherit(p.get(fields[start:end]...))
 		}
-		selector = selector[index+1:]
-		if style, ok := p.styles[selector]; ok {
-			finalStyle = finalStyle.Inherit(style)
-		}
-		index = strings.Index(selector, " ")
+		start++
 	}
-
+	p.cache[selector] = finalStyle
 	return finalStyle
 }
 
