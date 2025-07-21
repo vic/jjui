@@ -24,7 +24,6 @@ type Model struct {
 	context *context.MainContext
 	spinner spinner.Model
 	input   textinput.Model
-	help    help.Model
 	keyMap  help.KeyMap
 	command string
 	running bool
@@ -185,7 +184,7 @@ func (m *Model) View() string {
 	} else if m.command != "" {
 		commandStatusMark = m.styles.success.Render("✓ ")
 	} else {
-		commandStatusMark = m.help.View(m.keyMap)
+		commandStatusMark = m.helpView(m.keyMap)
 	}
 	ret := m.styles.text.Render(strings.ReplaceAll(m.command, "\n", "⏎"))
 	if m.editing {
@@ -193,7 +192,7 @@ func (m *Model) View() string {
 		ret = m.input.View()
 	}
 	mode := m.styles.title.Width(10).Render("", m.mode)
-	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, " ", commandStatusMark, ret)
+	ret = lipgloss.JoinHorizontal(lipgloss.Left, mode, m.styles.text.Render(" "), commandStatusMark, ret)
 	if m.error != nil {
 		k := cancel.Help().Key
 		return lipgloss.JoinVertical(0,
@@ -215,6 +214,16 @@ func (m *Model) SetMode(mode string) {
 	}
 }
 
+func (m *Model) helpView(keyMap help.KeyMap) string {
+	shortHelp := keyMap.ShortHelp()
+	var entries []string
+	for _, binding := range shortHelp {
+		h := binding.Help()
+		entries = append(entries, m.styles.shortcut.Render(h.Key)+m.styles.dimmed.PaddingLeft(1).Render(h.Desc))
+	}
+	return lipgloss.PlaceHorizontal(m.width, 0, strings.Join(entries, m.styles.dimmed.Render(" • ")), lipgloss.WithWhitespaceBackground(m.styles.text.GetBackground()))
+}
+
 func New(context *context.MainContext) Model {
 	styles := styles{
 		shortcut: common.DefaultPalette.Get("status shortcut"),
@@ -227,15 +236,6 @@ func New(context *context.MainContext) Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
-	h := help.New()
-	h.Styles.ShortKey = styles.shortcut
-	h.Styles.ShortDesc = styles.dimmed
-	h.Styles.ShortSeparator = styles.dimmed
-	h.Styles.FullSeparator = styles.dimmed
-	h.Styles.FullKey = styles.shortcut
-	h.Styles.FullDesc = styles.dimmed
-	h.Styles.Ellipsis = styles.dimmed
-
 	t := textinput.New()
 	t.Width = 50
 	t.TextStyle = styles.text
@@ -245,7 +245,6 @@ func New(context *context.MainContext) Model {
 	return Model{
 		context: context,
 		spinner: s,
-		help:    h,
 		command: "",
 		running: false,
 		output:  "",
