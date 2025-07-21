@@ -1,4 +1,4 @@
-package common
+package menu
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/config"
+	"github.com/idursun/jjui/internal/ui/common"
 )
 
 type Menu struct {
@@ -50,13 +51,13 @@ func createStyles(prefix string) styles {
 		prefix += " "
 	}
 	return styles{
-		title:    DefaultPalette.Get(prefix+"menu title").Padding(0, 1, 0, 1),
-		selected: DefaultPalette.Get(prefix + "menu selected"),
-		matched:  DefaultPalette.Get(prefix + "menu matched"),
-		dimmed:   DefaultPalette.Get(prefix + "menu dimmed"),
-		shortcut: DefaultPalette.Get(prefix + "menu shortcut"),
-		text:     DefaultPalette.Get(prefix + "menu text"),
-		border:   DefaultPalette.GetBorder(prefix+"menu border", lipgloss.NormalBorder()),
+		title:    common.DefaultPalette.Get(prefix+"menu title").Padding(0, 1, 0, 1),
+		selected: common.DefaultPalette.Get(prefix + "menu selected"),
+		matched:  common.DefaultPalette.Get(prefix + "menu matched"),
+		dimmed:   common.DefaultPalette.Get(prefix + "menu dimmed"),
+		shortcut: common.DefaultPalette.Get(prefix + "menu shortcut"),
+		text:     common.DefaultPalette.Get(prefix + "menu text"),
+		border:   common.DefaultPalette.GetBorder(prefix+"menu border", lipgloss.NormalBorder()),
 	}
 }
 

@@ -2,6 +2,7 @@ package bookmarks
 
 import (
 	"fmt"
+	"github.com/idursun/jjui/internal/ui/common/menu"
 	"math"
 	"slices"
 	"strings"
@@ -22,7 +23,7 @@ type updateItemsMsg struct {
 type Model struct {
 	context     *context.MainContext
 	current     *jj.Commit
-	menu        common.Menu
+	menu        menu.Menu
 	keymap      config.KeyMappings[key.Binding]
 	distanceMap map[string]int
 }
@@ -255,7 +256,7 @@ func NewModel(c *context.MainContext, current *jj.Commit, commitIds []string, wi
 	var items []list.Item
 	keymap := config.Current.GetKeyMap()
 
-	menu := common.NewMenu(items, width, height, keymap, common.WithStylePrefix("bookmarks"))
+	menu := menu.NewMenu(items, width, height, keymap, menu.WithStylePrefix("bookmarks"))
 	menu.Title = "Bookmark Operations"
 	menu.FilterMatches = func(i list.Item, filter string) bool {
 		return strings.HasPrefix(i.FilterValue(), filter)

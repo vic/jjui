@@ -5,6 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/common/autocompletion"
 	appContext "github.com/idursun/jjui/internal/ui/context"
 	"strings"
 )
@@ -16,7 +17,7 @@ type EditRevSetMsg struct {
 type Model struct {
 	Editing         bool
 	Value           string
-	autoComplete    *common.AutoCompletionInput
+	autoComplete    *autocompletion.AutoCompletionInput
 	keymap          keymap
 	History         []string
 	historyIndex    int
@@ -77,7 +78,7 @@ func New(context *appContext.MainContext) *Model {
 
 	revsetAliases := context.JJConfig.RevsetAliases
 	completionProvider := NewCompletionProvider(revsetAliases)
-	autoComplete := common.NewAutoCompletionInput(completionProvider)
+	autoComplete := autocompletion.New(completionProvider)
 	autoComplete.Styles.Dimmed = common.DefaultPalette.Get("revset completion dimmed")
 	autoComplete.Styles.Text = common.DefaultPalette.Get("revset completion text")
 	autoComplete.Styles.Selected = common.DefaultPalette.Get("revset completion selected")

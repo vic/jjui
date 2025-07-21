@@ -1,17 +1,12 @@
-package common
+package autocompletion
 
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/idursun/jjui/internal/ui/common"
 	"strings"
 )
-
-type CompletionProvider interface {
-	GetCompletions(input string) []string
-	GetSignatureHelp(input string) string
-	GetLastToken(input string) (int, string) // Returns the start index and text of the last token
-}
 
 type AutoCompletionInput struct {
 	TextInput          textinput.Model
@@ -41,16 +36,16 @@ type Completion struct {
 	RestPart    string
 }
 
-func NewAutoCompletionInput(provider CompletionProvider) *AutoCompletionInput {
+func New(provider CompletionProvider) *AutoCompletionInput {
 	ti := textinput.New()
 	ti.Focus()
 	ti.Prompt = ""
 	ti.ShowSuggestions = true
 	styles := AutoCompleteStyles{
-		Selected: DefaultPalette.Get("selected"),
-		Matched:  DefaultPalette.Get("matched"),
-		Text:     DefaultPalette.Get("text"),
-		Dimmed:   DefaultPalette.Get("dimmed"),
+		Selected: common.DefaultPalette.Get("selected"),
+		Matched:  common.DefaultPalette.Get("matched"),
+		Text:     common.DefaultPalette.Get("text"),
+		Dimmed:   common.DefaultPalette.Get("dimmed"),
 	}
 
 	return &AutoCompletionInput{

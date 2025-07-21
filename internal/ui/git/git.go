@@ -8,6 +8,7 @@ import (
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/common/menu"
 	"github.com/idursun/jjui/internal/ui/context"
 )
 
@@ -45,7 +46,7 @@ func (i item) Description() string {
 type Model struct {
 	context *context.MainContext
 	keymap  config.KeyMappings[key.Binding]
-	menu    common.Menu
+	menu    menu.Menu
 }
 
 func (m *Model) Width() int {
@@ -170,7 +171,7 @@ func NewModel(c *context.MainContext, commit *jj.Commit, width int, height int) 
 	)
 
 	keymap := config.Current.GetKeyMap()
-	menu := common.NewMenu(items, width, height, keymap, common.WithStylePrefix("git"))
+	menu := menu.NewMenu(items, width, height, keymap, menu.WithStylePrefix("git"))
 	menu.Title = "Git Operations"
 	menu.FilterMatches = func(i list.Item, filter string) bool {
 		if gitItem, ok := i.(item); ok {

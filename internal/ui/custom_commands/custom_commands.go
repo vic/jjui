@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/config"
 	"github.com/idursun/jjui/internal/ui/common"
+	"github.com/idursun/jjui/internal/ui/common/menu"
 	"github.com/idursun/jjui/internal/ui/context"
 	"strings"
 )
@@ -38,7 +39,7 @@ func (i item) Description() string {
 type Model struct {
 	context *context.MainContext
 	keymap  config.KeyMappings[key.Binding]
-	menu    common.Menu
+	menu    menu.Menu
 	help    help.Model
 }
 
@@ -106,7 +107,7 @@ func NewModel(ctx *context.MainContext, width int, height int) *Model {
 		}
 	}
 	keyMap := config.Current.GetKeyMap()
-	menu := common.NewMenu(items, width, height, keyMap, common.WithStylePrefix("custom_commands"))
+	menu := menu.NewMenu(items, width, height, keyMap, menu.WithStylePrefix("custom_commands"))
 	menu.Title = "Custom Commands"
 	menu.ShowShortcuts(true)
 	menu.FilterMatches = func(i list.Item, filter string) bool {
