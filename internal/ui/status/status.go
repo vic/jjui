@@ -239,6 +239,8 @@ func New(context *context.MainContext) Model {
 	t := textinput.New()
 	t.Width = 50
 	t.TextStyle = styles.text
+	t.CompletionStyle = styles.dimmed
+	t.PlaceholderStyle = styles.dimmed
 
 	return Model{
 		context: context,
