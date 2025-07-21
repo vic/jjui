@@ -14,7 +14,6 @@ var Current = &Config{
 	Keys: DefaultKeyMappings,
 	UI:   UIConfig{},
 	Preview: PreviewConfig{
-		ExtraArgs:                []string{},
 		OplogCommand:             []string{"op", "show", jj.OperationIdPlaceholder, "--color", "always"},
 		FileCommand:              []string{"diff", "--color", "always", "-r", jj.ChangeIdPlaceholder, jj.FilePlaceholder},
 		RevisionCommand:          []string{"show", "--color", "always", "-r", jj.ChangeIdPlaceholder},
