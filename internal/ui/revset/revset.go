@@ -78,12 +78,7 @@ func New(context *appContext.MainContext) *Model {
 
 	revsetAliases := context.JJConfig.RevsetAliases
 	completionProvider := NewCompletionProvider(revsetAliases)
-	autoComplete := autocompletion.New(completionProvider)
-	autoComplete.Styles.Dimmed = common.DefaultPalette.Get("revset completion dimmed")
-	autoComplete.Styles.Text = common.DefaultPalette.Get("revset completion text")
-	autoComplete.Styles.Selected = common.DefaultPalette.Get("revset completion selected")
-	autoComplete.Styles.Matched = common.DefaultPalette.Get("revset completion matched")
-	autoComplete.TextInput.TextStyle = styles.textStyle
+	autoComplete := autocompletion.New(completionProvider, autocompletion.WithStylePrefix("revset"))
 
 	autoComplete.SetValue(context.DefaultRevset)
 	autoComplete.Focus()

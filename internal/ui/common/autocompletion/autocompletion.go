@@ -20,7 +20,7 @@ type AutoCompletionInput struct {
 	lastCompletedValue     string
 	currentSuggestionIndex int
 	firstTabPressed        bool
-	Styles                 AutoCompleteStyles
+	Styles                 *AutoCompleteStyles
 }
 
 type AutoCompleteStyles struct {
@@ -36,23 +36,45 @@ type Completion struct {
 	RestPart    string
 }
 
-func New(provider CompletionProvider) *AutoCompletionInput {
+type Option func(m *AutoCompletionInput)
+
+func WithStylePrefix(prefix string) Option {
+	return func(m *AutoCompletionInput) {
+		if prefix != "" {
+			prefix += " "
+		}
+		styles := AutoCompleteStyles{
+			Selected: common.DefaultPalette.Get(prefix + "selected"),
+			Matched:  common.DefaultPalette.Get(prefix + "matched"),
+			Text:     common.DefaultPalette.Get(prefix + "text"),
+			Dimmed:   common.DefaultPalette.Get(prefix + "dimmed"),
+		}
+		m.Styles = &styles
+	}
+}
+
+func New(provider CompletionProvider, options ...Option) *AutoCompletionInput {
 	ti := textinput.New()
 	ti.Focus()
 	ti.Prompt = ""
 	ti.ShowSuggestions = true
-	styles := AutoCompleteStyles{
-		Selected: common.DefaultPalette.Get("selected"),
-		Matched:  common.DefaultPalette.Get("matched"),
-		Text:     common.DefaultPalette.Get("text"),
-		Dimmed:   common.DefaultPalette.Get("dimmed"),
-	}
 
-	return &AutoCompletionInput{
+	m := &AutoCompletionInput{
 		TextInput:          ti,
 		CompletionProvider: provider,
-		Styles:             styles,
 	}
+
+	for _, option := range options {
+		option(m)
+	}
+
+	if m.Styles == nil {
+		// applies default style
+		WithStylePrefix("")(m)
+	}
+	m.TextInput.TextStyle = m.Styles.Text
+	m.TextInput.PlaceholderStyle = m.Styles.Dimmed
+	return m
 }
 
 func (ac *AutoCompletionInput) Init() tea.Cmd {
