@@ -14,6 +14,14 @@ func TestParser_Parse(t *testing.T) {
 	assert.Len(t, rows, 11)
 }
 
+func TestParser_Parse_WorkingCopyCommit(t *testing.T) {
+	file, _ := os.Open("testdata/working-copy-commit.log")
+	rows := parser.ParseRows(file)
+	assert.Len(t, rows, 9)
+	row := rows[5]
+	assert.True(t, row.Commit.IsWorkingCopy)
+}
+
 func TestParser_Parse_NoCommitId(t *testing.T) {
 	file, _ := os.Open("testdata/no-commit-id.log")
 	rows := parser.ParseRows(file)

@@ -3,6 +3,7 @@ package parser
 import (
 	"github.com/idursun/jjui/internal/jj"
 	"github.com/idursun/jjui/internal/screen"
+	"github.com/rivo/uniseg"
 	"strings"
 	"unicode"
 )
@@ -94,13 +95,16 @@ func (gr *GraphRowLine) Extend(indent int) GraphRowLine {
 
 func (gr *GraphRowLine) ContainsRune(r rune, indent int) bool {
 	for _, segment := range gr.Segments {
-		text := segment.Text
-		if len(segment.Text) > indent {
-			text = segment.Text[:indent]
-		}
-		indent -= len(text)
-		if strings.ContainsRune(text, r) {
-			return true
+		graphemes := uniseg.NewGraphemes(segment.Text)
+		for graphemes.Next() {
+			indent -= graphemes.Width()
+			if indent < 0 {
+				return false
+			}
+			text := graphemes.Str()
+			if strings.ContainsRune(text, r) {
+				return true
+			}
 		}
 	}
 	return false
