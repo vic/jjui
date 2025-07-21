@@ -46,11 +46,11 @@ func (l MenuItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 	}
 
 	if len(title) > titleWidth {
-		title = title[:titleWidth-3] + "..."
+		title = title[:titleWidth-1] + "…"
 	}
 
 	if len(desc) > m.Width() {
-		desc = desc[:m.Width()-3] + "..."
+		desc = desc[:m.Width()-1] + "…"
 	}
 
 	var (
