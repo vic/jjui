@@ -218,6 +218,9 @@ func (m *Model) helpView(keyMap help.KeyMap) string {
 	shortHelp := keyMap.ShortHelp()
 	var entries []string
 	for _, binding := range shortHelp {
+		if !binding.Enabled() {
+			continue
+		}
 		h := binding.Help()
 		entries = append(entries, m.styles.shortcut.Render(h.Key)+m.styles.dimmed.PaddingLeft(1).Render(h.Desc))
 	}
