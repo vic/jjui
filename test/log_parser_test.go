@@ -84,8 +84,8 @@ func TestParser_Parse_Extend(t *testing.T) {
 	assert.Len(t, rows, 1)
 	row := rows[0]
 
-	extended := row.Lines[1].Extend(row.Indent)
-	assert.Len(t, extended.Segments, 1)
+	extended := row.Extend()
+	assert.Len(t, extended.Segments, 3)
 }
 
 func TestParser_Parse_WorkingCopy(t *testing.T) {

@@ -89,31 +89,36 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 	row := s.Rows[s.current]
 	// will render by extending the previous connections
 	if before := s.RenderBefore(row.Commit); before != "" {
-		extended := parser.GraphRowLine{}
+		extended := parser.GraphGutter{}
 		if row.Previous != nil {
-			extended = row.Previous.Last(parser.Highlightable).Extend(row.Indent)
+			extended = row.Previous.Extend()
 		}
-		s.writeSection(r, extended, row.Indent, false, before)
+		s.writeSection(r, extended, extended, false, before)
 	}
-	var lastLine *parser.GraphRowLine
 	for segmentedLine := range row.RowLinesIter(parser.Including(parser.Highlightable)) {
-		lastLine = segmentedLine
 		lw := strings.Builder{}
 		if segmentedLine.Flags&parser.Revision != parser.Revision && s.isHighlighted {
 			if decoration := s.Op.Render(row.Commit, operations.RenderOverDescription); decoration != "" {
-				extended := segmentedLine.Chop(row.Indent)
-				s.writeSection(r, extended, row.Indent, true, decoration)
+				s.writeSection(r, segmentedLine.Gutter, row.Extend(), true, decoration)
 				continue
 			}
 		}
-		// if it is a revision line
-		for i, segment := range segmentedLine.Segments {
-			if i == segmentedLine.ChangeIdIdx {
-				if decoration := s.RenderBeforeChangeId(row.Commit); decoration != "" {
-					fmt.Fprint(&lw, decoration)
-				}
-			}
 
+		for _, segment := range segmentedLine.Gutter.Segments {
+			if s.isHighlighted {
+				fmt.Fprint(&lw, segment.Style.Inherit(s.selectedStyle).Render(segment.Text))
+			} else {
+				fmt.Fprint(&lw, segment.Style.Inherit(s.textStyle).Render(segment.Text))
+			}
+		}
+
+		if segmentedLine.Flags&parser.Revision == parser.Revision {
+			if decoration := s.RenderBeforeChangeId(row.Commit); decoration != "" {
+				fmt.Fprint(&lw, decoration)
+			}
+		}
+
+		for i, segment := range segmentedLine.Segments {
 			if s.isHighlighted && i == segmentedLine.CommitIdIdx {
 				if decoration := s.RenderBeforeCommitId(row.Commit); decoration != "" {
 					fmt.Fprint(&lw, decoration)
@@ -155,13 +160,16 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 		return
 	}
 
-	afterSection := s.RenderAfter(row.Commit)
-	if afterSection != "" && lastLine != nil {
-		s.writeSection(r, lastLine.Extend(row.Indent), row.Indent, false, afterSection)
+	if afterSection := s.RenderAfter(row.Commit); afterSection != "" {
+		extended := row.Extend()
+		s.writeSection(r, extended, extended, false, afterSection)
 	}
 
 	for segmentedLine := range row.RowLinesIter(parser.Excluding(parser.Highlightable)) {
 		var lw strings.Builder
+		for _, segment := range segmentedLine.Gutter.Segments {
+			fmt.Fprint(&lw, segment.Style.Inherit(s.textStyle).Render(segment.Text))
+		}
 		for _, segment := range segmentedLine.Segments {
 			fmt.Fprint(&lw, segment.Style.Inherit(s.textStyle).Render(segment.Text))
 		}
@@ -171,11 +179,13 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 	}
 }
 
-func (s *DefaultRowIterator) writeSection(r io.Writer, extended parser.GraphRowLine, indent int, highlight bool, section string) {
+// current gutter to be used in the first line (needed for overlaying the description)
+// extended used to repeat the gutter for each line
+func (s *DefaultRowIterator) writeSection(r io.Writer, current parser.GraphGutter, extended parser.GraphGutter, highlight bool, section string) {
 	lines := strings.Split(section, "\n")
 	for _, sectionLine := range lines {
 		lw := strings.Builder{}
-		for _, segment := range extended.Segments {
+		for _, segment := range current.Segments {
 			if s.isHighlighted && highlight {
 				fmt.Fprint(&lw, segment.Style.Inherit(s.selectedStyle).Render(segment.Text))
 			} else {
@@ -191,7 +201,7 @@ func (s *DefaultRowIterator) writeSection(r io.Writer, extended parser.GraphRowL
 			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.textStyle.GetBackground())))
 		}
 		fmt.Fprintln(r)
-		extended = extended.Extend(indent)
+		current = extended
 	}
 }
 

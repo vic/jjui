@@ -1,11 +1,11 @@
 package parser
 
 import (
-	"github.com/idursun/jjui/internal/jj"
-	"github.com/idursun/jjui/internal/screen"
-	"github.com/rivo/uniseg"
 	"strings"
 	"unicode"
+
+	"github.com/idursun/jjui/internal/jj"
+	"github.com/idursun/jjui/internal/screen"
 )
 
 type Row struct {
@@ -24,8 +24,13 @@ const (
 	Elided
 )
 
+type GraphGutter struct {
+	Segments []*screen.Segment
+}
+
 type GraphRowLine struct {
 	Segments    []*screen.Segment
+	Gutter      GraphGutter
 	Flags       RowLineFlags
 	ChangeIdIdx int
 	CommitIdIdx int
@@ -34,20 +39,20 @@ type GraphRowLine struct {
 func NewGraphRowLine(segments []*screen.Segment) GraphRowLine {
 	return GraphRowLine{
 		Segments:    segments,
+		Gutter:      GraphGutter{Segments: make([]*screen.Segment, 0)},
 		ChangeIdIdx: -1,
 		CommitIdIdx: -1,
 	}
 }
 
-type runeTransformer func(r rune) rune
-
-func (gr *GraphRowLine) transform(indent int, transformer runeTransformer) GraphRowLine {
-	ret := NewGraphRowLine(make([]*screen.Segment, 0))
+func (gr *GraphRowLine) chop(indent int) {
 	if len(gr.Segments) == 0 {
-		return ret
+		return
 	}
+	segments := gr.Segments
+	gr.Segments = make([]*screen.Segment, 0)
 
-	for _, s := range gr.Segments {
+	for i, s := range segments {
 		extended := screen.Segment{
 			Style: s.Style,
 		}
@@ -56,55 +61,47 @@ func (gr *GraphRowLine) transform(indent int, transformer runeTransformer) Graph
 			if indent <= 0 {
 				break
 			}
-			textBuilder.WriteRune(transformer(p))
+			textBuilder.WriteRune(p)
 			indent--
 		}
 		extended.Text = textBuilder.String()
-		ret.Segments = append(ret.Segments, &extended)
-		if indent <= 0 {
+		gr.Gutter.Segments = append(gr.Gutter.Segments, &extended)
+		if len(extended.Text) < len(s.Text) {
+			gr.Segments = append(gr.Segments, &screen.Segment{
+				Text:  s.Text[len(extended.Text):],
+				Style: s.Style,
+			})
+		}
+		if indent <= 0 && len(segments)-i-1 > 0 {
+			gr.Segments = segments[i+1:]
 			break
 		}
 	}
 
 	// Pad with spaces if indent is not fully consumed
-	if indent > 0 && len(ret.Segments) > 0 {
-		lastSegment := ret.Segments[len(ret.Segments)-1]
+	if indent > 0 && len(gr.Segments) > 0 {
+		lastSegment := gr.Segments[len(gr.Segments)-1]
 		lastSegment.Text += strings.Repeat(" ", indent)
 	}
 
-	return ret
-}
-
-func (gr *GraphRowLine) Chop(indent int) GraphRowLine {
-	return gr.transform(indent, func(r rune) rune { return r })
-}
-
-func (gr *GraphRowLine) Extend(indent int) GraphRowLine {
-	transformer := func(p rune) rune {
-		switch p {
-		case '│', '╭', '├', '┐', '┤', '┌', '╮', '┬', '┼': // curved, square style
-			return '│'
-		case '|': // ascii style
-			return '|'
-		default:
-			return ' '
+	// break gutter into segments per rune
+	segments = gr.Gutter.Segments
+	gr.Gutter.Segments = make([]*screen.Segment, 0)
+	for _, s := range segments {
+		for _, p := range s.Text {
+			extended := screen.Segment{
+				Text:  string(p),
+				Style: s.Style,
+			}
+			gr.Gutter.Segments = append(gr.Gutter.Segments, &extended)
 		}
 	}
-	return gr.transform(indent, transformer)
 }
 
-func (gr *GraphRowLine) ContainsRune(r rune, indent int) bool {
-	for _, segment := range gr.Segments {
-		graphemes := uniseg.NewGraphemes(segment.Text)
-		for graphemes.Next() {
-			indent -= graphemes.Width()
-			if indent < 0 {
-				return false
-			}
-			text := graphemes.Str()
-			if strings.ContainsRune(text, r) {
-				return true
-			}
+func (gr *GraphRowLine) containsRune(r rune) bool {
+	for _, segment := range gr.Gutter.Segments {
+		if strings.ContainsRune(segment.Text, r) {
+			return true
 		}
 	}
 	return false
@@ -154,22 +151,85 @@ func NewGraphRow() Row {
 	}
 }
 
+func (row *Row) Extend() GraphGutter {
+	type extendResult int
+	const (
+		No extendResult = iota
+		Yes
+		Carry
+	)
+	canExtend := func(text string) extendResult {
+		for _, p := range text {
+			switch p {
+			case '│', '|', '╭', '├', '┐', '┤', '┌', '╮', '┬', '┼', '+', '\\', '.':
+				return Yes
+			case '╯', '╰', '└', '┴', '┘', ' ', '/':
+				return No
+			case '─', '-':
+				return Carry
+			}
+		}
+		return No
+	}
+
+	extendMask := make([]bool, len(row.Lines[0].Gutter.Segments))
+	var lastGutter *GraphGutter
+	for _, gl := range row.Lines {
+		if gl.Flags&Highlightable != Highlightable {
+			continue
+		}
+		for i, s := range gl.Gutter.Segments {
+			answer := canExtend(s.Text)
+			switch answer {
+			case Yes:
+				extendMask[i] = true
+			case No:
+				extendMask[i] = false
+			case Carry:
+				extendMask[i] = extendMask[i]
+			}
+		}
+		lastGutter = &gl.Gutter
+	}
+
+	if lastGutter == nil {
+		return GraphGutter{Segments: make([]*screen.Segment, 0)}
+	}
+
+	if len(extendMask) > len(lastGutter.Segments) {
+		extendMask = extendMask[:len(lastGutter.Segments)]
+	}
+	ret := GraphGutter{
+		Segments: make([]*screen.Segment, len(extendMask)),
+	}
+	for i, b := range extendMask {
+		ret.Segments[i] = &screen.Segment{
+			Style: lastGutter.Segments[i].Style,
+			Text:  " ",
+		}
+		if b {
+			ret.Segments[i].Text = "│"
+		}
+	}
+	return ret
+}
+
 func (row *Row) AddLine(line *GraphRowLine) {
 	if row.Commit == nil {
 		return
 	}
+	line.chop(row.Indent)
 	switch len(row.Lines) {
 	case 0:
 		line.Flags = Revision | Highlightable
-		row.Commit.IsWorkingCopy = line.ContainsRune('@', row.Indent)
-		for i := line.ChangeIdIdx; i < line.CommitIdIdx; i++ {
-			segment := line.Segments[i]
+		row.Commit.IsWorkingCopy = line.containsRune('@')
+		for _, segment := range line.Segments {
 			if strings.TrimSpace(segment.Text) == "hidden" {
 				row.Commit.Hidden = true
 			}
 		}
 	default:
-		if line.ContainsRune('~', row.Indent) {
+		if line.containsRune('~') {
 			line.Flags = Elided
 		} else {
 			if row.Commit.CommitId == "" {
