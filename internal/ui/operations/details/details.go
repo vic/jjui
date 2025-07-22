@@ -155,6 +155,7 @@ func New(context *context.MainContext, revision string) tea.Model {
 	l.SetShowHelp(false)
 	l.KeyMap.CursorUp = keyMap.Up
 	l.KeyMap.CursorDown = keyMap.Down
+	l.Styles.NoItems = s.Dimmed
 	return Model{
 		revision: revision,
 		files:    l,
