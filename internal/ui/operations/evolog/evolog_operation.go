@@ -86,9 +86,7 @@ func (o *Operation) Render(commit *jj.Commit, pos operations.RenderPosition) str
 	}
 	h := min(o.height-5, len(o.rows)*2)
 	o.w.SetSize(o.width, h)
-	renderer := graph.NewDefaultRowIterator(o.rows, o.width)
-	renderer.SelectedStyle = common.DefaultPalette.Get("evolog selected").Inline(true)
-	renderer.TextStyle = common.DefaultPalette.Get("evolog text").Inline(true)
+	renderer := graph.NewDefaultRowIterator(o.rows, graph.WithWidth(o.width), graph.WithStylePrefix("evolog"))
 	renderer.Cursor = o.cursor
 	content := o.w.Render(renderer)
 	content = lipgloss.PlaceHorizontal(o.width, lipgloss.Left, content)

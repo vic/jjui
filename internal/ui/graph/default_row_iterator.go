@@ -25,21 +25,42 @@ type DefaultRowIterator struct {
 	Cursor        int
 	dimmedStyle   lipgloss.Style
 	checkStyle    lipgloss.Style
-	TextStyle     lipgloss.Style
-	SelectedStyle lipgloss.Style
+	textStyle     lipgloss.Style
+	selectedStyle lipgloss.Style
 }
 
-func NewDefaultRowIterator(rows []parser.Row, width int) *DefaultRowIterator {
-	return &DefaultRowIterator{
-		Op:            &operations.Default{},
-		Width:         width,
-		Rows:          rows,
-		Selections:    make(map[string]bool),
-		current:       -1,
-		dimmedStyle:   common.DefaultPalette.Get("dimmed"),
-		checkStyle:    common.DefaultPalette.Get("success").Inline(true),
-		TextStyle:     common.DefaultPalette.Get("text").Inline(true),
-		SelectedStyle: common.DefaultPalette.Get("selected").Inline(true),
+type Option func(*DefaultRowIterator)
+
+func NewDefaultRowIterator(rows []parser.Row, options ...Option) *DefaultRowIterator {
+	iterator := &DefaultRowIterator{
+		Op:         &operations.Default{},
+		Rows:       rows,
+		Selections: make(map[string]bool),
+		current:    -1,
+	}
+
+	for _, opt := range options {
+		opt(iterator)
+	}
+
+	return iterator
+}
+
+func WithWidth(width int) Option {
+	return func(s *DefaultRowIterator) {
+		s.Width = width
+	}
+}
+
+func WithStylePrefix(prefix string) Option {
+	if prefix != "" {
+		prefix = " "
+	}
+	return func(s *DefaultRowIterator) {
+		s.textStyle = common.DefaultPalette.Get(prefix + "text").Inline(true)
+		s.selectedStyle = common.DefaultPalette.Get(prefix + "selected").Inline(true)
+		s.dimmedStyle = common.DefaultPalette.Get(prefix + "dimmed")
+		s.checkStyle = common.DefaultPalette.Get(prefix + "success").Inline(true)
 	}
 }
 
@@ -101,9 +122,9 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 
 			style := segment.Style
 			if s.isHighlighted {
-				style = style.Inherit(s.SelectedStyle)
+				style = style.Inherit(s.selectedStyle)
 			} else {
-				style = style.Inherit(s.TextStyle)
+				style = style.Inherit(s.textStyle)
 			}
 
 			start, end := segment.FindSubstringRange(s.SearchText)
@@ -117,15 +138,15 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 		if segmentedLine.Flags&parser.Revision == parser.Revision && row.IsAffected {
 			style := s.dimmedStyle
 			if s.isHighlighted {
-				style = s.dimmedStyle.Background(s.SelectedStyle.GetBackground())
+				style = s.dimmedStyle.Background(s.selectedStyle.GetBackground())
 			}
 			fmt.Fprint(&lw, style.Render(" (affected by last operation)"))
 		}
 		line := lw.String()
 		if s.isHighlighted && segmentedLine.Flags&parser.Highlightable == parser.Highlightable {
-			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.SelectedStyle.GetBackground())))
+			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.selectedStyle.GetBackground())))
 		} else {
-			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.TextStyle.GetBackground())))
+			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.textStyle.GetBackground())))
 		}
 		fmt.Fprint(r, "\n")
 	}
@@ -142,10 +163,10 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 	for segmentedLine := range row.RowLinesIter(parser.Excluding(parser.Highlightable)) {
 		var lw strings.Builder
 		for _, segment := range segmentedLine.Segments {
-			fmt.Fprint(&lw, segment.Style.Inherit(s.TextStyle).Render(segment.Text))
+			fmt.Fprint(&lw, segment.Style.Inherit(s.textStyle).Render(segment.Text))
 		}
 		line := lw.String()
-		fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.TextStyle.GetBackground())))
+		fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.textStyle.GetBackground())))
 		fmt.Fprint(r, "\n")
 	}
 }
@@ -156,18 +177,18 @@ func (s *DefaultRowIterator) writeSection(r io.Writer, extended parser.GraphRowL
 		lw := strings.Builder{}
 		for _, segment := range extended.Segments {
 			if s.isHighlighted && highlight {
-				fmt.Fprint(&lw, segment.Style.Inherit(s.SelectedStyle).Render(segment.Text))
+				fmt.Fprint(&lw, segment.Style.Inherit(s.selectedStyle).Render(segment.Text))
 			} else {
-				fmt.Fprint(&lw, segment.Style.Inherit(s.TextStyle).Render(segment.Text))
+				fmt.Fprint(&lw, segment.Style.Inherit(s.textStyle).Render(segment.Text))
 			}
 		}
 
 		fmt.Fprint(&lw, sectionLine)
 		line := lw.String()
 		if s.isHighlighted && highlight {
-			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.SelectedStyle.GetBackground())))
+			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.selectedStyle.GetBackground())))
 		} else {
-			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.TextStyle.GetBackground())))
+			fmt.Fprint(r, lipgloss.PlaceHorizontal(s.Width, 0, line, lipgloss.WithWhitespaceBackground(s.textStyle.GetBackground())))
 		}
 		fmt.Fprintln(r)
 		extended = extended.Extend(indent)
@@ -191,9 +212,9 @@ func (s *DefaultRowIterator) RenderBeforeChangeId(commit *jj.Commit) string {
 	selectedMarker := ""
 	if s.isSelected {
 		if s.isHighlighted {
-			selectedMarker = s.checkStyle.Background(s.SelectedStyle.GetBackground()).Render("✓")
+			selectedMarker = s.checkStyle.Background(s.selectedStyle.GetBackground()).Render("✓")
 		} else {
-			selectedMarker = s.checkStyle.Background(s.TextStyle.GetBackground()).Render("✓")
+			selectedMarker = s.checkStyle.Background(s.textStyle.GetBackground()).Render("✓")
 		}
 	}
 	if opMarker == "" && selectedMarker == "" {
@@ -201,9 +222,9 @@ func (s *DefaultRowIterator) RenderBeforeChangeId(commit *jj.Commit) string {
 	}
 	var sections []string
 
-	space := s.TextStyle.Render(" ")
+	space := s.textStyle.Render(" ")
 	if s.isHighlighted {
-		space = s.SelectedStyle.Render(" ")
+		space = s.selectedStyle.Render(" ")
 	}
 
 	if opMarker != "" {

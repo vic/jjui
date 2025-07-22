@@ -412,13 +412,11 @@ func (m *Model) View() string {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, "(no matching revisions)")
 	}
 
-	renderer := graph.NewDefaultRowIterator(m.rows, m.width)
+	renderer := graph.NewDefaultRowIterator(m.rows, graph.WithWidth(m.width), graph.WithStylePrefix("revisions"))
 	renderer.Op = m.op
 	renderer.Cursor = m.cursor
 	renderer.Selections = m.selectedRevisions
 	renderer.SearchText = m.quickSearch
-	renderer.TextStyle = common.DefaultPalette.Get("revisions text")
-	renderer.SelectedStyle = common.DefaultPalette.Get("revisions selected").Inline(true)
 	m.w.SetSize(m.width, m.height)
 	output := m.w.Render(renderer)
 	output = m.textStyle.MaxWidth(m.width).Render(output)
