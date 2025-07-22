@@ -66,16 +66,16 @@ func (h *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return h, nil
 }
 
-func (h *Model) printHelp(k key.Binding) string {
-	return h.printHelpExt(k.Help().Key, k.Help().Desc)
+func (h *Model) printKeyBinding(k key.Binding) string {
+	return h.printKey(k.Help().Key, k.Help().Desc)
 }
 
-func (h *Model) printHelpExt(key string, desc string) string {
+func (h *Model) printKey(key string, desc string) string {
 	keyAligned := fmt.Sprintf("%9s", key)
 	return lipgloss.JoinHorizontal(0, h.styles.shortcut.Render(keyAligned), h.styles.dimmed.Render(desc))
 }
 
-func (h *Model) printHeader(header string) string {
+func (h *Model) printTitle(header string) string {
 	return h.printMode(key.NewBinding(), header)
 }
 
@@ -87,110 +87,110 @@ func (h *Model) printMode(key key.Binding, name string) string {
 func (h *Model) View() string {
 	var left []string
 	left = append(left,
-		h.printHeader("UI"),
-		h.printHelp(h.keyMap.Refresh),
-		h.printHelp(h.keyMap.Help),
-		h.printHelp(h.keyMap.Cancel),
-		h.printHelp(h.keyMap.Quit),
-		h.printHelp(h.keyMap.Suspend),
-		h.printHelp(h.keyMap.Revset),
-		h.printHeader("Exec"),
-		h.printHelp(h.keyMap.ExecJJ),
-		h.printHelp(h.keyMap.ExecShell),
-		h.printHeader("Revisions"),
-		h.printHelpExt(fmt.Sprintf("%s/%s/%s",
+		h.printTitle("UI"),
+		h.printKeyBinding(h.keyMap.Refresh),
+		h.printKeyBinding(h.keyMap.Help),
+		h.printKeyBinding(h.keyMap.Cancel),
+		h.printKeyBinding(h.keyMap.Quit),
+		h.printKeyBinding(h.keyMap.Suspend),
+		h.printKeyBinding(h.keyMap.Revset),
+		h.printTitle("Exec"),
+		h.printKeyBinding(h.keyMap.ExecJJ),
+		h.printKeyBinding(h.keyMap.ExecShell),
+		h.printTitle("Revisions"),
+		h.printKey(fmt.Sprintf("%s/%s/%s",
 			h.keyMap.JumpToParent.Help().Key,
 			h.keyMap.JumpToChildren.Help().Key,
 			h.keyMap.JumpToWorkingCopy.Help().Key,
 		), "jump to parent/child/working-copy"),
-		h.printHelp(h.keyMap.ToggleSelect),
-		h.printHelp(h.keyMap.QuickSearch),
-		h.printHelp(h.keyMap.QuickSearchCycle),
-		h.printHelp(h.keyMap.New),
-		h.printHelp(h.keyMap.Commit),
-		h.printHelp(h.keyMap.Describe),
-		h.printHelp(h.keyMap.Edit),
-		h.printHelp(h.keyMap.Diff),
-		h.printHelp(h.keyMap.Diffedit),
-		h.printHelp(h.keyMap.Split),
-		h.printHelp(h.keyMap.Abandon),
-		h.printHelp(h.keyMap.Absorb),
-		h.printHelp(h.keyMap.Undo),
-		h.printHelp(h.keyMap.Details.Mode),
-		h.printHelp(h.keyMap.Evolog),
-		h.printHelp(h.keyMap.Bookmark.Set),
-		h.printHelp(h.keyMap.InlineDescribe.Mode),
+		h.printKeyBinding(h.keyMap.ToggleSelect),
+		h.printKeyBinding(h.keyMap.QuickSearch),
+		h.printKeyBinding(h.keyMap.QuickSearchCycle),
+		h.printKeyBinding(h.keyMap.New),
+		h.printKeyBinding(h.keyMap.Commit),
+		h.printKeyBinding(h.keyMap.Describe),
+		h.printKeyBinding(h.keyMap.Edit),
+		h.printKeyBinding(h.keyMap.Diff),
+		h.printKeyBinding(h.keyMap.Diffedit),
+		h.printKeyBinding(h.keyMap.Split),
+		h.printKeyBinding(h.keyMap.Abandon),
+		h.printKeyBinding(h.keyMap.Absorb),
+		h.printKeyBinding(h.keyMap.Undo),
+		h.printKeyBinding(h.keyMap.Details.Mode),
+		h.printKeyBinding(h.keyMap.Evolog),
+		h.printKeyBinding(h.keyMap.Bookmark.Set),
+		h.printKeyBinding(h.keyMap.InlineDescribe.Mode),
 	)
 
 	var middle []string
 	middle = append(middle,
 		h.printMode(h.keyMap.Preview.Mode, "Preview"),
-		h.printHelp(h.keyMap.Preview.ScrollUp),
-		h.printHelp(h.keyMap.Preview.ScrollDown),
-		h.printHelp(h.keyMap.Preview.HalfPageDown),
-		h.printHelp(h.keyMap.Preview.HalfPageUp),
-		h.printHelp(h.keyMap.Preview.Expand),
-		h.printHelp(h.keyMap.Preview.Shrink),
+		h.printKeyBinding(h.keyMap.Preview.ScrollUp),
+		h.printKeyBinding(h.keyMap.Preview.ScrollDown),
+		h.printKeyBinding(h.keyMap.Preview.HalfPageDown),
+		h.printKeyBinding(h.keyMap.Preview.HalfPageUp),
+		h.printKeyBinding(h.keyMap.Preview.Expand),
+		h.printKeyBinding(h.keyMap.Preview.Shrink),
 		"",
 		h.printMode(h.keyMap.Details.Mode, "Details"),
-		h.printHelp(h.keyMap.Details.Close),
-		h.printHelp(h.keyMap.Details.ToggleSelect),
-		h.printHelp(h.keyMap.Details.Restore),
-		h.printHelp(h.keyMap.Details.Split),
-		h.printHelp(h.keyMap.Details.Diff),
-		h.printHelp(h.keyMap.Details.RevisionsChangingFile),
+		h.printKeyBinding(h.keyMap.Details.Close),
+		h.printKeyBinding(h.keyMap.Details.ToggleSelect),
+		h.printKeyBinding(h.keyMap.Details.Restore),
+		h.printKeyBinding(h.keyMap.Details.Split),
+		h.printKeyBinding(h.keyMap.Details.Diff),
+		h.printKeyBinding(h.keyMap.Details.RevisionsChangingFile),
 		"",
 		h.printMode(h.keyMap.Git.Mode, "Git"),
-		h.printHelp(h.keyMap.Git.Push),
-		h.printHelp(h.keyMap.Git.Fetch),
+		h.printKeyBinding(h.keyMap.Git.Push),
+		h.printKeyBinding(h.keyMap.Git.Fetch),
 		"",
 		h.printMode(h.keyMap.Bookmark.Mode, "Bookmarks"),
-		h.printHelp(h.keyMap.Bookmark.Move),
-		h.printHelp(h.keyMap.Bookmark.Delete),
-		h.printHelp(h.keyMap.Bookmark.Untrack),
-		h.printHelp(h.keyMap.Bookmark.Track),
-		h.printHelp(h.keyMap.Bookmark.Forget),
+		h.printKeyBinding(h.keyMap.Bookmark.Move),
+		h.printKeyBinding(h.keyMap.Bookmark.Delete),
+		h.printKeyBinding(h.keyMap.Bookmark.Untrack),
+		h.printKeyBinding(h.keyMap.Bookmark.Track),
+		h.printKeyBinding(h.keyMap.Bookmark.Forget),
 	)
 
 	var right []string
 	right = append(right,
 		h.printMode(h.keyMap.Squash.Mode, "Squash"),
-		h.printHelp(h.keyMap.Squash.KeepEmptied),
-		h.printHelp(h.keyMap.Squash.Interactive),
+		h.printKeyBinding(h.keyMap.Squash.KeepEmptied),
+		h.printKeyBinding(h.keyMap.Squash.Interactive),
 		"",
 		h.printMode(h.keyMap.Rebase.Mode, "Rebase"),
-		h.printHelp(h.keyMap.Rebase.Revision),
-		h.printHelp(h.keyMap.Rebase.Source),
-		h.printHelp(h.keyMap.Rebase.Branch),
-		h.printHelp(h.keyMap.Rebase.Before),
-		h.printHelp(h.keyMap.Rebase.After),
-		h.printHelp(h.keyMap.Rebase.Onto),
-		h.printHelp(h.keyMap.Rebase.Insert),
+		h.printKeyBinding(h.keyMap.Rebase.Revision),
+		h.printKeyBinding(h.keyMap.Rebase.Source),
+		h.printKeyBinding(h.keyMap.Rebase.Branch),
+		h.printKeyBinding(h.keyMap.Rebase.Before),
+		h.printKeyBinding(h.keyMap.Rebase.After),
+		h.printKeyBinding(h.keyMap.Rebase.Onto),
+		h.printKeyBinding(h.keyMap.Rebase.Insert),
 		"",
 		h.printMode(h.keyMap.Duplicate.Mode, "Duplicate"),
-		h.printHelp(h.keyMap.Duplicate.Onto),
-		h.printHelp(h.keyMap.Duplicate.Before),
-		h.printHelp(h.keyMap.Duplicate.After),
+		h.printKeyBinding(h.keyMap.Duplicate.Onto),
+		h.printKeyBinding(h.keyMap.Duplicate.Before),
+		h.printKeyBinding(h.keyMap.Duplicate.After),
 		"",
 		h.printMode(h.keyMap.OpLog.Mode, "Oplog"),
-		h.printHelp(h.keyMap.Diff),
-		h.printHelp(h.keyMap.OpLog.Restore),
+		h.printKeyBinding(h.keyMap.Diff),
+		h.printKeyBinding(h.keyMap.OpLog.Restore),
 		h.printMode(h.keyMap.Leader, "Leader"),
 		h.printMode(h.keyMap.CustomCommands, "Custom Commands"),
 	)
 
 	var customCommands []string
 	for _, command := range h.context.CustomCommands {
-		customCommands = append(customCommands, h.printHelp(command.Binding()))
+		customCommands = append(customCommands, h.printKeyBinding(command.Binding()))
 	}
 
 	right = append(right, customCommands...)
 
 	maxHeight := max(len(left), len(right), len(middle))
 	content := lipgloss.JoinHorizontal(lipgloss.Left,
-		h.renderColumn(40, maxHeight, left...),
-		h.renderColumn(40, maxHeight, middle...),
-		h.renderColumn(40, maxHeight, right...),
+		h.renderColumn(1+lipgloss.Width(strings.Join(left, "\n")), maxHeight, left...),
+		h.renderColumn(1+lipgloss.Width(strings.Join(middle, "\n")), maxHeight, middle...),
+		h.renderColumn(1+lipgloss.Width(strings.Join(right, "\n")), maxHeight, right...),
 	)
 	return h.styles.border.Render(content)
 }
