@@ -52,7 +52,6 @@ func ParseRowsStreaming(reader io.Reader, controlChannel <-chan ControlMsg, batc
 				for j := 0; j < changeIdIdx; j++ {
 					row.Indent += utf8.RuneCountInString(rowLine.Segments[j].Text)
 				}
-				rowLine.ChangeIdIdx = changeIdIdx
 				row.Commit.ChangeId = rowLine.Segments[changeIdIdx].Text
 				for nextIdx := changeIdIdx + 1; nextIdx < len(rowLine.Segments); nextIdx++ {
 					nextSegment := rowLine.Segments[nextIdx]
@@ -62,7 +61,6 @@ func ParseRowsStreaming(reader io.Reader, controlChannel <-chan ControlMsg, batc
 					row.Commit.ChangeId += nextSegment.Text
 				}
 				if commitIdIdx := rowLine.FindPossibleCommitIdIdx(changeIdIdx); commitIdIdx != -1 {
-					rowLine.CommitIdIdx = commitIdIdx
 					row.Commit.CommitId = rowLine.Segments[commitIdIdx].Text
 				}
 			}

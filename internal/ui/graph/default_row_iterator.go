@@ -118,8 +118,8 @@ func (s *DefaultRowIterator) Render(r io.Writer) {
 			}
 		}
 
-		for i, segment := range segmentedLine.Segments {
-			if s.isHighlighted && i == segmentedLine.CommitIdIdx {
+		for _, segment := range segmentedLine.Segments {
+			if s.isHighlighted && segment.Text == row.Commit.CommitId {
 				if decoration := s.RenderBeforeCommitId(row.Commit); decoration != "" {
 					fmt.Fprint(&lw, decoration)
 				}

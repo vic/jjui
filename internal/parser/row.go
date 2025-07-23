@@ -29,19 +29,15 @@ type GraphGutter struct {
 }
 
 type GraphRowLine struct {
-	Segments    []*screen.Segment
-	Gutter      GraphGutter
-	Flags       RowLineFlags
-	ChangeIdIdx int
-	CommitIdIdx int
+	Segments []*screen.Segment
+	Gutter   GraphGutter
+	Flags    RowLineFlags
 }
 
 func NewGraphRowLine(segments []*screen.Segment) GraphRowLine {
 	return GraphRowLine{
-		Segments:    segments,
-		Gutter:      GraphGutter{Segments: make([]*screen.Segment, 0)},
-		ChangeIdIdx: -1,
-		CommitIdIdx: -1,
+		Segments: segments,
+		Gutter:   GraphGutter{Segments: make([]*screen.Segment, 0)},
 	}
 }
 
@@ -235,7 +231,6 @@ func (row *Row) AddLine(line *GraphRowLine) {
 			if row.Commit.CommitId == "" {
 				commitIdIdx := line.FindPossibleCommitIdIdx(0)
 				if commitIdIdx != -1 {
-					line.CommitIdIdx = commitIdIdx
 					row.Commit.CommitId = line.Segments[commitIdIdx].Text
 					line.Flags = Revision | Highlightable
 				}
