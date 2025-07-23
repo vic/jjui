@@ -70,7 +70,7 @@ func (m *Model) View() string {
 		style := m.successStyle
 		if message.error != nil {
 			style = m.errorStyle
-			messageBoxes = append(messageBoxes, style.Render(message.text+"\n"+message.error.Error()))
+			messageBoxes = append(messageBoxes, style.Render(message.error.Error()))
 		} else {
 			messageBoxes = append(messageBoxes, style.Render(message.text))
 		}

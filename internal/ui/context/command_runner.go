@@ -28,8 +28,15 @@ type MainCommandRunner struct {
 func (a *MainCommandRunner) RunCommandImmediate(args []string) ([]byte, error) {
 	c := exec.Command("jj", args...)
 	c.Dir = a.Location
-	output, err := c.CombinedOutput()
-	return bytes.Trim(output, "\n"), err
+	if output, err := c.Output(); err != nil {
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
+			return nil, errors.New(string(exitError.Stderr))
+		}
+		return nil, err
+	} else {
+		return bytes.Trim(output, "\n"), nil
+	}
 }
 
 func (a *MainCommandRunner) RunCommandStreaming(ctx context.Context, args []string) (*StreamingCommand, error) {

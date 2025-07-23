@@ -14,6 +14,9 @@ type JJConfig struct {
 
 func (c *JJConfig) GetApplicableColors() map[string]Color {
 	ret := make(map[string]Color)
+	if c == nil || c.Colors == nil {
+		return ret
+	}
 	applicableColorKeys := []string{
 		"diff added",
 		"diff renamed",

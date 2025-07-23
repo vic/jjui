@@ -448,20 +448,26 @@ func (m *Model) loadStreaming(revset string, selectedRevision string, tag uint64
 	}
 
 	m.hasMore = false
-	return func() tea.Msg {
-		streamer, err := graph.NewGraphStreamer(m.context, revset)
-		if err != nil {
+
+	var notifyErrorCmd tea.Cmd
+	streamer, err := graph.NewGraphStreamer(m.context, revset)
+	if err != nil {
+		notifyErrorCmd = func() tea.Msg {
 			return common.UpdateRevisionsFailedMsg{
 				Err:    err,
 				Output: fmt.Sprintf("%v", err),
 			}
 		}
-		m.streamer = streamer
-		m.hasMore = true
-		m.offScreenRows = nil
-		log.Println("Starting streaming revisions with tag:", tag)
+	}
+	m.streamer = streamer
+	m.hasMore = true
+	m.offScreenRows = nil
+	log.Println("Starting streaming revisions with tag:", tag)
+	var startStreamingCmd = func() tea.Msg {
 		return startRowsStreamingMsg{selectedRevision, tag}
 	}
+
+	return tea.Batch(startStreamingCmd, notifyErrorCmd)
 }
 
 func (m *Model) requestMoreRows(tag uint64) tea.Cmd {

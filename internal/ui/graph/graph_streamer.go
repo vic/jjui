@@ -24,6 +24,7 @@ type GraphStreamer struct {
 
 func NewGraphStreamer(ctx appContext.CommandRunner, revset string) (*GraphStreamer, error) {
 	streamerCtx, cancel := context.WithCancel(context.Background())
+	var commandError error
 
 	command, err := ctx.RunCommandStreaming(streamerCtx, jj.Log(revset, config.Current.Limit))
 	if err != nil {
@@ -47,11 +48,7 @@ func NewGraphStreamer(ctx appContext.CommandRunner, revset string) (*GraphStream
 	// Wait for stderr check with timeout
 	select {
 	case stderrErr := <-errCh:
-		if stderrErr != nil {
-			cancel()
-			_ = command.Close()
-			return nil, stderrErr
-		}
+		commandError = stderrErr
 	case <-time.After(100 * time.Millisecond):
 		// Timeout, assume no error and continue
 	}
@@ -73,7 +70,7 @@ func NewGraphStreamer(ctx appContext.CommandRunner, revset string) (*GraphStream
 		controlChan: controlChan,
 		rowsChan:    rowsChan,
 		batchSize:   DefaultBatchSize,
-	}, nil
+	}, commandError
 }
 func (g *GraphStreamer) RequestMore() parser.RowBatch {
 	g.controlChan <- parser.RequestMore
