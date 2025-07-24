@@ -116,7 +116,6 @@ func (ui *UIConfig) UnmarshalTOML(data interface{}) error {
 }
 
 type PreviewConfig struct {
-	ExtraArgs                []string `toml:"extra_args"`
 	RevisionCommand          []string `toml:"revision_command"`
 	OplogCommand             []string `toml:"oplog_command"`
 	FileCommand              []string `toml:"file_command"`

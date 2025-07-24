@@ -96,7 +96,6 @@ limit = 0
 [ui.colors]
 
 [preview]
-  extra_args = []
   revision_command = ["show", "--color", "always", "-r", "$change_id"]
   oplog_command = ["op", "show", "$operation_id", "--color", "always"]
   file_command = ["diff", "--color", "always", "-r", "$change_id", "$file"]
