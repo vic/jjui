@@ -70,15 +70,17 @@ func (a *MainCommandRunner) RunCommand(args []string, continuations ...tea.Cmd) 
 			}
 			c := exec.Command("jj", args...)
 			c.Dir = a.Location
-			output, err := c.Output()
+			var output bytes.Buffer
+			c.Stderr = &output
+			_, err := c.Output()
 			if err != nil {
 				var exitError *exec.ExitError
 				if errors.As(err, &exitError) {
-					err = errors.New(string(exitError.Stderr))
+					err = errors.New(output.String())
 				}
 			}
 			return common.CommandCompletedMsg{
-				Output: string(output),
+				Output: output.String(),
 				Err:    err,
 			}
 		})
