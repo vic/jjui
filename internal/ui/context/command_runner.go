@@ -100,7 +100,7 @@ func (a *MainCommandRunner) RunInteractiveCommand(args []string, continuation te
 		common.CommandRunning(args),
 		tea.ExecProcess(c, func(err error) tea.Msg {
 			if err != nil {
-				return common.CommandCompletedMsg{Err: err, Output: errBuffer.String()}
+				return common.CommandCompletedMsg{Err: errors.New(errBuffer.String())}
 			}
 			return tea.Batch(continuation, func() tea.Msg {
 				return common.CommandCompletedMsg{Err: nil}
