@@ -80,7 +80,7 @@ func (m *Model) View() string {
 
 func (m *Model) add(text string, error error) uint64 {
 	text = strings.TrimSpace(text)
-	if text == "" {
+	if text == "" && error == nil {
 		return 0
 	}
 
