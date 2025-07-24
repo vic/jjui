@@ -27,6 +27,7 @@ limit = 0
   revset = ["L"]
   exec_jj = [":"]
   exec_shell = ["$"]
+  file_search = ["ctrl+t"]
   quick_search = ["/"]
   quick_search_cycle = ["'"]
   custom_commands = ["x"]
