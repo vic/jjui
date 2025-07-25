@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/idursun/jjui/internal/ui/common"
 	"github.com/idursun/jjui/internal/ui/confirmation"
+	"time"
 )
 
 type model struct {
@@ -19,7 +20,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case common.CloseViewMsg, confirmation.CloseMsg:
 		m.closed = true
-		return m, tea.Quit
+		// give enough time to clear pending messages before quitting
+		return m, tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+			return tea.QuitMsg{}
+		})
 	default:
 		var cmd tea.Cmd
 		m.embeddedModel, cmd = m.embeddedModel.Update(msg)
