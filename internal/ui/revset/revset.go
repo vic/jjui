@@ -201,7 +201,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 func (m *Model) View() string {
 	var w strings.Builder
-	w.WriteString(m.styles.promptStyle.Render("revset:"))
+	w.WriteString(m.styles.promptStyle.PaddingRight(1).Render("revset:"))
 	if m.Editing {
 		w.WriteString(m.autoComplete.View())
 	} else {
@@ -209,7 +209,7 @@ func (m *Model) View() string {
 		if m.Value != "" {
 			revset = m.Value
 		}
-		w.WriteString(m.styles.textStyle.Render("", revset))
+		w.WriteString(m.styles.textStyle.Render(revset))
 	}
 	return lipgloss.Place(m.width, m.height, 0, 0, w.String(), lipgloss.WithWhitespaceBackground(m.styles.textStyle.GetBackground()))
 }
