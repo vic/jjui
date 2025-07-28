@@ -20,7 +20,7 @@ func ConfigListAll() CommandArgs {
 }
 
 func Log(revset string, limit int) CommandArgs {
-	args := []string{"log", "--color", "always", "--quiet", "--ignore-working-copy"}
+	args := []string{"log", "--color", "always", "--quiet"}
 	if revset != "" {
 		args = append(args, "-r", revset)
 	}
