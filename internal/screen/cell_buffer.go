@@ -32,6 +32,9 @@ var spaceCell = gridCell{
 	width: 1,
 }
 
+const TransparentFg = lipgloss.Color("#010203")
+const TransparentBg = lipgloss.Color("#010203")
+
 func Stacked(view1, view2 string, x, y int) string {
 	if x < 0 {
 		x = 0
@@ -111,8 +114,10 @@ func (b *cellBuffer) merge(input []byte, offsetX, offsetY int) {
 				width: charWidth,
 			}
 
+			isTransparent := st.Style.GetBackground() == TransparentBg && st.Style.GetForeground() == TransparentFg
+
 			// Ensure the grid has enough space for the current character
-			if currentLine < len(b.grid) {
+			if currentLine < len(b.grid) && !isTransparent {
 				if currentCol < len(b.grid[currentLine]) {
 					b.grid[currentLine][currentCol] = c
 				}

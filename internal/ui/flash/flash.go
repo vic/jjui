@@ -1,6 +1,7 @@
 package flash
 
 import (
+	"github.com/idursun/jjui/internal/screen"
 	"strings"
 	"time"
 
@@ -75,7 +76,27 @@ func (m *Model) View() string {
 			messageBoxes = append(messageBoxes, style.Render(message.text))
 		}
 	}
-	return lipgloss.JoinVertical(lipgloss.Right, messageBoxes...)
+	maxWidth, maxHeight := 0, 0
+	var combined []string
+	for _, box := range messageBoxes {
+		width, height := lipgloss.Size(box)
+		if width > maxWidth {
+			maxWidth = width
+		}
+		if height > maxHeight {
+			maxHeight = height
+		}
+	}
+	for _, box := range messageBoxes {
+		combined = append(combined,
+			lipgloss.PlaceHorizontal(maxWidth,
+				lipgloss.Right, box,
+				lipgloss.WithWhitespaceForeground(screen.TransparentFg),
+				lipgloss.WithWhitespaceBackground(screen.TransparentBg),
+			),
+		)
+	}
+	return lipgloss.JoinVertical(lipgloss.Right, combined...)
 }
 
 func (m *Model) add(text string, error error) uint64 {
