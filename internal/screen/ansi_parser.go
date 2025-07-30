@@ -24,7 +24,7 @@ func ParseFromReader(r io.Reader) <-chan *Segment {
 	go func() {
 		defer close(ch)
 		var buffer bytes.Buffer
-		currentParams := ""
+		currentStyle := lipgloss.NewStyle()
 		reader := bufio.NewReader(r)
 
 		for {
@@ -46,9 +46,10 @@ func ParseFromReader(r io.Reader) <-chan *Segment {
 				if len(peekBytes) >= 1 && peekBytes[0] == '[' {
 					_, _ = reader.Discard(1)
 					if buffer.Len() > 0 {
+						text := buffer.String()
 						ch <- &Segment{
-							Text:  buffer.String(),
-							Style: paramToStyle(currentParams),
+							Text:  text,
+							Style: currentStyle,
 						}
 						buffer.Reset()
 					}
@@ -64,9 +65,9 @@ func ParseFromReader(r io.Reader) <-chan *Segment {
 
 					paramStr := seq.String()
 					if paramStr == "0" {
-						currentParams = ""
+						currentStyle = lipgloss.NewStyle()
 					} else {
-						currentParams = paramStr
+						currentStyle = applyParamsToStyle(currentStyle, paramStr)
 					}
 				} else {
 					buffer.WriteByte(b)
@@ -83,7 +84,7 @@ func ParseFromReader(r io.Reader) <-chan *Segment {
 		if buffer.Len() > 0 {
 			ch <- &Segment{
 				Text:  buffer.String(),
-				Style: paramToStyle(currentParams),
+				Style: currentStyle,
 			}
 		}
 	}()
@@ -91,11 +92,14 @@ func ParseFromReader(r io.Reader) <-chan *Segment {
 }
 
 func paramToStyle(param string) lipgloss.Style {
+	return applyParamsToStyle(lipgloss.NewStyle(), param)
+}
+
+func applyParamsToStyle(style lipgloss.Style, param string) lipgloss.Style {
 	if param == "" {
-		return lipgloss.NewStyle()
+		return style
 	}
 
-	style := lipgloss.NewStyle()
 	parts := strings.Split(param, ";")
 
 	for i := 0; i < len(parts); i++ {
@@ -106,7 +110,7 @@ func paramToStyle(param string) lipgloss.Style {
 
 		switch {
 		case code == 0:
-			// Reset
+			// Reset all
 			style = lipgloss.NewStyle()
 		case code == 1:
 			// Bold
@@ -133,6 +137,27 @@ func paramToStyle(param string) lipgloss.Style {
 		case code == 9:
 			// Strikethrough
 			style = style.Strikethrough(true)
+		case code == 22:
+			// Disable bold/dim
+			style = style.UnsetBold().UnsetFaint()
+		case code == 23:
+			// Disable italic
+			style = style.UnsetItalic()
+		case code == 24:
+			// Disable underline
+			style = style.UnsetUnderline()
+		case code == 25:
+			// Disable blink
+			style = style.UnsetBlink()
+		case code == 27:
+			// Disable reverse
+			style = style.UnsetReverse()
+		case code == 28:
+			// Disable hidden (not directly supported, but we can try to reset faint)
+			style = style.UnsetFaint()
+		case code == 29:
+			// Disable strikethrough
+			style = style.UnsetStrikethrough()
 		case code >= 30 && code <= 37:
 			// Foreground color
 			style = style.Foreground(lipgloss.ANSIColor(code - 30))
