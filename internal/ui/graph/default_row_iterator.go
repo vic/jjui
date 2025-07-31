@@ -56,7 +56,7 @@ func WithWidth(width int) Option {
 
 func WithStylePrefix(prefix string) Option {
 	if prefix != "" {
-		prefix = " "
+		prefix += " "
 	}
 	return func(s *DefaultRowIterator) {
 		s.textStyle = common.DefaultPalette.Get(prefix + "text").Inline(true)
