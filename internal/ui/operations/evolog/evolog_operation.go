@@ -49,10 +49,12 @@ func (o *Operation) HandleKey(msg tea.KeyMsg) tea.Cmd {
 		case key.Matches(msg, o.keyMap.Up):
 			if o.cursor > 0 {
 				o.cursor--
+				return o.updateSelection()
 			}
 		case key.Matches(msg, o.keyMap.Down):
 			if o.cursor < len(o.rows)-1 {
 				o.cursor++
+				return o.updateSelection()
 			}
 		case key.Matches(msg, o.keyMap.Evolog.Diff):
 			return func() tea.Msg {
@@ -104,11 +106,12 @@ func (o *Operation) Update(msg tea.Msg) (operations.OperationWithOverlay, tea.Cm
 	case updateEvologMsg:
 		o.rows = msg.rows
 		o.cursor = 0
+		return o, o.updateSelection()
 	case tea.KeyMsg:
 		cmd := o.HandleKey(msg)
 		return o, cmd
 	}
-	return o, o.updateSelection()
+	return o, nil
 }
 
 func (o *Operation) getSelectedEvolog() *jj.Commit {
