@@ -19,62 +19,79 @@ const (
 )
 
 func TestPalette_Get(t *testing.T) {
-	// Set up a palette with test styles using the add method
-	p := NewPalette()
-
-	// Add styles using the palette's add method
-	p.add("text", lipgloss.NewStyle().Foreground(lipgloss.Color(White)))
-	p.add("selected", lipgloss.NewStyle().Background(lipgloss.Color(Black)).Bold(true))
-	p.add("revisions", lipgloss.NewStyle().Italic(true))
-	p.add("revisions text", lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)))
+	type args struct {
+		selector string
+		styles   map[string]lipgloss.Style
+	}
 
 	tests := []struct {
-		name     string
-		selector string
-		want     lipgloss.Style
-		palette  *Palette
+		name string
+		args args
+		want lipgloss.Style
 	}{
 		{
-			name:     "exact match for single label",
-			selector: "text",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
-			palette:  p,
+			name: "exact match for single label",
+			args: args{
+				selector: "text",
+				styles: map[string]lipgloss.Style{
+					"text": lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
+				},
+			},
+			want: lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
 		},
 		{
-			name:     "combined labels",
-			selector: "revisions selected",
-			want:     lipgloss.NewStyle().Background(lipgloss.Color(Black)).Bold(true).Italic(true),
-			palette:  p,
+			name: "combined labels",
+			args: args{
+				selector: "revisions selected",
+				styles: map[string]lipgloss.Style{
+					"revisions": lipgloss.NewStyle().Italic(true),
+					"selected":  lipgloss.NewStyle().Background(lipgloss.Color(Black)).Bold(true),
+				},
+			},
+			want: lipgloss.NewStyle().Background(lipgloss.Color(Black)).Bold(true).Italic(true),
 		},
 		{
-			name:     "non-existent label",
-			selector: "nonexistent",
-			want:     lipgloss.NewStyle(),
-			palette:  p,
+			name: "non-existent label",
+			args: args{selector: "nonexistent", styles: nil},
+			want: lipgloss.NewStyle(),
 		},
 		{
-			name:     "mixed existing and non-existent labels",
-			selector: "text nonexistent",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
-			palette:  p,
+			name: "mixed existing and non-existent labels",
+			args: args{
+				selector: "text nonexistent",
+				styles: map[string]lipgloss.Style{
+					"text": lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
+				},
+			},
+			want: lipgloss.NewStyle().Foreground(lipgloss.Color(White)),
 		},
 		{
-			name:     "empty selector",
-			selector: "",
-			want:     lipgloss.NewStyle(),
-			palette:  p,
+			name: "empty selector",
+			args: args{selector: "", styles: nil},
+			want: lipgloss.NewStyle(),
 		},
 		{
-			name:     "exact match for compound label",
-			selector: "revisions text",
-			want:     lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)).Italic(true),
-			palette:  p,
+			name: "exact match for compound label",
+			args: args{
+				selector: "revisions text",
+				styles: map[string]lipgloss.Style{
+					"revisions text": lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)).Italic(true),
+				},
+			},
+			want: lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)).Italic(true),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.palette.Get(tt.selector)
+			// Set up a palette with test styles using the add method
+			p := NewPalette()
+
+			for key, style := range tt.args.styles {
+				p.add(key, style)
+			}
+
+			got := p.Get(tt.args.selector)
 
 			// Compare foreground colours
 			assert.Equal(t, tt.want.GetForeground(), got.GetForeground(), "foreground color mismatch")
