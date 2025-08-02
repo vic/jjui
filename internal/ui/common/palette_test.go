@@ -80,6 +80,28 @@ func TestPalette_Get(t *testing.T) {
 			},
 			want: lipgloss.NewStyle().Foreground(lipgloss.Color(Cyan)).Background(lipgloss.Color(Green)).Italic(true),
 		},
+		{
+			name: "attribute inheritance",
+			args: args{
+				selector: "revisions matched",
+				styles: map[string]lipgloss.Style{
+					"matched":           lipgloss.NewStyle().Underline(true),
+					"revisions matched": lipgloss.NewStyle().Underline(false),
+				},
+			},
+			want: lipgloss.NewStyle().Underline(false),
+		},
+		{
+			name: "attribute inheritance2",
+			args: args{
+				selector: "revisions matched",
+				styles: map[string]lipgloss.Style{
+					"matched":           lipgloss.NewStyle().Underline(false),
+					"revisions matched": lipgloss.NewStyle().Underline(true),
+				},
+			},
+			want: lipgloss.NewStyle().Underline(true),
+		},
 	}
 
 	for _, tt := range tests {
